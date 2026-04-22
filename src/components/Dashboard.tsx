@@ -1062,7 +1062,7 @@ function CampaignControlRow({
   );
 }
 
-
+function CreativeUpload() {
   const [files, setFiles] = useState<File[]>([]);
   const [briefing, setBriefing] = useState("");
   const [generated, setGenerated] = useState<any>(null);
