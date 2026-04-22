@@ -1579,60 +1579,207 @@ function IATab() {
 }
 
 // ============== AUTOMAÇÃO ==============
-function Automacao({ camps, roas }: { camps: any[]; roas: number }) {
+function Automacao({
+  camps,
+  campConv,
+  roas,
+}: {
+  camps: any[];
+  campConv: any[];
+  roas: number;
+}) {
+  const recommendations = useMemo(
+    () => generateRecommendations(campConv, camps, { roasTarget: 2, cpaTarget: 10 }),
+    [campConv, camps],
+  );
+
+  // alertas legados (mantém compatibilidade)
   const alerts: { type: "danger" | "warning" | "info"; msg: string }[] = [];
-  if (roas < 2 && roas > 0) alerts.push({ type: "danger", msg: `ROAS conta abaixo de 2x (atual ${roas.toFixed(2)}x)` });
-  for (const c of camps) {
-    const eff = c.effective_status || c.status;
-    if (eff === "ACTIVE" && c.cpa > 10 && c.conversions > 0)
-      alerts.push({ type: "warning", msg: `${c.name}: CPA ${formatBRL(c.cpa)} acima de R$10 — considere pausar` });
-    if (eff === "ACTIVE" && c.spend > 100 && c.roas < 1)
-      alerts.push({ type: "danger", msg: `${c.name}: ROAS ${c.roas.toFixed(2)}x e gasto ${formatBRL(c.spend)} — pausar` });
-  }
+  if (roas < 2 && roas > 0)
+    alerts.push({ type: "danger", msg: `ROAS conta abaixo de 2x (atual ${roas.toFixed(2)}x)` });
+
+  const counts = recommendations.reduce(
+    (a, r) => {
+      a[r.severity]++;
+      return a;
+    },
+    { critical: 0, warning: 0, opportunity: 0, info: 0 } as Record<string, number>,
+  );
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-xl border border-border bg-card p-5">
-          <Bell className="h-5 w-5 text-primary" />
-          <h3 className="mt-3 text-sm font-semibold">Alertas Inteligentes</h3>
-          <p className="mt-1 text-xs text-muted-foreground">ROAS &lt; 2x · CPA &gt; R$10 · Adsets sem conversão</p>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5">
+          <p className="text-xs uppercase text-muted-foreground">Críticas (pausar)</p>
+          <p className="mt-2 text-2xl font-bold text-destructive">{counts.critical}</p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-5">
-          <Zap className="h-5 w-5 text-primary" />
-          <h3 className="mt-3 text-sm font-semibold">Subida Automática</h3>
-          <p className="mt-1 text-xs text-muted-foreground">Cards de Escala com 1 clique disparam POST na Graph API</p>
+        <div className="rounded-xl border border-[oklch(0.77_0.19_70/0.3)] bg-[oklch(0.77_0.19_70/0.05)] p-5">
+          <p className="text-xs uppercase text-muted-foreground">Avisos (ajustar)</p>
+          <p className="mt-2 text-2xl font-bold text-[oklch(0.77_0.19_70)]">{counts.warning}</p>
+        </div>
+        <div className="rounded-xl border border-[oklch(0.7_0.18_162/0.3)] bg-[oklch(0.7_0.18_162/0.05)] p-5">
+          <p className="text-xs uppercase text-muted-foreground">Oportunidades (escalar)</p>
+          <p className="mt-2 text-2xl font-bold text-[oklch(0.7_0.18_162)]">{counts.opportunity}</p>
         </div>
         <div className="rounded-xl border border-border bg-card p-5">
           <FileDown className="h-5 w-5 text-primary" />
-          <h3 className="mt-3 text-sm font-semibold">Relatório Semanal</h3>
+          <h3 className="mt-2 text-sm font-semibold">Relatório PDF</h3>
           <button
             onClick={() => window.print()}
             className="mt-2 inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
           >
-            <FileDown className="h-3 w-3" /> Exportar PDF
+            <FileDown className="h-3 w-3" /> Exportar
           </button>
         </div>
       </div>
 
-      <div className="rounded-xl border border-border bg-card">
-        <div className="border-b border-border p-5">
-          <h3 className="text-sm font-semibold">🚨 Alertas Ativos ({alerts.length})</h3>
+      <RecommendationsPanel recommendations={recommendations} camps={camps} />
+
+      {alerts.length > 0 && (
+        <div className="rounded-xl border border-border bg-card">
+          <div className="border-b border-border p-5">
+            <h3 className="text-sm font-semibold">🚨 Alertas da conta</h3>
+          </div>
+          <div className="divide-y divide-border">
+            {alerts.map((a, i) => (
+              <div key={i} className="flex items-start gap-3 p-4">
+                <AlertTriangle
+                  className={`mt-0.5 h-4 w-4 shrink-0 ${a.type === "danger" ? "text-destructive" : "text-[oklch(0.77_0.19_70)]"}`}
+                />
+                <p className="text-sm">{a.msg}</p>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="divide-y divide-border">
-          {alerts.length === 0 && (
-            <div className="p-6 text-center text-sm text-muted-foreground">Tudo certo! 🎉</div>
-          )}
-          {alerts.map((a, i) => (
-            <div key={i} className="flex items-start gap-3 p-4">
-              <AlertTriangle
-                className={`mt-0.5 h-4 w-4 shrink-0 ${a.type === "danger" ? "text-destructive" : "text-[oklch(0.77_0.19_70)]"}`}
-              />
-              <p className="text-sm">{a.msg}</p>
-            </div>
-          ))}
-        </div>
+      )}
+    </div>
+  );
+}
+
+// ============== RECOMMENDATIONS PANEL (1-clique para aplicar) ==============
+function RecommendationsPanel({
+  recommendations,
+  camps,
+}: {
+  recommendations: Recommendation[];
+  camps: any[];
+}) {
+  const qc = useQueryClient();
+  const [duplicateFor, setDuplicateFor] = useState<string | null>(null);
+
+  const pause = useMutation({
+    mutationFn: (id: string) => updateCampaignStatus({ data: { campaignId: id, status: "PAUSED" } }),
+    onSuccess: (res) => {
+      if (res.ok) {
+        toast.success("Campanha pausada");
+        qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
+        qc.invalidateQueries({ queryKey: ["meta-camp-conv"] });
+      } else toast.error(res.error || "Falha");
+    },
+  });
+
+  const adjustBudget = useMutation({
+    mutationFn: (vars: { id: string; cents: number }) =>
+      updateBudget({ data: { id: vars.id, dailyBudgetCents: vars.cents, type: "campaign" } }),
+    onSuccess: (res, vars) => {
+      if (res.ok) {
+        toast.success(`Budget ajustado para ${formatBRL(vars.cents / 100)}/dia`);
+        qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
+      } else toast.error(res.error || "Falha (CBO?)");
+    },
+  });
+
+  const apply = (r: Recommendation) => {
+    switch (r.action) {
+      case "PAUSE":
+        pause.mutate(r.campaignId);
+        break;
+      case "DECREASE_BUDGET":
+      case "INCREASE_BUDGET":
+        if (r.suggestedDailyBudgetCents) {
+          adjustBudget.mutate({ id: r.campaignId, cents: r.suggestedDailyBudgetCents });
+        } else {
+          toast.info("Edite o budget na aba Controle (CBO ativo no adset).");
+        }
+        break;
+      case "DUPLICATE_WINNER":
+        setDuplicateFor(r.campaignId);
+        break;
+      case "CHANGE_AUDIENCE":
+      case "CHANGE_CREATIVE":
+      case "FIX_LANDING_PAGE":
+        toast.info(`Ação manual recomendada: ${r.title}. Acesse o Meta Ads Manager.`);
+        break;
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-card">
+      <div className="border-b border-border p-5">
+        <SectionHeader
+          title="🤖 Recomendações Automáticas"
+          subtitle={`${recommendations.length} ações sugeridas baseadas em CVR, ROAS e funil real`}
+        />
       </div>
+      <div className="divide-y divide-border">
+        {recommendations.length === 0 ? (
+          <div className="p-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              ✨ Nenhuma recomendação no momento. Suas campanhas ativas estão saudáveis ou não há gasto suficiente para análise.
+            </p>
+          </div>
+        ) : (
+          recommendations.map((r) => {
+            const meta = ACTION_LABELS[r.action];
+            const isPending =
+              (pause.isPending && pause.variables === r.campaignId) ||
+              (adjustBudget.isPending && adjustBudget.variables?.id === r.campaignId);
+            return (
+              <div key={r.id} className={`flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between ${SEVERITY_STYLES[r.severity]}`}>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{meta.emoji}</span>
+                    <p className="truncate text-sm font-bold">{r.title}</p>
+                    <span className="rounded-full bg-card px-2 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+                      {r.severity}
+                    </span>
+                  </div>
+                  <p className="mt-1 truncate text-xs font-medium text-muted-foreground">
+                    {r.campaignName}
+                  </p>
+                  <p className="mt-1 text-xs">{r.reason}</p>
+                  <div className="mt-1 flex flex-wrap gap-3 text-[11px] text-muted-foreground">
+                    <span>📊 {r.metric}</span>
+                    {r.suggestedDailyBudgetCents && r.currentDailyBudgetCents ? (
+                      <span>
+                        💰 {formatBRL(r.currentDailyBudgetCents / 100)} →{" "}
+                        <strong className="text-foreground">{formatBRL(r.suggestedDailyBudgetCents / 100)}</strong>/dia
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+                <button
+                  onClick={() => apply(r)}
+                  disabled={isPending}
+                  className={`inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-2 text-xs font-bold disabled:opacity-50 ${meta.color}`}
+                >
+                  {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Zap className="h-3 w-3" />}
+                  {meta.label}
+                </button>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {duplicateFor && (
+        <DuplicateCampaignModal
+          camps={camps}
+          campConv={[]}
+          preselectedId={duplicateFor}
+          onClose={() => setDuplicateFor(null)}
+        />
+      )}
     </div>
   );
 }
