@@ -511,21 +511,66 @@ export const getCampaignDetails = createServerFn({ method: "GET" })
           "id,name,status,effective_status,objective,daily_budget,lifetime_budget,buying_type,bid_strategy,special_ad_categories,created_time,updated_time,start_time,stop_time,configured_status",
       });
 
-      // Adsets
-      const adsetsRes = await metaFetch(`${data.campaignId}/adsets`, {
-        fields:
-          "id,name,status,effective_status,daily_budget,lifetime_budget,optimization_goal,billing_event,bid_amount,targeting,start_time,end_time",
-        limit: "100",
-      });
-      const adsets = adsetsRes.data ?? [];
+      // Adsets — paginate through all
+      const adsets: any[] = [];
+      {
+        let next: string | null = null;
+        let page = await metaFetch(`${data.campaignId}/adsets`, {
+          fields:
+            "id,name,status,effective_status,daily_budget,lifetime_budget,optimization_goal,billing_event,bid_amount,targeting,start_time,end_time",
+          limit: "100",
+        });
+        adsets.push(...(page.data ?? []));
+        next = page.paging?.next ?? null;
+        let safety = 0;
+        while (next && safety < 20) {
+          const res = await fetch(next);
+          page = await res.json();
+          if (page?.data) adsets.push(...page.data);
+          next = page?.paging?.next ?? null;
+          safety++;
+        }
+      }
 
-      // Ads + creatives
-      const adsRes = await metaFetch(`${data.campaignId}/ads`, {
-        fields:
-          "id,name,status,effective_status,adset_id,creative{id,name,title,body,image_url,thumbnail_url,object_story_spec,asset_feed_spec,video_id,call_to_action_type,instagram_permalink_url,effective_object_story_id}",
-        limit: "200",
-      });
-      const ads = adsRes.data ?? [];
+      // Ads + creatives — paginate through all (NOT just first page)
+      const ads: any[] = [];
+      {
+        let next: string | null = null;
+        let page = await metaFetch(`${data.campaignId}/ads`, {
+          fields:
+            "id,name,status,effective_status,adset_id,created_time,updated_time,creative{id,name,title,body,image_url,thumbnail_url,object_story_spec,asset_feed_spec,video_id,call_to_action_type,instagram_permalink_url,effective_object_story_id,effective_instagram_media_id,object_type}",
+          limit: "100",
+        });
+        ads.push(...(page.data ?? []));
+        next = page.paging?.next ?? null;
+        let safety = 0;
+        while (next && safety < 30) {
+          const res = await fetch(next);
+          page = await res.json();
+          if (page?.data) ads.push(...page.data);
+          next = page?.paging?.next ?? null;
+          safety++;
+        }
+      }
+
+      // Resolve missing thumbnails via the ad's /previews endpoint (best effort)
+      await Promise.all(
+        ads.map(async (a: any) => {
+          const cre = a.creative || {};
+          const story = cre.object_story_spec || {};
+          const link = story.link_data || story.video_data || {};
+          const hasImg = cre.image_url || cre.thumbnail_url || link.picture;
+          if (hasImg) return;
+          try {
+            const prev = await metaFetch(`${a.id}/previews`, {
+              ad_format: "MOBILE_FEED_STANDARD",
+            });
+            const body: string = prev?.data?.[0]?.body || "";
+            const m = body.match(/src=\\?"(https:[^"\\]+\.(?:jpg|jpeg|png|webp)[^"\\]*)/i);
+            if (m) a._previewImage = m[1].replace(/&amp;/g, "&");
+          } catch {}
+        })
+      );
 
       // Insights por campanha
       const camIns = await metaFetch(`${data.campaignId}/insights`, {
