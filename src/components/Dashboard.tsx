@@ -602,10 +602,11 @@ function Overview({
 }
 
 function CampaignsTable({ camps, loading, onRefresh }: { camps: any[]; loading: boolean; onRefresh: () => void }) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   return (
     <div className="rounded-xl border border-border bg-card">
       <div className="border-b border-border p-5">
-        <SectionHeader title="Campanhas" subtitle={`${camps.length} encontradas no período`} loading={loading} onRefresh={onRefresh} />
+        <SectionHeader title="Campanhas" subtitle={`${camps.length} encontradas no período • clique para ver detalhes`} loading={loading} onRefresh={onRefresh} />
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -619,26 +620,31 @@ function CampaignsTable({ camps, loading, onRefresh }: { camps: any[]; loading: 
               <th className="px-5 py-3 text-right">CPA</th>
               <th className="px-5 py-3 text-right">Conv.</th>
               <th className="px-5 py-3 text-right">CTR</th>
+              <th className="px-5 py-3 text-right"></th>
             </tr>
           </thead>
           <tbody>
             {loading && camps.length === 0 ? (
               Array.from({ length: 4 }).map((_, i) => (
                 <tr key={i} className="border-b border-border/50">
-                  <td colSpan={8} className="px-5 py-4">
+                  <td colSpan={9} className="px-5 py-4">
                     <div className="h-5 animate-pulse rounded bg-muted/60" />
                   </td>
                 </tr>
               ))
             ) : camps.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-5 py-10 text-center text-muted-foreground">
+                <td colSpan={9} className="px-5 py-10 text-center text-muted-foreground">
                   Nenhuma campanha encontrada no período
                 </td>
               </tr>
             ) : (
               camps.map((c) => (
-                <tr key={c.id} className="border-b border-border/50 last:border-0 hover:bg-accent/30">
+                <tr
+                  key={c.id}
+                  onClick={() => setSelectedId(c.id)}
+                  className="cursor-pointer border-b border-border/50 last:border-0 hover:bg-accent/30"
+                >
                   <td className="max-w-xs truncate px-5 py-3 font-medium">{c.name}</td>
                   <td className="px-5 py-3">
                     <StatusBadge status={c.effective_status || c.status} />
@@ -651,12 +657,18 @@ function CampaignsTable({ camps, loading, onRefresh }: { camps: any[]; loading: 
                   <td className="px-5 py-3 text-right">{formatBRL(c.cpa)}</td>
                   <td className="px-5 py-3 text-right">{formatNumber(c.conversions)}</td>
                   <td className="px-5 py-3 text-right">{formatPct(c.ctr)}</td>
+                  <td className="px-5 py-3 text-right text-muted-foreground">
+                    <ChevronRight className="ml-auto h-4 w-4" />
+                  </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
+      {selectedId && (
+        <CampaignDetailsModal campaignId={selectedId} onClose={() => setSelectedId(null)} />
+      )}
     </div>
   );
 }
