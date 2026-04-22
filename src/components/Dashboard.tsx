@@ -53,6 +53,10 @@ import {
   getClickBreakdown,
   getCampaignsConversion,
   getCampaignDetails,
+  updateAdStatus,
+  updateAdName,
+  updateAdsetStatus,
+  updateAdsetBudget,
 } from "../server/meta";
 import {
   loadCustomApis,
