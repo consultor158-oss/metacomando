@@ -164,11 +164,20 @@ export function Dashboard() {
       qc.invalidateQueries({ queryKey: ["meta-account"] }),
       qc.invalidateQueries({ queryKey: ["meta-insights"] }),
       qc.invalidateQueries({ queryKey: ["meta-campaigns"] }),
+      qc.invalidateQueries({ queryKey: ["meta-funnel"] }),
+      qc.invalidateQueries({ queryKey: ["meta-click-breakdown"] }),
+      qc.invalidateQueries({ queryKey: ["meta-camp-conv"] }),
     ]);
     toast.success("Dados atualizados!");
   };
 
-  const anyLoading = account.isFetching || insights.isFetching || campaigns.isFetching;
+  const anyLoading =
+    account.isFetching ||
+    insights.isFetching ||
+    campaigns.isFetching ||
+    funnel.isFetching ||
+    clickBreakdown.isFetching ||
+    campConv.isFetching;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
