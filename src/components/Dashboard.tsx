@@ -635,46 +635,245 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 // ============== ANÁLISE ==============
-function Analise({ camps, totals, loading }: any) {
-  const top = [...camps].sort((a, b) => b.roas - a.roas).slice(0, 5);
-  const bottom = [...camps].filter((c) => c.spend > 0).sort((a, b) => a.roas - b.roas).slice(0, 5);
-
-  const reach = totals.impressions;
-  const clicks = totals.clicks;
-  const conv = totals.conversions;
-  const funnel = [
-    { label: "Impressões", value: reach, pct: 100 },
-    { label: "Cliques", value: clicks, pct: reach > 0 ? (clicks / reach) * 100 : 0 },
-    { label: "Conversões", value: conv, pct: clicks > 0 ? (conv / clicks) * 100 : 0 },
+function Analise({
+  camps,
+  totals,
+  loading,
+  funnel,
+  funnelLoading,
+  breakdown,
+  breakdownLoading,
+  campConv,
+  campConvLoading,
+  onRefresh,
+}: any) {
+  // Funil real Meta: Impressão -> Click no link -> LPV -> ATC -> Checkout -> Purchase
+  const f = funnel || {};
+  const steps = [
+    { label: "Impressões", value: f.impressions || totals.impressions, color: "from-primary to-chart-2" },
+    { label: "Cliques no link", value: f.link_clicks || 0, color: "from-chart-2 to-chart-3" },
+    { label: "Visualização da página (LPV)", value: f.landing_page_views || 0, color: "from-chart-3 to-chart-4" },
+    { label: "Adicionou ao carrinho", value: f.add_to_cart || 0, color: "from-chart-4 to-chart-5" },
+    { label: "Iniciou checkout", value: f.initiate_checkout || 0, color: "from-chart-5 to-[oklch(0.77_0.19_70)]" },
+    { label: "Compras 💰", value: f.purchases || 0, color: "from-[oklch(0.7_0.18_162)] to-[oklch(0.7_0.18_162)]" },
   ];
+  const maxStep = Math.max(...steps.map((s) => s.value), 1);
+
+  const sells = (campConv as any[]).filter((c) => c.really_sells);
+  const wastes = (campConv as any[]).filter((c) => c.spend > 20 && c.purchases === 0);
 
   return (
     <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="rounded-xl border border-border bg-card p-5">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Vende de verdade?</p>
+          <p className="mt-2 text-2xl font-bold">
+            {f.purchases > 0 && f.revenue > f.spend ? (
+              <span className="text-[oklch(0.7_0.18_162)]">✅ SIM</span>
+            ) : f.purchases > 0 ? (
+              <span className="text-[oklch(0.77_0.19_70)]">⚠️ Vende mas no prejuízo</span>
+            ) : (
+              <span className="text-destructive">❌ Sem vendas</span>
+            )}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {formatNumber(f.purchases || 0)} compras · receita {formatBRL(f.revenue || 0)}
+          </p>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-5">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Custo por compra (real)</p>
+          <p className="mt-2 text-2xl font-bold">{formatBRL(f.cost_per_purchase || 0)}</p>
+          <p className="mt-1 text-xs text-muted-foreground">CPL: {formatBRL(f.cost_per_link_click || 0)} · CPLPV: {formatBRL(f.cost_per_lpv || 0)}</p>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-5">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Conversão Click→Compra</p>
+          <p className="mt-2 text-2xl font-bold">
+            {f.link_clicks > 0 ? ((f.purchases / f.link_clicks) * 100).toFixed(2) : "0.00"}%
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {formatNumber(f.link_clicks || 0)} cliques · {formatNumber(f.purchases || 0)} compras
+          </p>
+        </div>
+      </div>
+
       <div className="rounded-xl border border-border bg-card p-5">
-        <SectionHeader title="Funil de Conversão" loading={loading} />
+        <SectionHeader
+          title="Funil Real de Conversão"
+          subtitle="Da impressão à compra — dados reais do Meta Pixel"
+          loading={funnelLoading}
+          onRefresh={onRefresh}
+        />
         <div className="mt-4 space-y-3">
-          {funnel.map((f, i) => (
-            <div key={i}>
-              <div className="mb-1 flex justify-between text-sm">
-                <span className="font-medium">{f.label}</span>
-                <span className="text-muted-foreground">
-                  {formatNumber(f.value)} • {f.pct.toFixed(2)}%
-                </span>
+          {steps.map((s, i) => {
+            const pct = (s.value / maxStep) * 100;
+            const prev = i > 0 ? steps[i - 1].value : 0;
+            const conversion = i > 0 && prev > 0 ? ((s.value / prev) * 100).toFixed(1) : null;
+            const drop = i > 0 && prev > 0 ? (((prev - s.value) / prev) * 100).toFixed(1) : null;
+            return (
+              <div key={i}>
+                <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2 text-sm">
+                  <span className="font-medium">{s.label}</span>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="font-semibold text-foreground">{formatNumber(s.value)}</span>
+                    {conversion && (
+                      <span className="rounded bg-[oklch(0.7_0.18_162/0.15)] px-1.5 py-0.5 text-[oklch(0.7_0.18_162)]">
+                        ↳ {conversion}%
+                      </span>
+                    )}
+                    {drop && parseFloat(drop) > 50 && (
+                      <span className="rounded bg-destructive/15 px-1.5 py-0.5 text-destructive">
+                        −{drop}% caiu
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="h-4 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className={`h-full rounded-full bg-gradient-to-r ${s.color} transition-all`}
+                    style={{ width: `${Math.max(2, pct)}%` }}
+                  />
+                </div>
               </div>
-              <div className="h-3 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-primary to-chart-2 transition-all"
-                  style={{ width: `${Math.max(2, f.pct)}%` }}
-                />
-              </div>
-            </div>
-          ))}
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-border bg-card">
+        <div className="border-b border-border p-5">
+          <SectionHeader
+            title="Para onde foi o clique 🎯"
+            subtitle="Breakdown por plataforma · posicionamento · dispositivo"
+            loading={breakdownLoading}
+          />
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="px-4 py-3">Plataforma</th>
+                <th className="px-4 py-3">Posicionamento</th>
+                <th className="px-4 py-3">Device</th>
+                <th className="px-4 py-3 text-right">Cliques</th>
+                <th className="px-4 py-3 text-right">CTR</th>
+                <th className="px-4 py-3 text-right">CPC</th>
+                <th className="px-4 py-3 text-right">Gasto</th>
+                <th className="px-4 py-3 text-right">Compras</th>
+                <th className="px-4 py-3 text-right">CVR</th>
+                <th className="px-4 py-3 text-right">ROAS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {breakdownLoading && breakdown.length === 0 ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <tr key={i}><td colSpan={10} className="px-4 py-3"><div className="h-4 animate-pulse rounded bg-muted/50" /></td></tr>
+                ))
+              ) : breakdown.length === 0 ? (
+                <tr><td colSpan={10} className="px-4 py-8 text-center text-muted-foreground">Sem dados de breakdown</td></tr>
+              ) : (
+                (breakdown as any[])
+                  .sort((a, b) => b.spend - a.spend)
+                  .map((b, i) => (
+                    <tr key={i} className="border-b border-border/50 last:border-0 hover:bg-accent/30">
+                      <td className="px-4 py-3 font-medium capitalize">{b.publisher_platform}</td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">{b.platform_position}</td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground capitalize">{b.impression_device}</td>
+                      <td className="px-4 py-3 text-right">{formatNumber(b.link_clicks)}</td>
+                      <td className="px-4 py-3 text-right">{formatPct(b.ctr)}</td>
+                      <td className="px-4 py-3 text-right">{formatBRL(b.cpc)}</td>
+                      <td className="px-4 py-3 text-right">{formatBRL(b.spend)}</td>
+                      <td className="px-4 py-3 text-right font-semibold">{formatNumber(b.purchases)}</td>
+                      <td className={`px-4 py-3 text-right ${b.cvr >= 1 ? "text-[oklch(0.7_0.18_162)]" : "text-muted-foreground"}`}>
+                        {b.cvr.toFixed(2)}%
+                      </td>
+                      <td className={`px-4 py-3 text-right font-semibold ${b.roas >= 2 ? "text-[oklch(0.7_0.18_162)]" : "text-[oklch(0.77_0.19_70)]"}`}>
+                        {b.roas.toFixed(2)}x
+                      </td>
+                    </tr>
+                  ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-border bg-card">
+        <div className="border-b border-border p-5">
+          <SectionHeader
+            title="Vende de verdade? — análise por campanha"
+            subtitle={`${sells.length} vendendo no lucro · ${wastes.length} queimando dinheiro`}
+            loading={campConvLoading}
+          />
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="px-4 py-3">Campanha</th>
+                <th className="px-4 py-3 text-right">Cliques</th>
+                <th className="px-4 py-3 text-right">LPV</th>
+                <th className="px-4 py-3 text-right">ATC</th>
+                <th className="px-4 py-3 text-right">Checkout</th>
+                <th className="px-4 py-3 text-right">Compras</th>
+                <th className="px-4 py-3 text-right">CVR</th>
+                <th className="px-4 py-3 text-right">ROAS</th>
+                <th className="px-4 py-3 text-center">Vende?</th>
+              </tr>
+            </thead>
+            <tbody>
+              {campConvLoading && (campConv as any[]).length === 0 ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <tr key={i}><td colSpan={9} className="px-4 py-3"><div className="h-4 animate-pulse rounded bg-muted/50" /></td></tr>
+                ))
+              ) : (campConv as any[]).length === 0 ? (
+                <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">Sem dados</td></tr>
+              ) : (
+                (campConv as any[])
+                  .sort((a, b) => b.spend - a.spend)
+                  .map((c) => (
+                    <tr key={c.campaign_id} className="border-b border-border/50 last:border-0 hover:bg-accent/30">
+                      <td className="max-w-xs truncate px-4 py-3 font-medium">{c.campaign_name}</td>
+                      <td className="px-4 py-3 text-right">{formatNumber(c.link_clicks)}</td>
+                      <td className="px-4 py-3 text-right">{formatNumber(c.landing_page_views)}</td>
+                      <td className="px-4 py-3 text-right">{formatNumber(c.add_to_cart)}</td>
+                      <td className="px-4 py-3 text-right">{formatNumber(c.initiate_checkout)}</td>
+                      <td className="px-4 py-3 text-right font-semibold">{formatNumber(c.purchases)}</td>
+                      <td className="px-4 py-3 text-right">{c.cvr_click_to_purchase.toFixed(2)}%</td>
+                      <td className={`px-4 py-3 text-right font-semibold ${c.roas >= 2 ? "text-[oklch(0.7_0.18_162)]" : c.roas >= 1 ? "text-[oklch(0.77_0.19_70)]" : "text-destructive"}`}>
+                        {c.roas.toFixed(2)}x
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {c.really_sells ? (
+                          <span className="rounded-full bg-[oklch(0.7_0.18_162/0.2)] px-2 py-0.5 text-xs font-semibold text-[oklch(0.7_0.18_162)]">✅ SIM</span>
+                        ) : c.purchases > 0 ? (
+                          <span className="rounded-full bg-[oklch(0.77_0.19_70/0.2)] px-2 py-0.5 text-xs font-semibold text-[oklch(0.77_0.19_70)]">⚠️ Prejuízo</span>
+                        ) : c.spend > 20 ? (
+                          <span className="rounded-full bg-destructive/20 px-2 py-0.5 text-xs font-semibold text-destructive">❌ Não</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <InsightCard title="🚀 Top Performers" rows={top} type="top" loading={loading} />
-        <InsightCard title="⚠️ Gargalos" rows={bottom} type="bottom" loading={loading} />
+        <InsightCard
+          title="🚀 Top Performers"
+          rows={[...camps].sort((a, b) => b.roas - a.roas).slice(0, 5)}
+          type="top"
+          loading={loading}
+        />
+        <InsightCard
+          title="⚠️ Gargalos"
+          rows={[...camps].filter((c) => c.spend > 0).sort((a, b) => a.roas - b.roas).slice(0, 5)}
+          type="bottom"
+          loading={loading}
+        />
       </div>
     </div>
   );
