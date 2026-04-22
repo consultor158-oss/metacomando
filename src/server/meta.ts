@@ -649,3 +649,73 @@ export const getAccountInfo = createServerFn({ method: "GET" }).handler(async ()
     return errorPayload(e);
   }
 });
+
+// ==================== EDIT AD / ADSET ====================
+async function metaPost(path: string, body: Record<string, string>) {
+  const { token } = getCreds();
+  const url = new URL(`${BASE}/${path}`);
+  const form = new URLSearchParams();
+  form.set("access_token", token);
+  for (const [k, v] of Object.entries(body)) form.set(k, v);
+  const res = await fetch(url.toString(), {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: form.toString(),
+  });
+  const text = await res.text();
+  let data: any;
+  try { data = JSON.parse(text); } catch { data = { raw: text }; }
+  if (!res.ok || data?.error) {
+    const err = data?.error || {};
+    const e: any = new Error(err.message || `Meta API ${res.status}`);
+    e.code = err.code;
+    throw e;
+  }
+  return data;
+}
+
+export const updateAdStatus = createServerFn({ method: "POST" })
+  .inputValidator((d: { adId: string; status: "ACTIVE" | "PAUSED" }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const r = await metaPost(data.adId, { status: data.status });
+      return { ok: true as const, data: r };
+    } catch (e) {
+      return errorPayload(e);
+    }
+  });
+
+export const updateAdName = createServerFn({ method: "POST" })
+  .inputValidator((d: { adId: string; name: string }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const r = await metaPost(data.adId, { name: data.name });
+      return { ok: true as const, data: r };
+    } catch (e) {
+      return errorPayload(e);
+    }
+  });
+
+export const updateAdsetStatus = createServerFn({ method: "POST" })
+  .inputValidator((d: { adsetId: string; status: "ACTIVE" | "PAUSED" }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const r = await metaPost(data.adsetId, { status: data.status });
+      return { ok: true as const, data: r };
+    } catch (e) {
+      return errorPayload(e);
+    }
+  });
+
+export const updateAdsetBudget = createServerFn({ method: "POST" })
+  .inputValidator((d: { adsetId: string; dailyBudgetBRL: number }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const cents = Math.max(100, Math.round(data.dailyBudgetBRL * 100)).toString();
+      const r = await metaPost(data.adsetId, { daily_budget: cents });
+      return { ok: true as const, data: r };
+    } catch (e) {
+      return errorPayload(e);
+    }
+  });
+
