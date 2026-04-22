@@ -27,11 +27,30 @@ async function metaFetch(path: string, params: Record<string, string> = {}, init
   } catch {
     data = { raw: text };
   }
-  if (!res.ok) {
-    const msg = data?.error?.message || `Meta API ${res.status}`;
-    throw new Error(`${msg} [${res.status}]`);
+  if (!res.ok || data?.error) {
+    const err = data?.error || {};
+    const e: any = new Error(err.message || `Meta API ${res.status}`);
+    e.code = err.code;
+    e.subcode = err.error_subcode;
+    e.type = err.type;
+    e.fbtrace_id = err.fbtrace_id;
+    e.status = res.status;
+    e.is_token_expired = err.code === 190;
+    throw e;
   }
   return data;
+}
+
+function errorPayload(e: any) {
+  return {
+    ok: false as const,
+    error: e?.message || "Erro desconhecido",
+    code: e?.code,
+    subcode: e?.subcode,
+    type: e?.type,
+    is_token_expired: !!e?.is_token_expired,
+    fbtrace_id: e?.fbtrace_id,
+  };
 }
 
 // ==================== INSIGHTS (overview KPIs) ====================
@@ -48,21 +67,26 @@ export const getAccountInsights = createServerFn({ method: "GET" })
         time_increment: "1",
         level: "account",
       });
-      return { ok: true, data: insights.data ?? [] };
+      return { ok: true as const, data: insights.data ?? [] };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : "Erro desconhecido", data: [] };
+      return { ...errorPayload(e), data: [] as any[] };
     }
   });
 
 // ==================== CAMPAIGNS LIST ====================
-export const getCampaigns = createServerFn({ method: "GET" }).handler(async () => {
+export const getCampaigns = createServerFn({ method: "GET" })
+  .inputValidator((d: { onlyActive?: boolean; datePreset?: string }) => d ?? {})
+  .handler(async ({ data }) => {
   try {
     const { actId } = getCreds();
-    const camps = await metaFetch(`${actId}/campaigns`, {
+    const datePreset = data.datePreset || "last_7d";
+    const params: Record<string, string> = {
       fields:
-        "id,name,status,objective,daily_budget,lifetime_budget,buying_type,bid_strategy,created_time,updated_time",
-      limit: "100",
-    });
+        "id,name,status,effective_status,objective,daily_budget,lifetime_budget,buying_type,bid_strategy,created_time,updated_time",
+      limit: "200",
+    };
+    if (data.onlyActive) params.effective_status = JSON.stringify(["ACTIVE"]);
+    const camps = await metaFetch(`${actId}/campaigns`, params);
     const ids = (camps.data ?? []).map((c: any) => c.id);
 
     // Fetch insights per campaign in batch
@@ -70,7 +94,7 @@ export const getCampaigns = createServerFn({ method: "GET" }).handler(async () =
     if (ids.length) {
       const ins = await metaFetch(`${actId}/insights`, {
         level: "campaign",
-        date_preset: "last_7d",
+        date_preset: datePreset,
         fields: "campaign_id,spend,impressions,clicks,ctr,cpc,actions,action_values,purchase_roas",
         limit: "500",
       });
@@ -103,9 +127,9 @@ export const getCampaigns = createServerFn({ method: "GET" }).handler(async () =
       };
     });
 
-    return { ok: true, data: enriched };
+    return { ok: true as const, data: enriched };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "Erro", data: [] };
+    return { ...errorPayload(e), data: [] as any[] };
   }
 });
 
@@ -127,7 +151,7 @@ export const updateCampaignStatus = createServerFn({ method: "POST" })
       );
       return { ok: true, data: result };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : "Erro" };
+      return errorPayload(e);
     }
   });
 
@@ -149,7 +173,7 @@ export const updateBudget = createServerFn({ method: "POST" })
       );
       return { ok: true, data: result };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : "Erro" };
+      return errorPayload(e);
     }
   });
 
@@ -182,7 +206,7 @@ export const createCampaign = createServerFn({ method: "POST" })
       const result = await metaFetch(`${actId}/campaigns`, {}, { method: "POST", body });
       return { ok: true, data: result, strategy: data.strategy };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : "Erro" };
+      return errorPayload(e);
     }
   });
 
@@ -199,7 +223,7 @@ export const getAdSets = createServerFn({ method: "GET" })
       });
       return { ok: true, data: res.data ?? [] };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : "Erro", data: [] };
+      return { ...errorPayload(e), data: [] as any[] };
     }
   });
 
@@ -249,7 +273,7 @@ export const generateAdCopy = createServerFn({ method: "POST" })
       } catch {}
       return { ok: true, raw: content, parsed };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : "Erro" };
+      return errorPayload(e);
     }
   });
 
@@ -262,6 +286,6 @@ export const getAccountInfo = createServerFn({ method: "GET" }).handler(async ()
     });
     return { ok: true, data: info };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "Erro" };
+    return errorPayload(e);
   }
 });

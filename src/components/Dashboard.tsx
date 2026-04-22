@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -30,6 +30,10 @@ import {
   Zap,
   ChevronRight,
   AlertTriangle,
+  RefreshCw,
+  KeyRound,
+  ExternalLink,
+  Loader2,
 } from "lucide-react";
 import {
   getAccountInsights,
@@ -53,88 +57,151 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "automacao", label: "Automação", icon: Bell },
 ];
 
+// staleTime por período (período curto = atualiza mais)
+const STALE_BY_PERIOD: Record<string, number> = {
+  today: 60_000,           // 1 min
+  yesterday: 10 * 60_000,  // 10 min
+  last_7d: 5 * 60_000,     // 5 min
+  last_14d: 10 * 60_000,
+  last_30d: 15 * 60_000,
+  this_month: 5 * 60_000,
+};
+
 export function Dashboard() {
   const [tab, setTab] = useState<Tab>("overview");
   const [datePreset, setDatePreset] = useState("last_7d");
+  const [onlyActive, setOnlyActive] = useState(true);
+  const qc = useQueryClient();
+
+  const stale = STALE_BY_PERIOD[datePreset] ?? 5 * 60_000;
 
   const account = useQuery({
     queryKey: ["meta-account"],
     queryFn: () => getAccountInfo(),
+    staleTime: 30 * 60_000,
   });
 
   const insights = useQuery({
     queryKey: ["meta-insights", datePreset],
     queryFn: () => getAccountInsights({ data: { datePreset } }),
+    staleTime: stale,
+    refetchInterval: stale * 2,
   });
 
   const campaigns = useQuery({
-    queryKey: ["meta-campaigns"],
-    queryFn: () => getCampaigns(),
-    refetchInterval: 5 * 60 * 1000,
+    queryKey: ["meta-campaigns", datePreset, onlyActive],
+    queryFn: () => getCampaigns({ data: { datePreset, onlyActive } }),
+    staleTime: stale,
+    refetchInterval: stale * 2,
   });
 
   const acc = account.data?.ok ? account.data.data : null;
   const insightsRows = insights.data?.ok ? insights.data.data : [];
   const camps = campaigns.data?.ok ? campaigns.data.data : [];
 
+  // Detect token expired
+  const tokenExpired =
+    (account.data && !account.data.ok && (account.data as any).is_token_expired) ||
+    (insights.data && !insights.data.ok && (insights.data as any).is_token_expired) ||
+    (campaigns.data && !campaigns.data.ok && (campaigns.data as any).is_token_expired);
+
+  const apiError =
+    (account.data && !account.data.ok && account.data.error) ||
+    (insights.data && !insights.data.ok && insights.data.error) ||
+    (campaigns.data && !campaigns.data.ok && campaigns.data.error) ||
+    null;
+
   // Aggregate KPIs
-  const totals = (insightsRows as any[]).reduce(
-    (acc: any, r: any) => {
-      const purchases =
-        (r.actions ?? []).find((a: any) => a.action_type === "purchase")?.value || "0";
-      const purchaseValue =
-        (r.action_values ?? []).find((a: any) => a.action_type === "purchase")?.value || "0";
-      acc.spend += parseFloat(r.spend || "0");
-      acc.impressions += parseInt(r.impressions || "0");
-      acc.clicks += parseInt(r.clicks || "0");
-      acc.conversions += parseFloat(purchases);
-      acc.revenue += parseFloat(purchaseValue);
-      return acc;
-    },
-    { spend: 0, impressions: 0, clicks: 0, conversions: 0, revenue: 0 },
+  const totals = useMemo(
+    () =>
+      (insightsRows as any[]).reduce(
+        (acc: any, r: any) => {
+          const purchases =
+            (r.actions ?? []).find((a: any) => a.action_type === "purchase")?.value || "0";
+          const purchaseValue =
+            (r.action_values ?? []).find((a: any) => a.action_type === "purchase")?.value || "0";
+          acc.spend += parseFloat(r.spend || "0");
+          acc.impressions += parseInt(r.impressions || "0");
+          acc.clicks += parseInt(r.clicks || "0");
+          acc.conversions += parseFloat(purchases);
+          acc.revenue += parseFloat(purchaseValue);
+          return acc;
+        },
+        { spend: 0, impressions: 0, clicks: 0, conversions: 0, revenue: 0 },
+      ),
+    [insightsRows],
   );
 
   const overallROAS = totals.spend > 0 ? totals.revenue / totals.spend : 0;
   const overallCPA = totals.conversions > 0 ? totals.spend / totals.conversions : 0;
   const overallCTR = totals.impressions > 0 ? (totals.clicks / totals.impressions) * 100 : 0;
 
+  const refreshAll = async () => {
+    toast.info("Atualizando dados Meta…");
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: ["meta-account"] }),
+      qc.invalidateQueries({ queryKey: ["meta-insights"] }),
+      qc.invalidateQueries({ queryKey: ["meta-campaigns"] }),
+    ]);
+    toast.success("Dados atualizados!");
+  };
+
+  const anyLoading = account.isFetching || insights.isFetching || campaigns.isFetching;
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Header acc={acc} datePreset={datePreset} onDatePreset={setDatePreset} loading={account.isLoading || insights.isLoading} />
+      <Header
+        acc={acc}
+        datePreset={datePreset}
+        onDatePreset={setDatePreset}
+        onlyActive={onlyActive}
+        onOnlyActive={setOnlyActive}
+        onRefresh={refreshAll}
+        loading={anyLoading}
+      />
 
-      {(account.data && !account.data.ok) || (insights.data && !insights.data.ok) || (campaigns.data && !campaigns.data.ok) ? (
-        <ApiErrorBanner
-          msg={
-            (account.data && !account.data.ok && account.data.error) ||
-            (insights.data && !insights.data.ok && insights.data.error) ||
-            (campaigns.data && !campaigns.data.ok && campaigns.data.error) ||
-            "Erro Meta API"
-          }
-        />
-      ) : null}
+      {tokenExpired && <TokenExpiredBanner msg={apiError || ""} />}
+      {!tokenExpired && apiError && <ApiErrorBanner msg={apiError} onRefresh={refreshAll} />}
 
       <Tabs current={tab} onChange={setTab} />
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {tab === "overview" && (
-          <Overview totals={totals} roas={overallROAS} cpa={overallCPA} ctr={overallCTR} insightsRows={insightsRows} camps={camps} />
+          <Overview
+            totals={totals}
+            roas={overallROAS}
+            cpa={overallCPA}
+            ctr={overallCTR}
+            insightsRows={insightsRows}
+            camps={camps}
+            loadingInsights={insights.isFetching}
+            loadingCampaigns={campaigns.isFetching}
+            onRefreshInsights={() => qc.invalidateQueries({ queryKey: ["meta-insights", datePreset] })}
+            onRefreshCampaigns={() => qc.invalidateQueries({ queryKey: ["meta-campaigns"] })}
+          />
         )}
-        {tab === "analise" && <Analise camps={camps} totals={totals} />}
-        {tab === "controle" && <Controle camps={camps} loading={campaigns.isLoading} />}
+        {tab === "analise" && <Analise camps={camps} totals={totals} loading={campaigns.isFetching} />}
+        {tab === "controle" && (
+          <Controle
+            camps={camps}
+            loading={campaigns.isFetching}
+            onRefresh={() => qc.invalidateQueries({ queryKey: ["meta-campaigns"] })}
+          />
+        )}
         {tab === "escalas" && <Escalas />}
         {tab === "ia" && <IATab />}
         {tab === "automacao" && <Automacao camps={camps} roas={overallROAS} />}
       </main>
 
       <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
-        Meta Ads Dashboard • dados em tempo real via Graph API v21.0 • atualizada a cada 5 min
+        Meta Ads Dashboard • Graph API v21.0 • cache por período • período atual: {datePreset}
       </footer>
     </div>
   );
 }
 
 // ============== HEADER ==============
-function Header({ acc, datePreset, onDatePreset, loading }: any) {
+function Header({ acc, datePreset, onDatePreset, onlyActive, onOnlyActive, onRefresh, loading }: any) {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-lg">
       <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
@@ -145,11 +212,20 @@ function Header({ acc, datePreset, onDatePreset, loading }: any) {
           <div>
             <h1 className="text-lg font-bold tracking-tight">Meta Ads Ultra</h1>
             <p className="text-xs text-muted-foreground">
-              {acc ? `${acc.name} • ${acc.currency} • ${acc.id}` : loading ? "Carregando conta..." : "—"}
+              {acc ? `${acc.name} • ${acc.currency} • ${acc.id}` : loading ? "Carregando…" : "—"}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-xs">
+            <input
+              type="checkbox"
+              checked={onlyActive}
+              onChange={(e) => onOnlyActive(e.target.checked)}
+              className="h-3.5 w-3.5"
+            />
+            Só ativas
+          </label>
           <select
             value={datePreset}
             onChange={(e) => onDatePreset(e.target.value)}
@@ -162,18 +238,84 @@ function Header({ acc, datePreset, onDatePreset, loading }: any) {
             <option value="last_30d">Últimos 30 dias</option>
             <option value="this_month">Este mês</option>
           </select>
+          <button
+            onClick={onRefresh}
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            Atualizar agora
+          </button>
         </div>
       </div>
     </header>
   );
 }
 
-function ApiErrorBanner({ msg }: { msg: string }) {
+function TokenExpiredBanner({ msg }: { msg: string }) {
+  return (
+    <div className="border-b-2 border-destructive bg-destructive/15">
+      <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <div className="flex items-start gap-3">
+          <KeyRound className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+          <div className="flex-1">
+            <h3 className="text-sm font-bold text-destructive">Seu token Meta expirou</h3>
+            <p className="mt-1 text-xs text-foreground/80">{msg}</p>
+            <details className="mt-2 text-xs">
+              <summary className="cursor-pointer font-medium text-primary hover:underline">
+                Como gerar um novo token de longa duração (60 dias) ▼
+              </summary>
+              <ol className="mt-3 list-decimal space-y-2 pl-5 text-foreground/80">
+                <li>
+                  Acesse{" "}
+                  <a
+                    className="inline-flex items-center gap-1 text-primary hover:underline"
+                    href="https://developers.facebook.com/tools/explorer/"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Graph API Explorer <ExternalLink className="h-3 w-3" />
+                  </a>
+                </li>
+                <li>Selecione seu app, marque as permissões: <code className="rounded bg-muted px-1">ads_management</code>, <code className="rounded bg-muted px-1">ads_read</code>, <code className="rounded bg-muted px-1">business_management</code></li>
+                <li>Clique em <strong>Generate Access Token</strong></li>
+                <li>
+                  Cole o token em{" "}
+                  <a
+                    className="inline-flex items-center gap-1 text-primary hover:underline"
+                    href="https://developers.facebook.com/tools/debug/accesstoken/"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Access Token Debugger <ExternalLink className="h-3 w-3" />
+                  </a>{" "}
+                  e clique em <strong>Extend Access Token</strong> (gera o de 60 dias)
+                </li>
+                <li>
+                  Volte aqui e atualize o secret <code className="rounded bg-muted px-1">META_ACCESS_TOKEN</code> nas configurações do projeto.
+                </li>
+                <li>Clique em "Atualizar agora" no topo.</li>
+              </ol>
+              <p className="mt-3 rounded bg-muted/50 p-2 text-foreground/70">
+                💡 Para tokens permanentes (system user), gere via Business Settings → System Users → Generate Token.
+              </p>
+            </details>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ApiErrorBanner({ msg, onRefresh }: { msg: string; onRefresh: () => void }) {
   return (
     <div className="border-b border-destructive/30 bg-destructive/10">
       <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-2 text-sm text-destructive sm:px-6 lg:px-8">
         <AlertTriangle className="h-4 w-4 shrink-0" />
-        <span className="truncate">Meta API: {msg}</span>
+        <span className="flex-1 truncate">Meta API: {msg}</span>
+        <button onClick={onRefresh} className="rounded bg-destructive/20 px-2 py-1 text-xs font-medium hover:bg-destructive/30">
+          Tentar novamente
+        </button>
       </div>
     </div>
   );
@@ -207,20 +349,8 @@ function Tabs({ current, onChange }: { current: Tab; onChange: (t: Tab) => void 
   );
 }
 
-// ============== KPI CARD ==============
-function Kpi({
-  label,
-  value,
-  icon: Icon,
-  trend,
-  accent = "primary",
-}: {
-  label: string;
-  value: string;
-  icon: any;
-  trend?: string;
-  accent?: "primary" | "success" | "warning" | "destructive";
-}) {
+// ============== KPI ==============
+function Kpi({ label, value, icon: Icon, trend, accent = "primary", loading }: any) {
   const colors: Record<string, string> = {
     primary: "from-primary/20 to-primary/5 text-primary",
     success: "from-[oklch(0.7_0.18_162/0.2)] to-[oklch(0.7_0.18_162/0.05)] text-[oklch(0.7_0.18_162)]",
@@ -230,10 +360,14 @@ function Kpi({
   return (
     <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
       <div className="flex items-start justify-between">
-        <div>
+        <div className="min-w-0">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-          <p className="mt-2 text-2xl font-bold tracking-tight">{value}</p>
-          {trend && <p className="mt-1 text-xs text-muted-foreground">{trend}</p>}
+          {loading ? (
+            <div className="mt-2 h-7 w-20 animate-pulse rounded bg-muted" />
+          ) : (
+            <p className="mt-2 text-2xl font-bold tracking-tight">{value}</p>
+          )}
+          {trend && !loading && <p className="mt-1 text-xs text-muted-foreground">{trend}</p>}
         </div>
         <div className={`flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br ${colors[accent]}`}>
           <Icon className="h-5 w-5" />
@@ -243,8 +377,53 @@ function Kpi({
   );
 }
 
+// ============== SECTION HEADER (with refresh) ==============
+function SectionHeader({
+  title,
+  subtitle,
+  loading,
+  onRefresh,
+}: {
+  title: string;
+  subtitle?: string;
+  loading?: boolean;
+  onRefresh?: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <div>
+        <h3 className="text-sm font-semibold">{title}</h3>
+        {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+      </div>
+      <div className="flex items-center gap-2">
+        {loading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+        {onRefresh && (
+          <button
+            onClick={onRefresh}
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium hover:bg-accent"
+          >
+            <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
+            Atualizar
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ============== OVERVIEW ==============
-function Overview({ totals, roas, cpa, ctr, insightsRows, camps }: any) {
+function Overview({
+  totals,
+  roas,
+  cpa,
+  ctr,
+  insightsRows,
+  camps,
+  loadingInsights,
+  loadingCampaigns,
+  onRefreshInsights,
+  onRefreshCampaigns,
+}: any) {
   const chartData = (insightsRows as any[]).map((r) => {
     const purchases = (r.actions ?? []).find((a: any) => a.action_type === "purchase")?.value || "0";
     const purchaseValue = (r.action_values ?? []).find((a: any) => a.action_type === "purchase")?.value || "0";
@@ -263,76 +442,78 @@ function Overview({ totals, roas, cpa, ctr, insightsRows, camps }: any) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi label="Gasto" value={formatBRL(totals.spend)} icon={DollarSign} accent="primary" />
-        <Kpi label="ROAS" value={`${roas.toFixed(2)}x`} icon={TrendingUp} accent={roas >= 2 ? "success" : "warning"} trend={roas >= 2 ? "Saudável (≥2x)" : "Abaixo do alvo"} />
-        <Kpi label="CPA" value={formatBRL(cpa)} icon={Target} accent={cpa < 10 ? "success" : "destructive"} />
-        <Kpi label="Conversões" value={formatNumber(totals.conversions)} icon={ShoppingCart} accent="primary" />
-        <Kpi label="Impressões" value={formatNumber(totals.impressions)} icon={Eye} accent="primary" />
-        <Kpi label="Cliques" value={formatNumber(totals.clicks)} icon={MousePointerClick} accent="primary" />
-        <Kpi label="CTR" value={formatPct(ctr)} icon={Activity} accent={ctr > 1 ? "success" : "warning"} />
-        <Kpi label="Receita" value={formatBRL(totals.revenue)} icon={DollarSign} accent="success" />
+        <Kpi label="Gasto" value={formatBRL(totals.spend)} icon={DollarSign} loading={loadingInsights} />
+        <Kpi
+          label="ROAS"
+          value={`${roas.toFixed(2)}x`}
+          icon={TrendingUp}
+          accent={roas >= 2 ? "success" : "warning"}
+          trend={roas >= 2 ? "Saudável (≥2x)" : "Abaixo do alvo"}
+          loading={loadingInsights}
+        />
+        <Kpi label="CPA" value={formatBRL(cpa)} icon={Target} accent={cpa < 10 ? "success" : "destructive"} loading={loadingInsights} />
+        <Kpi label="Conversões" value={formatNumber(totals.conversions)} icon={ShoppingCart} loading={loadingInsights} />
+        <Kpi label="Impressões" value={formatNumber(totals.impressions)} icon={Eye} loading={loadingInsights} />
+        <Kpi label="Cliques" value={formatNumber(totals.clicks)} icon={MousePointerClick} loading={loadingInsights} />
+        <Kpi label="CTR" value={formatPct(ctr)} icon={Activity} accent={ctr > 1 ? "success" : "warning"} loading={loadingInsights} />
+        <Kpi label="Receita" value={formatBRL(totals.revenue)} icon={DollarSign} accent="success" loading={loadingInsights} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <ChartCard title="Gasto vs Receita">
-          <ResponsiveContainer width="100%" height={250}>
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="gradGasto" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="oklch(0.65 0.22 265)" stopOpacity={0.6} />
-                  <stop offset="95%" stopColor="oklch(0.65 0.22 265)" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="gradReceita" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="oklch(0.7 0.18 162)" stopOpacity={0.6} />
-                  <stop offset="95%" stopColor="oklch(0.7 0.18 162)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: "oklch(0.7 0.04 257)" }} />
-              <YAxis tick={{ fontSize: 11, fill: "oklch(0.7 0.04 257)" }} />
-              <Tooltip contentStyle={{ background: "oklch(0.21 0.025 265)", border: "1px solid oklch(1 0 0 / 0.1)", borderRadius: 8 }} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Area type="monotone" dataKey="gasto" stroke="oklch(0.65 0.22 265)" fill="url(#gradGasto)" />
-              <Area type="monotone" dataKey="receita" stroke="oklch(0.7 0.18 162)" fill="url(#gradReceita)" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        <ChartCard title="ROAS / CPA por dia">
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: "oklch(0.7 0.04 257)" }} />
-              <YAxis tick={{ fontSize: 11, fill: "oklch(0.7 0.04 257)" }} />
-              <Tooltip contentStyle={{ background: "oklch(0.21 0.025 265)", border: "1px solid oklch(1 0 0 / 0.1)", borderRadius: 8 }} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="roas" fill="oklch(0.7 0.18 162)" name="ROAS" />
-              <Bar dataKey="cpa" fill="oklch(0.77 0.19 70)" name="CPA (R$)" />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
+      <div className="rounded-xl border border-border bg-card p-5">
+        <SectionHeader title="Performance Diária" subtitle="Gasto vs Receita / ROAS / CPA" loading={loadingInsights} onRefresh={onRefreshInsights} />
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div>
+            <ResponsiveContainer width="100%" height={250}>
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="gradGasto" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="oklch(0.65 0.22 265)" stopOpacity={0.6} />
+                    <stop offset="95%" stopColor="oklch(0.65 0.22 265)" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gradReceita" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="oklch(0.7 0.18 162)" stopOpacity={0.6} />
+                    <stop offset="95%" stopColor="oklch(0.7 0.18 162)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
+                <XAxis dataKey="date" tick={{ fontSize: 11, fill: "oklch(0.7 0.04 257)" }} />
+                <YAxis tick={{ fontSize: 11, fill: "oklch(0.7 0.04 257)" }} />
+                <Tooltip contentStyle={{ background: "oklch(0.21 0.025 265)", border: "1px solid oklch(1 0 0 / 0.1)", borderRadius: 8 }} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Area type="monotone" dataKey="gasto" stroke="oklch(0.65 0.22 265)" fill="url(#gradGasto)" />
+                <Area type="monotone" dataKey="receita" stroke="oklch(0.7 0.18 162)" fill="url(#gradReceita)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          <div>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
+                <XAxis dataKey="date" tick={{ fontSize: 11, fill: "oklch(0.7 0.04 257)" }} />
+                <YAxis tick={{ fontSize: 11, fill: "oklch(0.7 0.04 257)" }} />
+                <Tooltip contentStyle={{ background: "oklch(0.21 0.025 265)", border: "1px solid oklch(1 0 0 / 0.1)", borderRadius: 8 }} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar dataKey="roas" fill="oklch(0.7 0.18 162)" name="ROAS" />
+                <Bar dataKey="cpa" fill="oklch(0.77 0.19 70)" name="CPA (R$)" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+        {!loadingInsights && chartData.length === 0 && (
+          <p className="py-8 text-center text-sm text-muted-foreground">Sem dados no período selecionado</p>
+        )}
       </div>
 
-      <CampaignsTable camps={camps} />
+      <CampaignsTable camps={camps} loading={loadingCampaigns} onRefresh={onRefreshCampaigns} />
     </div>
   );
 }
 
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-5">
-      <h3 className="mb-4 text-sm font-semibold">{title}</h3>
-      {children}
-    </div>
-  );
-}
-
-function CampaignsTable({ camps }: { camps: any[] }) {
+function CampaignsTable({ camps, loading, onRefresh }: { camps: any[]; loading: boolean; onRefresh: () => void }) {
   return (
     <div className="rounded-xl border border-border bg-card">
       <div className="border-b border-border p-5">
-        <h3 className="text-sm font-semibold">Campanhas</h3>
-        <p className="text-xs text-muted-foreground">Performance dos últimos 7 dias</p>
+        <SectionHeader title="Campanhas" subtitle={`${camps.length} encontradas no período`} loading={loading} onRefresh={onRefresh} />
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -349,10 +530,18 @@ function CampaignsTable({ camps }: { camps: any[] }) {
             </tr>
           </thead>
           <tbody>
-            {camps.length === 0 ? (
+            {loading && camps.length === 0 ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <tr key={i} className="border-b border-border/50">
+                  <td colSpan={8} className="px-5 py-4">
+                    <div className="h-5 animate-pulse rounded bg-muted/60" />
+                  </td>
+                </tr>
+              ))
+            ) : camps.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-5 py-10 text-center text-muted-foreground">
-                  Nenhuma campanha encontrada
+                  Nenhuma campanha encontrada no período
                 </td>
               </tr>
             ) : (
@@ -360,7 +549,7 @@ function CampaignsTable({ camps }: { camps: any[] }) {
                 <tr key={c.id} className="border-b border-border/50 last:border-0 hover:bg-accent/30">
                   <td className="max-w-xs truncate px-5 py-3 font-medium">{c.name}</td>
                   <td className="px-5 py-3">
-                    <StatusBadge status={c.status} />
+                    <StatusBadge status={c.effective_status || c.status} />
                   </td>
                   <td className="px-5 py-3 text-right">{formatBRL(c.spend)}</td>
                   <td className="px-5 py-3 text-right">{formatBRL(c.revenue)}</td>
@@ -386,6 +575,9 @@ function StatusBadge({ status }: { status: string }) {
     PAUSED: "bg-[oklch(0.77_0.19_70/0.2)] text-[oklch(0.77_0.19_70)]",
     DELETED: "bg-destructive/20 text-destructive",
     ARCHIVED: "bg-muted text-muted-foreground",
+    PENDING_REVIEW: "bg-chart-4/20 text-chart-4",
+    DISAPPROVED: "bg-destructive/20 text-destructive",
+    IN_PROCESS: "bg-primary/20 text-primary",
   };
   return (
     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${map[status] || "bg-muted text-muted-foreground"}`}>
@@ -395,11 +587,10 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 // ============== ANÁLISE ==============
-function Analise({ camps, totals }: any) {
+function Analise({ camps, totals, loading }: any) {
   const top = [...camps].sort((a, b) => b.roas - a.roas).slice(0, 5);
   const bottom = [...camps].filter((c) => c.spend > 0).sort((a, b) => a.roas - b.roas).slice(0, 5);
 
-  // Funil
   const reach = totals.impressions;
   const clicks = totals.clicks;
   const conv = totals.conversions;
@@ -412,8 +603,8 @@ function Analise({ camps, totals }: any) {
   return (
     <div className="space-y-6">
       <div className="rounded-xl border border-border bg-card p-5">
-        <h3 className="mb-4 text-sm font-semibold">Funil de Conversão</h3>
-        <div className="space-y-3">
+        <SectionHeader title="Funil de Conversão" loading={loading} />
+        <div className="mt-4 space-y-3">
           {funnel.map((f, i) => (
             <div key={i}>
               <div className="mb-1 flex justify-between text-sm">
@@ -434,19 +625,23 @@ function Analise({ camps, totals }: any) {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <InsightCard title="🚀 Top Performers" rows={top} type="top" />
-        <InsightCard title="⚠️ Gargalos" rows={bottom} type="bottom" />
+        <InsightCard title="🚀 Top Performers" rows={top} type="top" loading={loading} />
+        <InsightCard title="⚠️ Gargalos" rows={bottom} type="bottom" loading={loading} />
       </div>
     </div>
   );
 }
 
-function InsightCard({ title, rows, type }: { title: string; rows: any[]; type: "top" | "bottom" }) {
+function InsightCard({ title, rows, type, loading }: { title: string; rows: any[]; type: "top" | "bottom"; loading: boolean }) {
   return (
     <div className="rounded-xl border border-border bg-card p-5">
-      <h3 className="mb-4 text-sm font-semibold">{title}</h3>
-      <ul className="space-y-2">
-        {rows.length === 0 && <li className="text-sm text-muted-foreground">Sem dados.</li>}
+      <SectionHeader title={title} loading={loading} />
+      <ul className="mt-4 space-y-2">
+        {loading && rows.length === 0 &&
+          Array.from({ length: 3 }).map((_, i) => (
+            <li key={i} className="h-12 animate-pulse rounded-lg bg-muted/40" />
+          ))}
+        {!loading && rows.length === 0 && <li className="text-sm text-muted-foreground">Sem dados.</li>}
         {rows.map((c) => (
           <li key={c.id} className="flex items-center justify-between rounded-lg bg-muted/40 p-3">
             <div className="min-w-0">
@@ -464,7 +659,7 @@ function InsightCard({ title, rows, type }: { title: string; rows: any[]; type: 
 }
 
 // ============== CONTROLE ==============
-function Controle({ camps, loading }: { camps: any[]; loading: boolean }) {
+function Controle({ camps, loading, onRefresh }: { camps: any[]; loading: boolean; onRefresh: () => void }) {
   const qc = useQueryClient();
   const toggle = useMutation({
     mutationFn: (vars: { campaignId: string; status: "ACTIVE" | "PAUSED" }) =>
@@ -486,44 +681,59 @@ function Controle({ camps, loading }: { camps: any[]; loading: boolean }) {
 
       <div className="rounded-xl border border-border bg-card">
         <div className="border-b border-border p-5">
-          <h3 className="text-sm font-semibold">Controle de Campanhas</h3>
-          <p className="text-xs text-muted-foreground">Pausar / ativar e ajustar em tempo real</p>
+          <SectionHeader
+            title="Controle de Campanhas"
+            subtitle={`${camps.length} campanhas • pausar / ativar em tempo real`}
+            loading={loading}
+            onRefresh={onRefresh}
+          />
         </div>
         <div className="divide-y divide-border">
-          {loading && <div className="p-6 text-center text-sm text-muted-foreground">Carregando…</div>}
+          {loading && camps.length === 0 && (
+            <>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="p-4">
+                  <div className="h-12 animate-pulse rounded bg-muted/50" />
+                </div>
+              ))}
+            </>
+          )}
           {!loading && camps.length === 0 && (
             <div className="p-6 text-center text-sm text-muted-foreground">Nenhuma campanha</div>
           )}
-          {camps.map((c) => (
-            <div key={c.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <p className="truncate font-medium">{c.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {c.objective} • {formatBRL(c.spend)} gasto • ROAS {c.roas.toFixed(2)}x
-                </p>
+          {camps.map((c) => {
+            const isActive = (c.effective_status || c.status) === "ACTIVE";
+            return (
+              <div key={c.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{c.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {c.objective} • {formatBRL(c.spend)} gasto • ROAS {c.roas.toFixed(2)}x
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <StatusBadge status={c.effective_status || c.status} />
+                  {isActive ? (
+                    <button
+                      onClick={() => toggle.mutate({ campaignId: c.id, status: "PAUSED" })}
+                      disabled={toggle.isPending}
+                      className="inline-flex items-center gap-1 rounded-md bg-[oklch(0.77_0.19_70/0.2)] px-3 py-1.5 text-xs font-medium text-[oklch(0.77_0.19_70)] hover:bg-[oklch(0.77_0.19_70/0.3)] disabled:opacity-50"
+                    >
+                      <Pause className="h-3 w-3" /> Pausar
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => toggle.mutate({ campaignId: c.id, status: "ACTIVE" })}
+                      disabled={toggle.isPending}
+                      className="inline-flex items-center gap-1 rounded-md bg-[oklch(0.7_0.18_162/0.2)] px-3 py-1.5 text-xs font-medium text-[oklch(0.7_0.18_162)] hover:bg-[oklch(0.7_0.18_162/0.3)] disabled:opacity-50"
+                    >
+                      <Play className="h-3 w-3" /> Ativar
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <StatusBadge status={c.status} />
-                {c.status === "ACTIVE" ? (
-                  <button
-                    onClick={() => toggle.mutate({ campaignId: c.id, status: "PAUSED" })}
-                    disabled={toggle.isPending}
-                    className="inline-flex items-center gap-1 rounded-md bg-[oklch(0.77_0.19_70/0.2)] px-3 py-1.5 text-xs font-medium text-[oklch(0.77_0.19_70)] hover:bg-[oklch(0.77_0.19_70/0.3)] disabled:opacity-50"
-                  >
-                    <Pause className="h-3 w-3" /> Pausar
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => toggle.mutate({ campaignId: c.id, status: "ACTIVE" })}
-                    disabled={toggle.isPending}
-                    className="inline-flex items-center gap-1 rounded-md bg-[oklch(0.7_0.18_162/0.2)] px-3 py-1.5 text-xs font-medium text-[oklch(0.7_0.18_162)] hover:bg-[oklch(0.7_0.18_162/0.3)] disabled:opacity-50"
-                  >
-                    <Play className="h-3 w-3" /> Ativar
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
@@ -590,7 +800,7 @@ function CreativeUpload() {
             disabled={!briefing.trim() || gen.isPending}
             className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >
-            <Sparkles className="h-4 w-4" />
+            {gen.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             {gen.isPending ? "Gerando…" : "Gerar copy com IA"}
           </button>
         </div>
@@ -660,6 +870,7 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
   const [budget, setBudget] = useState(strategy.defaults.dailyBudgetCents / 100);
   const [objective, setObjective] = useState(strategy.defaults.objective);
   const [status, setStatus] = useState<"ACTIVE" | "PAUSED">(strategy.defaults.status);
+  const qc = useQueryClient();
 
   const create = useMutation({
     mutationFn: () =>
@@ -675,6 +886,7 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
     onSuccess: (res) => {
       if (res.ok) {
         toast.success(`Campanha "${name}" criada!`);
+        qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
         onClose();
       } else {
         toast.error(res.error || "Falha ao subir");
@@ -750,7 +962,7 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
           disabled={create.isPending}
           className={`mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-gradient-to-r ${strategy.color} px-4 py-3 text-sm font-bold text-white shadow-lg hover:opacity-90 disabled:opacity-50`}
         >
-          <Zap className="h-4 w-4" />
+          {create.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
           {create.isPending ? "Subindo via API…" : "🚀 SUBIR via API"}
         </button>
       </div>
@@ -807,9 +1019,10 @@ function Automacao({ camps, roas }: { camps: any[]; roas: number }) {
   const alerts: { type: "danger" | "warning" | "info"; msg: string }[] = [];
   if (roas < 2 && roas > 0) alerts.push({ type: "danger", msg: `ROAS conta abaixo de 2x (atual ${roas.toFixed(2)}x)` });
   for (const c of camps) {
-    if (c.status === "ACTIVE" && c.cpa > 10 && c.conversions > 0)
+    const eff = c.effective_status || c.status;
+    if (eff === "ACTIVE" && c.cpa > 10 && c.conversions > 0)
       alerts.push({ type: "warning", msg: `${c.name}: CPA ${formatBRL(c.cpa)} acima de R$10 — considere pausar` });
-    if (c.status === "ACTIVE" && c.spend > 100 && c.roas < 1)
+    if (eff === "ACTIVE" && c.spend > 100 && c.roas < 1)
       alerts.push({ type: "danger", msg: `${c.name}: ROAS ${c.roas.toFixed(2)}x e gasto ${formatBRL(c.spend)} — pausar` });
   }
 
