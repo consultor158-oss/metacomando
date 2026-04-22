@@ -211,7 +211,24 @@ export function Dashboard() {
             onRefreshCampaigns={() => qc.invalidateQueries({ queryKey: ["meta-campaigns"] })}
           />
         )}
-        {tab === "analise" && <Analise camps={camps} totals={totals} loading={campaigns.isFetching} />}
+        {tab === "analise" && (
+          <Analise
+            camps={camps}
+            totals={totals}
+            loading={campaigns.isFetching}
+            funnel={funnel.data?.ok ? funnel.data.data : null}
+            funnelLoading={funnel.isFetching}
+            breakdown={clickBreakdown.data?.ok ? clickBreakdown.data.data : []}
+            breakdownLoading={clickBreakdown.isFetching}
+            campConv={campConv.data?.ok ? campConv.data.data : []}
+            campConvLoading={campConv.isFetching}
+            onRefresh={() => {
+              qc.invalidateQueries({ queryKey: ["meta-funnel"] });
+              qc.invalidateQueries({ queryKey: ["meta-click-breakdown"] });
+              qc.invalidateQueries({ queryKey: ["meta-camp-conv"] });
+            }}
+          />
+        )}
         {tab === "controle" && (
           <Controle
             camps={camps}
