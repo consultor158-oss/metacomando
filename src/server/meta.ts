@@ -94,7 +94,7 @@ export const getCampaigns = createServerFn({ method: "GET" })
     if (ids.length) {
       const ins = await metaFetch(`${actId}/insights`, {
         level: "campaign",
-        date_preset: "last_7d",
+        date_preset: datePreset,
         fields: "campaign_id,spend,impressions,clicks,ctr,cpc,actions,action_values,purchase_roas",
         limit: "500",
       });
@@ -127,9 +127,9 @@ export const getCampaigns = createServerFn({ method: "GET" })
       };
     });
 
-    return { ok: true, data: enriched };
+    return { ok: true as const, data: enriched };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "Erro", data: [] };
+    return { ...errorPayload(e), data: [] as any[] };
   }
 });
 
