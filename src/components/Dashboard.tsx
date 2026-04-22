@@ -1674,61 +1674,113 @@ function Automacao({
   );
 }
 
-// ============== RECOMMENDATIONS PANEL (1-clique para aplicar) ==============
-function RecommendationsPanel({
-  recommendations,
-  camps,
-}: {
-  recommendations: Recommendation[];
-  camps: any[];
-}) {
+// ============== APPLY HOOK (compartilhado entre manual e auto) ==============
+function useApplyRecommendation(camps: any[], campConv: any[]) {
   const qc = useQueryClient();
-  const [duplicateFor, setDuplicateFor] = useState<string | null>(null);
 
   const pause = useMutation({
     mutationFn: (id: string) => updateCampaignStatus({ data: { campaignId: id, status: "PAUSED" } }),
-    onSuccess: (res) => {
-      if (res.ok) {
-        toast.success("Campanha pausada");
-        qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
-        qc.invalidateQueries({ queryKey: ["meta-camp-conv"] });
-      } else toast.error(res.error || "Falha");
-    },
   });
 
   const adjustBudget = useMutation({
     mutationFn: (vars: { id: string; cents: number }) =>
       updateBudget({ data: { id: vars.id, dailyBudgetCents: vars.cents, type: "campaign" } }),
-    onSuccess: (res, vars) => {
-      if (res.ok) {
-        toast.success(`Budget ajustado para ${formatBRL(vars.cents / 100)}/dia`);
-        qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
-      } else toast.error(res.error || "Falha (CBO?)");
-    },
   });
 
-  const apply = (r: Recommendation) => {
-    switch (r.action) {
-      case "PAUSE":
-        pause.mutate(r.campaignId);
-        break;
-      case "DECREASE_BUDGET":
-      case "INCREASE_BUDGET":
-        if (r.suggestedDailyBudgetCents) {
-          adjustBudget.mutate({ id: r.campaignId, cents: r.suggestedDailyBudgetCents });
-        } else {
-          toast.info("Edite o budget na aba Controle (CBO ativo no adset).");
-        }
-        break;
-      case "DUPLICATE_WINNER":
-        setDuplicateFor(r.campaignId);
-        break;
-      case "CHANGE_AUDIENCE":
-      case "CHANGE_CREATIVE":
-      case "FIX_LANDING_PAGE":
-        toast.info(`Ação manual recomendada: ${r.title}. Acesse o Meta Ads Manager.`);
-        break;
+  const apply = async (r: Recommendation, mode: "manual" | "auto"): Promise<{ ok: boolean; error?: string }> => {
+    const impact = estimateImpact(r, campConv as any);
+    try {
+      let result: { ok: boolean; error?: string } = { ok: true };
+
+      switch (r.action) {
+        case "PAUSE":
+          result = await pause.mutateAsync(r.campaignId);
+          break;
+        case "DECREASE_BUDGET":
+        case "INCREASE_BUDGET":
+          if (r.suggestedDailyBudgetCents) {
+            result = await adjustBudget.mutateAsync({
+              id: r.campaignId,
+              cents: r.suggestedDailyBudgetCents,
+            });
+          } else {
+            result = { ok: false, error: "Budget no adset (CBO) — ajuste manual" };
+          }
+          break;
+        case "DUPLICATE_WINNER":
+        case "CHANGE_AUDIENCE":
+        case "CHANGE_CREATIVE":
+        case "FIX_LANDING_PAGE":
+          result = { ok: false, error: "Ação requer intervenção manual" };
+          break;
+      }
+
+      appendAudit({
+        mode,
+        campaignId: r.campaignId,
+        campaignName: r.campaignName,
+        action: r.action,
+        severity: r.severity,
+        title: r.title,
+        status: result.ok ? "success" : "skipped",
+        errorMessage: result.ok ? undefined : result.error,
+        estimatedSpendDelta: impact.spendDelta,
+        estimatedRevenueDelta: impact.revenueDelta,
+        estimatedRoasDelta: impact.roasDelta,
+      });
+
+      if (result.ok) {
+        qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
+        qc.invalidateQueries({ queryKey: ["meta-camp-conv"] });
+      }
+
+      return result;
+    } catch (e: any) {
+      const error = e?.message || "Falha desconhecida";
+      appendAudit({
+        mode,
+        campaignId: r.campaignId,
+        campaignName: r.campaignName,
+        action: r.action,
+        severity: r.severity,
+        title: r.title,
+        status: "error",
+        errorMessage: error,
+      });
+      return { ok: false, error };
     }
+  };
+
+  const isPending = (id: string) =>
+    (pause.isPending && pause.variables === id) ||
+    (adjustBudget.isPending && adjustBudget.variables?.id === id);
+
+  return { apply, isPending };
+}
+
+// ============== RECOMMENDATIONS PANEL (1-clique com preview) ==============
+function RecommendationsPanel({
+  recommendations,
+  camps,
+  campConv,
+}: {
+  recommendations: Recommendation[];
+  camps: any[];
+  campConv: any[];
+}) {
+  const [duplicateFor, setDuplicateFor] = useState<string | null>(null);
+  const [previewFor, setPreviewFor] = useState<Recommendation | null>(null);
+  const { apply, isPending } = useApplyRecommendation(camps, campConv);
+
+  const handleConfirm = async (r: Recommendation) => {
+    setPreviewFor(null);
+    if (r.action === "DUPLICATE_WINNER") {
+      setDuplicateFor(r.campaignId);
+      return;
+    }
+    const res = await apply(r, "manual");
+    if (res.ok) toast.success("Aplicado com sucesso");
+    else if (res.error) toast.error(res.error);
   };
 
   return (
@@ -1736,7 +1788,7 @@ function RecommendationsPanel({
       <div className="border-b border-border p-5">
         <SectionHeader
           title="🤖 Recomendações Automáticas"
-          subtitle={`${recommendations.length} ações sugeridas baseadas em CVR, ROAS e funil real`}
+          subtitle={`${recommendations.length} ações sugeridas — clique para ver impacto estimado antes de aplicar`}
         />
       </div>
       <div className="divide-y divide-border">
@@ -1749,9 +1801,7 @@ function RecommendationsPanel({
         ) : (
           recommendations.map((r) => {
             const meta = ACTION_LABELS[r.action];
-            const isPending =
-              (pause.isPending && pause.variables === r.campaignId) ||
-              (adjustBudget.isPending && adjustBudget.variables?.id === r.campaignId);
+            const pending = isPending(r.campaignId);
             return (
               <div key={r.id} className={`flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between ${SEVERITY_STYLES[r.severity]}`}>
                 <div className="min-w-0 flex-1">
@@ -1777,18 +1827,27 @@ function RecommendationsPanel({
                   </div>
                 </div>
                 <button
-                  onClick={() => apply(r)}
-                  disabled={isPending}
+                  onClick={() => setPreviewFor(r)}
+                  disabled={pending}
                   className={`inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-2 text-xs font-bold disabled:opacity-50 ${meta.color}`}
                 >
-                  {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Zap className="h-3 w-3" />}
-                  {meta.label}
+                  {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Eye className="h-3 w-3" />}
+                  Pré-visualizar
                 </button>
               </div>
             );
           })
         )}
       </div>
+
+      {previewFor && (
+        <ImpactPreviewModal
+          rec={previewFor}
+          campConv={campConv}
+          onClose={() => setPreviewFor(null)}
+          onConfirm={() => handleConfirm(previewFor)}
+        />
+      )}
 
       {duplicateFor && (
         <DuplicateCampaignModal
@@ -1801,3 +1860,536 @@ function RecommendationsPanel({
     </div>
   );
 }
+
+// ============== IMPACT PREVIEW MODAL ==============
+function ImpactPreviewModal({
+  rec,
+  campConv,
+  onClose,
+  onConfirm,
+}: {
+  rec: Recommendation;
+  campConv: any[];
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const impact = useMemo(() => estimateImpact(rec, campConv as any), [rec, campConv]);
+  const meta = ACTION_LABELS[rec.action];
+  const confColors = {
+    alta: "text-[oklch(0.7_0.18_162)] bg-[oklch(0.7_0.18_162/0.15)]",
+    média: "text-[oklch(0.77_0.19_70)] bg-[oklch(0.77_0.19_70/0.15)]",
+    baixa: "text-destructive bg-destructive/15",
+  } as const;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-border bg-card shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 border-b border-border bg-card p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs uppercase text-muted-foreground">Pré-visualização de impacto</p>
+              <h2 className="mt-1 text-lg font-bold">
+                {meta.emoji} {rec.title}
+              </h2>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">{rec.campaignName}</p>
+            </div>
+            <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-bold uppercase ${confColors[impact.confidence]}`}>
+              Confiança {impact.confidence}
+            </span>
+          </div>
+        </div>
+
+        <div className="space-y-5 p-5">
+          {/* Comparação atual vs projetada */}
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <ImpactMetric
+              label="Gasto diário"
+              current={formatBRL(impact.currentDailySpend)}
+              projected={formatBRL(impact.projectedDailySpend)}
+              delta={impact.spendDelta}
+              format={(v) => formatBRL(v)}
+              invertGood
+            />
+            <ImpactMetric
+              label="Receita diária"
+              current={formatBRL(impact.currentDailyRevenue)}
+              projected={formatBRL(impact.projectedDailyRevenue)}
+              delta={impact.revenueDelta}
+              format={(v) => formatBRL(v)}
+            />
+            <ImpactMetric
+              label="ROAS"
+              current={`${impact.currentRoas.toFixed(2)}x`}
+              projected={`${impact.projectedRoas.toFixed(2)}x`}
+              delta={impact.roasDelta}
+              format={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}x`}
+            />
+            <ImpactMetric
+              label="CVR (clique→compra)"
+              current={`${impact.currentCvr.toFixed(2)}%`}
+              projected={`${impact.projectedCvr.toFixed(2)}%`}
+              delta={impact.cvrDelta}
+              format={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}pp`}
+            />
+            <ImpactMetric
+              label="Compras/dia (estim.)"
+              current={impact.currentDailyPurchases.toFixed(1)}
+              projected={impact.projectedDailyPurchases.toFixed(1)}
+              delta={impact.projectedDailyPurchases - impact.currentDailyPurchases}
+              format={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(1)}`}
+            />
+            <div className="rounded-lg border border-border bg-background p-3">
+              <p className="text-[10px] uppercase text-muted-foreground">Janela base</p>
+              <p className="mt-1 font-semibold">últimos 7 dias</p>
+              <p className="mt-1 text-[10px] text-muted-foreground">
+                Projeção = média diária × ajuste da ação
+              </p>
+            </div>
+          </div>
+
+          {/* Reason */}
+          <div className="rounded-lg border border-border bg-background p-3">
+            <p className="text-xs font-semibold">📋 Motivo da recomendação</p>
+            <p className="mt-1 text-xs text-muted-foreground">{rec.reason}</p>
+          </div>
+
+          {/* Notes */}
+          {impact.notes.length > 0 && (
+            <div className="rounded-lg border border-[oklch(0.77_0.19_70/0.3)] bg-[oklch(0.77_0.19_70/0.05)] p-3">
+              <p className="text-xs font-semibold">💡 Premissas e observações</p>
+              <ul className="mt-1 space-y-1 text-xs text-muted-foreground">
+                {impact.notes.map((n, i) => (
+                  <li key={i}>• {n}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <div className="sticky bottom-0 flex justify-end gap-2 border-t border-border bg-card p-4">
+          <button
+            onClick={onClose}
+            className="rounded-md border border-border px-4 py-2 text-xs font-medium hover:bg-muted"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`inline-flex items-center gap-1 rounded-md px-4 py-2 text-xs font-bold ${meta.color}`}
+          >
+            <Zap className="h-3 w-3" /> Aplicar agora
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ImpactMetric({
+  label,
+  current,
+  projected,
+  delta,
+  format,
+  invertGood = false,
+}: {
+  label: string;
+  current: string;
+  projected: string;
+  delta: number;
+  format: (v: number) => string;
+  invertGood?: boolean;
+}) {
+  const isPositive = delta > 0.001;
+  const isNegative = delta < -0.001;
+  const isGood = invertGood ? isNegative : isPositive;
+  const isBad = invertGood ? isPositive : isNegative;
+  const color = isGood
+    ? "text-[oklch(0.7_0.18_162)]"
+    : isBad
+      ? "text-destructive"
+      : "text-muted-foreground";
+  return (
+    <div className="rounded-lg border border-border bg-background p-3">
+      <p className="text-[10px] uppercase text-muted-foreground">{label}</p>
+      <div className="mt-1 flex items-baseline gap-1.5">
+        <span className="text-xs text-muted-foreground line-through">{current}</span>
+        <ChevronRight className="h-3 w-3 text-muted-foreground" />
+        <span className="text-sm font-bold">{projected}</span>
+      </div>
+      <p className={`mt-0.5 text-[10px] font-semibold ${color}`}>{format(delta)}</p>
+    </div>
+  );
+}
+
+// ============== AUTO MODE PANEL ==============
+function AutoModePanel({
+  recommendations,
+  camps,
+  campConv,
+}: {
+  recommendations: Recommendation[];
+  camps: any[];
+  campConv: any[];
+}) {
+  const [settings, setSettings] = useState<AutoModeSettings>(() => loadAutoModeSettings());
+  const [running, setRunning] = useState(false);
+  const { apply } = useApplyRecommendation(camps, campConv);
+  const ranThisLoad = useRef(false);
+
+  const update = (patch: Partial<AutoModeSettings>) => {
+    const next = { ...settings, ...patch };
+    setSettings(next);
+    saveAutoModeSettings(next);
+  };
+
+  const toggleSeverity = (s: Severity) => {
+    const has = settings.applySeverities.includes(s);
+    update({
+      applySeverities: has
+        ? settings.applySeverities.filter((x) => x !== s)
+        : [...settings.applySeverities, s],
+    });
+  };
+
+  const toggleAction = (a: ActionType) => {
+    const has = settings.applyActions.includes(a);
+    update({
+      applyActions: has
+        ? settings.applyActions.filter((x) => x !== a)
+        : [...settings.applyActions, a],
+    });
+  };
+
+  // filtra recomendações elegíveis para auto-apply
+  const eligible = useMemo(
+    () =>
+      recommendations.filter(
+        (r) =>
+          settings.applySeverities.includes(r.severity) &&
+          settings.applyActions.includes(r.action),
+      ),
+    [recommendations, settings.applySeverities, settings.applyActions],
+  );
+
+  const runNow = async (mode: "auto" | "manual" = "manual") => {
+    if (running) return;
+    setRunning(true);
+    let totalIncrease = 0;
+    let applied = 0;
+    let skipped = 0;
+    for (const r of eligible) {
+      // proteção: respeitar limite diário de aumento de gasto
+      if (r.action === "INCREASE_BUDGET" && r.suggestedDailyBudgetCents && r.currentDailyBudgetCents) {
+        const inc = r.suggestedDailyBudgetCents - r.currentDailyBudgetCents;
+        if (totalIncrease + inc > settings.maxDailySpendIncreaseCents) {
+          appendAudit({
+            mode,
+            campaignId: r.campaignId,
+            campaignName: r.campaignName,
+            action: r.action,
+            severity: r.severity,
+            title: r.title,
+            status: "skipped",
+            errorMessage: `Limite diário de aumento (${formatBRL(settings.maxDailySpendIncreaseCents / 100)}) atingido`,
+          });
+          skipped++;
+          continue;
+        }
+        totalIncrease += inc;
+      }
+      const res = await apply(r, mode);
+      if (res.ok) applied++;
+      else skipped++;
+    }
+    update({ lastRunAt: Date.now() });
+    setRunning(false);
+    if (mode === "auto") {
+      toast.success(`Auto-execução: ${applied} aplicadas, ${skipped} ignoradas`);
+    } else {
+      toast.success(`${applied} ações aplicadas, ${skipped} ignoradas`);
+    }
+  };
+
+  // Roda automaticamente uma vez ao carregar, se for o horário
+  useEffect(() => {
+    if (ranThisLoad.current) return;
+    if (!shouldRunAutoNow(settings)) return;
+    if (eligible.length === 0) return;
+    ranThisLoad.current = true;
+    runNow("auto");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.enabled, settings.scheduleHour, eligible.length]);
+
+  const allSeverities: Severity[] = ["critical", "warning", "opportunity"];
+  const allActions: ActionType[] = ["PAUSE", "DECREASE_BUDGET", "INCREASE_BUDGET"];
+
+  const lastRun = settings.lastRunAt
+    ? new Date(settings.lastRunAt).toLocaleString("pt-BR")
+    : "nunca";
+
+  return (
+    <div className={`rounded-xl border ${settings.enabled ? "border-[oklch(0.7_0.18_162)] bg-[oklch(0.7_0.18_162/0.05)]" : "border-border bg-card"}`}>
+      <div className="flex flex-col gap-4 border-b border-border p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="text-sm font-bold">⚡ Modo Auto de Verdade</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Aplica recomendações automaticamente uma vez por dia, com auditoria completa.
+          </p>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Última execução: <strong className="text-foreground">{lastRun}</strong>
+          </p>
+        </div>
+        <label className="inline-flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            checked={settings.enabled}
+            onChange={(e) => update({ enabled: e.target.checked })}
+            className="h-4 w-4"
+          />
+          <span className="text-sm font-bold">
+            {settings.enabled ? "ATIVO" : "Desativado"}
+          </span>
+        </label>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 p-5 lg:grid-cols-2">
+        <div>
+          <p className="text-xs font-semibold">📅 Horário de execução diária</p>
+          <select
+            value={settings.scheduleHour}
+            onChange={(e) => update({ scheduleHour: parseInt(e.target.value) })}
+            className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-xs"
+            disabled={!settings.enabled}
+          >
+            {Array.from({ length: 24 }, (_, h) => (
+              <option key={h} value={h}>
+                {h.toString().padStart(2, "0")}:00
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-[10px] text-muted-foreground">
+            Roda quando você abrir o dashboard após esse horário (limite: 1x/dia).
+          </p>
+        </div>
+
+        <div>
+          <p className="text-xs font-semibold">💰 Aumento máximo de gasto/dia</p>
+          <input
+            type="number"
+            value={settings.maxDailySpendIncreaseCents / 100}
+            onChange={(e) =>
+              update({ maxDailySpendIncreaseCents: Math.max(0, parseFloat(e.target.value) || 0) * 100 })
+            }
+            className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-xs"
+            disabled={!settings.enabled}
+          />
+          <p className="mt-1 text-[10px] text-muted-foreground">
+            Trava de segurança: o auto NUNCA aumenta mais do que esse valor por execução.
+          </p>
+        </div>
+
+        <div>
+          <p className="text-xs font-semibold">🎯 Severidades habilitadas</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {allSeverities.map((s) => (
+              <label key={s} className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1 text-[11px]">
+                <input
+                  type="checkbox"
+                  checked={settings.applySeverities.includes(s)}
+                  onChange={() => toggleSeverity(s)}
+                  disabled={!settings.enabled}
+                />
+                {s}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs font-semibold">⚙️ Ações permitidas</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {allActions.map((a) => (
+              <label key={a} className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1 text-[11px]">
+                <input
+                  type="checkbox"
+                  checked={settings.applyActions.includes(a)}
+                  onChange={() => toggleAction(a)}
+                  disabled={!settings.enabled}
+                />
+                {ACTION_LABELS[a].emoji} {ACTION_LABELS[a].label}
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 border-t border-border p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-xs">
+          <p>
+            <strong>{eligible.length}</strong> de {recommendations.length} recomendação(ões) elegível(eis) agora.
+          </p>
+          <p className="mt-0.5 text-muted-foreground">
+            Apenas as que casam com severidades e ações marcadas acima.
+          </p>
+        </div>
+        <button
+          onClick={() => runNow("manual")}
+          disabled={running || eligible.length === 0}
+          className="inline-flex items-center gap-1 rounded-md bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+        >
+          {running ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
+          Executar batch agora
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ============== AUDIT LOG PANEL ==============
+function AuditLogPanel() {
+  const [entries, setEntries] = useState<AuditEntry[]>(() => loadAuditLog());
+  const [filter, setFilter] = useState<"all" | "auto" | "manual">("all");
+
+  useEffect(() => {
+    const handler = () => setEntries(loadAuditLog());
+    window.addEventListener("audit-log-updated", handler);
+    return () => window.removeEventListener("audit-log-updated", handler);
+  }, []);
+
+  const filtered = filter === "all" ? entries : entries.filter((e) => e.mode === filter);
+
+  const exportCsv = () => {
+    const header = "timestamp,mode,campaign,action,severity,status,error,spend_delta,revenue_delta,roas_delta\n";
+    const rows = entries.map((e) =>
+      [
+        new Date(e.timestamp).toISOString(),
+        e.mode,
+        `"${e.campaignName.replace(/"/g, '""')}"`,
+        e.action,
+        e.severity,
+        e.status,
+        `"${(e.errorMessage || "").replace(/"/g, '""')}"`,
+        e.estimatedSpendDelta?.toFixed(2) ?? "",
+        e.estimatedRevenueDelta?.toFixed(2) ?? "",
+        e.estimatedRoasDelta?.toFixed(2) ?? "",
+      ].join(","),
+    );
+    const blob = new Blob([header + rows.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `audit-log-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-card">
+      <div className="flex flex-col gap-3 border-b border-border p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="text-sm font-bold">📜 Registro de Auditoria</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Histórico de todas as ações aplicadas (manual ou auto), com impacto estimado.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value as any)}
+            className="rounded-md border border-border bg-background px-2 py-1.5 text-xs"
+          >
+            <option value="all">Todos ({entries.length})</option>
+            <option value="manual">Manual</option>
+            <option value="auto">Auto</option>
+          </select>
+          <button
+            onClick={exportCsv}
+            disabled={entries.length === 0}
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-muted disabled:opacity-50"
+          >
+            <FileDown className="h-3 w-3" /> CSV
+          </button>
+          <button
+            onClick={() => {
+              if (confirm("Limpar todo o histórico de auditoria?")) {
+                clearAuditLog();
+                setEntries([]);
+              }
+            }}
+            disabled={entries.length === 0}
+            className="rounded-md border border-border bg-background px-3 py-1.5 text-xs hover:bg-destructive/10 disabled:opacity-50"
+          >
+            Limpar
+          </button>
+        </div>
+      </div>
+      <div className="max-h-[500px] overflow-y-auto">
+        {filtered.length === 0 ? (
+          <div className="p-8 text-center text-sm text-muted-foreground">
+            Nenhum registro ainda. Aplique uma recomendação para começar.
+          </div>
+        ) : (
+          <table className="w-full text-xs">
+            <thead className="sticky top-0 bg-muted text-left text-[10px] uppercase text-muted-foreground">
+              <tr>
+                <th className="px-3 py-2">Data/Hora</th>
+                <th className="px-3 py-2">Modo</th>
+                <th className="px-3 py-2">Ação</th>
+                <th className="px-3 py-2">Campanha</th>
+                <th className="px-3 py-2">Status</th>
+                <th className="px-3 py-2 text-right">Δ Gasto/dia</th>
+                <th className="px-3 py-2 text-right">Δ Receita/dia</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {filtered.map((e) => {
+                const meta = ACTION_LABELS[e.action];
+                const statusColor =
+                  e.status === "success"
+                    ? "text-[oklch(0.7_0.18_162)]"
+                    : e.status === "error"
+                      ? "text-destructive"
+                      : "text-muted-foreground";
+                return (
+                  <tr key={e.id} className="hover:bg-muted/40">
+                    <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">
+                      {new Date(e.timestamp).toLocaleString("pt-BR")}
+                    </td>
+                    <td className="px-3 py-2">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${e.mode === "auto" ? "bg-[oklch(0.7_0.18_162/0.2)] text-[oklch(0.7_0.18_162)]" : "bg-muted"}`}
+                      >
+                        {e.mode}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2">
+                      {meta.emoji} {meta.label}
+                    </td>
+                    <td className="max-w-[200px] truncate px-3 py-2">{e.campaignName}</td>
+                    <td className={`px-3 py-2 font-semibold ${statusColor}`}>
+                      {e.status === "success" ? "✓ OK" : e.status === "error" ? "✗ Erro" : "⊘ Skip"}
+                      {e.errorMessage && (
+                        <span className="ml-1 text-[10px] text-muted-foreground">({e.errorMessage})</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      {e.estimatedSpendDelta !== undefined ? formatBRL(e.estimatedSpendDelta) : "—"}
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      {e.estimatedRevenueDelta !== undefined ? formatBRL(e.estimatedRevenueDelta) : "—"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
+
