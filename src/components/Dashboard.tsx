@@ -948,39 +948,14 @@ function Controle({ camps, loading, onRefresh }: { camps: any[]; loading: boolea
           {!loading && camps.length === 0 && (
             <div className="p-6 text-center text-sm text-muted-foreground">Nenhuma campanha</div>
           )}
-          {camps.map((c) => {
-            const isActive = (c.effective_status || c.status) === "ACTIVE";
-            return (
-              <div key={c.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{c.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {c.objective} • {formatBRL(c.spend)} gasto • ROAS {c.roas.toFixed(2)}x
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <StatusBadge status={c.effective_status || c.status} />
-                  {isActive ? (
-                    <button
-                      onClick={() => toggle.mutate({ campaignId: c.id, status: "PAUSED" })}
-                      disabled={toggle.isPending}
-                      className="inline-flex items-center gap-1 rounded-md bg-[oklch(0.77_0.19_70/0.2)] px-3 py-1.5 text-xs font-medium text-[oklch(0.77_0.19_70)] hover:bg-[oklch(0.77_0.19_70/0.3)] disabled:opacity-50"
-                    >
-                      <Pause className="h-3 w-3" /> Pausar
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => toggle.mutate({ campaignId: c.id, status: "ACTIVE" })}
-                      disabled={toggle.isPending}
-                      className="inline-flex items-center gap-1 rounded-md bg-[oklch(0.7_0.18_162/0.2)] px-3 py-1.5 text-xs font-medium text-[oklch(0.7_0.18_162)] hover:bg-[oklch(0.7_0.18_162/0.3)] disabled:opacity-50"
-                    >
-                      <Play className="h-3 w-3" /> Ativar
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+          {camps.map((c) => (
+            <CampaignControlRow
+              key={c.id}
+              c={c}
+              onToggle={(status) => toggle.mutate({ campaignId: c.id, status })}
+              toggling={toggle.isPending}
+            />
+          ))}
         </div>
       </div>
     </div>
