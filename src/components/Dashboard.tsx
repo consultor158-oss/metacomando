@@ -54,7 +54,20 @@ import {
   ACTION_LABELS,
   SEVERITY_STYLES,
   type Recommendation,
+  type Severity,
+  type ActionType,
 } from "../lib/recommendations";
+import { estimateImpact, type ImpactEstimate } from "../lib/impact";
+import {
+  loadAuditLog,
+  appendAudit,
+  clearAuditLog,
+  loadAutoModeSettings,
+  saveAutoModeSettings,
+  shouldRunAutoNow,
+  type AuditEntry,
+  type AutoModeSettings,
+} from "../lib/auditLog";
 import { formatBRL, formatNumber, formatPct } from "../lib/format";
 
 type Tab = "overview" | "analise" | "controle" | "escalas" | "ia" | "automacao";
