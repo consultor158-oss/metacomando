@@ -42,12 +42,19 @@ import {
   updateCampaignStatus,
   updateBudget,
   createCampaign,
+  duplicateCampaign,
   generateAdCopy,
   getConversionFunnel,
   getClickBreakdown,
   getCampaignsConversion,
 } from "../server/meta";
 import { SCALE_STRATEGIES, type ScaleStrategy } from "../lib/scales";
+import {
+  generateRecommendations,
+  ACTION_LABELS,
+  SEVERITY_STYLES,
+  type Recommendation,
+} from "../lib/recommendations";
 import { formatBRL, formatNumber, formatPct } from "../lib/format";
 
 type Tab = "overview" | "analise" | "controle" | "escalas" | "ia" | "automacao";
@@ -236,9 +243,20 @@ export function Dashboard() {
             onRefresh={() => qc.invalidateQueries({ queryKey: ["meta-campaigns"] })}
           />
         )}
-        {tab === "escalas" && <Escalas />}
+        {tab === "escalas" && (
+          <Escalas
+            camps={camps}
+            campConv={campConv.data?.ok ? campConv.data.data : []}
+          />
+        )}
         {tab === "ia" && <IATab />}
-        {tab === "automacao" && <Automacao camps={camps} roas={overallROAS} />}
+        {tab === "automacao" && (
+          <Automacao
+            camps={camps}
+            campConv={campConv.data?.ok ? campConv.data.data : []}
+            roas={overallROAS}
+          />
+        )}
       </main>
 
       <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
@@ -1151,16 +1169,40 @@ function CreativeUpload() {
 }
 
 // ============== ESCALAS ==============
-function Escalas() {
+function Escalas({ camps, campConv }: { camps: any[]; campConv: any[] }) {
   const [active, setActive] = useState<ScaleStrategy | null>(null);
+  const [duplicateOpen, setDuplicateOpen] = useState<{ preselected?: string } | null>(null);
 
   return (
     <div className="space-y-6">
+      <div className="rounded-xl border-2 border-primary/40 bg-gradient-to-br from-primary/15 via-chart-4/10 to-card p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-primary" />
+              <h3 className="text-base font-bold">Iniciar Campanha pelo Modelo</h3>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Escolha uma campanha que você já tem na dashboard e a Dashboard sobe a cópia
+              <strong className="text-foreground"> automaticamente </strong>
+              com todas as características do modelo (objetivo, buying type, bid strategy, budget).
+            </p>
+          </div>
+          <button
+            onClick={() => setDuplicateOpen({})}
+            disabled={camps.length === 0}
+            className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-lg hover:bg-primary/90 disabled:opacity-50"
+          >
+            <Sparkles className="h-4 w-4" />
+            Escolher modelo & subir
+          </button>
+        </div>
+      </div>
+
       <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-chart-4/10 p-5">
-        <h3 className="text-sm font-semibold">📋 Guia Geral de Subida</h3>
+        <h3 className="text-sm font-semibold">📋 Estratégias prontas (campanha do zero)</h3>
         <p className="mt-2 text-sm text-muted-foreground">
-          1. Anexe criativos no Controle → 2. Escolha estratégia abaixo → 3. Defina público / orçamento / objetivo →
-          4. Clique <strong className="text-primary">SUBIR via API</strong>. Regra de ROI: pause sempre que CPA &gt; R$10.
+          Ou crie uma campanha nova a partir das estratégias abaixo. Regra: pause se CPA &gt; R$10.
         </p>
       </div>
 
@@ -1183,6 +1225,206 @@ function Escalas() {
       </div>
 
       {active && <ScaleModal strategy={active} onClose={() => setActive(null)} />}
+      {duplicateOpen && (
+        <DuplicateCampaignModal
+          camps={camps}
+          campConv={campConv}
+          preselectedId={duplicateOpen.preselected}
+          onClose={() => setDuplicateOpen(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ============== DUPLICATE CAMPAIGN MODAL ==============
+function DuplicateCampaignModal({
+  camps,
+  campConv,
+  onClose,
+  preselectedId,
+}: {
+  camps: any[];
+  campConv: any[];
+  onClose: () => void;
+  preselectedId?: string;
+}) {
+  const qc = useQueryClient();
+  const [sourceId, setSourceId] = useState<string>(preselectedId || camps[0]?.id || "");
+  const source = camps.find((c) => c.id === sourceId);
+  const sourceConv = campConv.find((c) => c.campaign_id === sourceId);
+
+  const currentBudget = source?.daily_budget ? parseInt(source.daily_budget) / 100 : 50;
+  const [name, setName] = useState(
+    source ? `${source.name} — cópia ${new Date().toLocaleDateString("pt-BR")}` : "",
+  );
+  const [budget, setBudget] = useState(currentBudget);
+  const [status, setStatus] = useState<"ACTIVE" | "PAUSED">("PAUSED");
+
+  // sincroniza budget/nome quando troca o source
+  const onChangeSource = (id: string) => {
+    setSourceId(id);
+    const s = camps.find((c) => c.id === id);
+    if (s) {
+      setBudget(s.daily_budget ? parseInt(s.daily_budget) / 100 : 50);
+      setName(`${s.name} — cópia ${new Date().toLocaleDateString("pt-BR")}`);
+    }
+  };
+
+  const dup = useMutation({
+    mutationFn: () =>
+      duplicateCampaign({
+        data: {
+          sourceCampaignId: sourceId,
+          newName: name || undefined,
+          dailyBudgetCents: Math.round(budget * 100),
+          status,
+        },
+      }),
+    onSuccess: (res: any) => {
+      if (res.ok) {
+        toast.success(`✅ Campanha duplicada do modelo "${res.clonedFrom?.name}"`);
+        qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
+        onClose();
+      } else {
+        toast.error(res.error || "Falha ao duplicar");
+      }
+    },
+  });
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur"
+      onClick={onClose}
+    >
+      <div
+        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-start justify-between">
+          <div>
+            <div className="text-3xl">🚀</div>
+            <h3 className="mt-2 text-xl font-bold">Iniciar campanha pelo modelo</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Escolha o modelo. Vamos clonar com objetivo + buying type + bid strategy + budget.
+            </p>
+          </div>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+              Modelo (campanha existente)
+            </label>
+            <select
+              value={sourceId}
+              onChange={(e) => onChangeSource(e.target.value)}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {camps.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {(c.effective_status || c.status) === "ACTIVE" ? "🟢 " : "⏸️ "}
+                  {c.name} · ROAS {(c.roas ?? 0).toFixed(2)}x
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {source && (
+            <div className="rounded-lg border border-border bg-muted/30 p-4">
+              <p className="text-xs font-semibold uppercase text-muted-foreground">
+                Características que serão clonadas
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-xs text-muted-foreground">Objetivo</span>
+                  <p className="font-medium">{source.objective || "—"}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground">Buying Type</span>
+                  <p className="font-medium">{source.buying_type || "AUCTION"}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground">Bid Strategy</span>
+                  <p className="font-medium">{source.bid_strategy || "automática"}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground">Budget atual</span>
+                  <p className="font-medium">{formatBRL(currentBudget)}/dia</p>
+                </div>
+                {sourceConv && (
+                  <>
+                    <div>
+                      <span className="text-xs text-muted-foreground">Performance modelo</span>
+                      <p className="font-medium">
+                        ROAS {sourceConv.roas?.toFixed(2)}x · {sourceConv.purchases} compras
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted-foreground">CVR Click→Compra</span>
+                      <p className="font-medium">{sourceConv.cvr_click_to_purchase?.toFixed(2)}%</p>
+                    </div>
+                  </>
+                )}
+              </div>
+              <p className="mt-3 rounded bg-primary/10 p-2 text-xs text-primary">
+                ℹ️ Adsets, criativos e públicos NÃO são copiados pela Graph API neste passo (Meta exige
+                duplicação ad-a-ad). A campanha-mãe será criada com os mesmos parâmetros para você anexar
+                criativos no painel Meta ou via aba Controle.
+              </p>
+            </div>
+          )}
+
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+              Nome da nova campanha
+            </label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+                Budget diário (R$)
+              </label>
+              <input
+                type="number"
+                value={budget}
+                min={1}
+                onChange={(e) => setBudget(parseFloat(e.target.value || "0"))}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+                Status inicial
+              </label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as any)}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="PAUSED">Pausada (revisar antes)</option>
+                <option value="ACTIVE">Ativa imediatamente</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={() => dup.mutate()}
+          disabled={!sourceId || dup.isPending || budget < 1}
+          className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-gradient-to-r from-primary to-chart-4 px-4 py-3 text-sm font-bold text-white shadow-lg hover:opacity-90 disabled:opacity-50"
+        >
+          {dup.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+          {dup.isPending ? "Subindo via API…" : "🚀 Subir cópia via API"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -1337,60 +1579,207 @@ function IATab() {
 }
 
 // ============== AUTOMAÇÃO ==============
-function Automacao({ camps, roas }: { camps: any[]; roas: number }) {
+function Automacao({
+  camps,
+  campConv,
+  roas,
+}: {
+  camps: any[];
+  campConv: any[];
+  roas: number;
+}) {
+  const recommendations = useMemo(
+    () => generateRecommendations(campConv, camps, { roasTarget: 2, cpaTarget: 10 }),
+    [campConv, camps],
+  );
+
+  // alertas legados (mantém compatibilidade)
   const alerts: { type: "danger" | "warning" | "info"; msg: string }[] = [];
-  if (roas < 2 && roas > 0) alerts.push({ type: "danger", msg: `ROAS conta abaixo de 2x (atual ${roas.toFixed(2)}x)` });
-  for (const c of camps) {
-    const eff = c.effective_status || c.status;
-    if (eff === "ACTIVE" && c.cpa > 10 && c.conversions > 0)
-      alerts.push({ type: "warning", msg: `${c.name}: CPA ${formatBRL(c.cpa)} acima de R$10 — considere pausar` });
-    if (eff === "ACTIVE" && c.spend > 100 && c.roas < 1)
-      alerts.push({ type: "danger", msg: `${c.name}: ROAS ${c.roas.toFixed(2)}x e gasto ${formatBRL(c.spend)} — pausar` });
-  }
+  if (roas < 2 && roas > 0)
+    alerts.push({ type: "danger", msg: `ROAS conta abaixo de 2x (atual ${roas.toFixed(2)}x)` });
+
+  const counts = recommendations.reduce(
+    (a, r) => {
+      a[r.severity]++;
+      return a;
+    },
+    { critical: 0, warning: 0, opportunity: 0, info: 0 } as Record<string, number>,
+  );
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-xl border border-border bg-card p-5">
-          <Bell className="h-5 w-5 text-primary" />
-          <h3 className="mt-3 text-sm font-semibold">Alertas Inteligentes</h3>
-          <p className="mt-1 text-xs text-muted-foreground">ROAS &lt; 2x · CPA &gt; R$10 · Adsets sem conversão</p>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5">
+          <p className="text-xs uppercase text-muted-foreground">Críticas (pausar)</p>
+          <p className="mt-2 text-2xl font-bold text-destructive">{counts.critical}</p>
         </div>
-        <div className="rounded-xl border border-border bg-card p-5">
-          <Zap className="h-5 w-5 text-primary" />
-          <h3 className="mt-3 text-sm font-semibold">Subida Automática</h3>
-          <p className="mt-1 text-xs text-muted-foreground">Cards de Escala com 1 clique disparam POST na Graph API</p>
+        <div className="rounded-xl border border-[oklch(0.77_0.19_70/0.3)] bg-[oklch(0.77_0.19_70/0.05)] p-5">
+          <p className="text-xs uppercase text-muted-foreground">Avisos (ajustar)</p>
+          <p className="mt-2 text-2xl font-bold text-[oklch(0.77_0.19_70)]">{counts.warning}</p>
+        </div>
+        <div className="rounded-xl border border-[oklch(0.7_0.18_162/0.3)] bg-[oklch(0.7_0.18_162/0.05)] p-5">
+          <p className="text-xs uppercase text-muted-foreground">Oportunidades (escalar)</p>
+          <p className="mt-2 text-2xl font-bold text-[oklch(0.7_0.18_162)]">{counts.opportunity}</p>
         </div>
         <div className="rounded-xl border border-border bg-card p-5">
           <FileDown className="h-5 w-5 text-primary" />
-          <h3 className="mt-3 text-sm font-semibold">Relatório Semanal</h3>
+          <h3 className="mt-2 text-sm font-semibold">Relatório PDF</h3>
           <button
             onClick={() => window.print()}
             className="mt-2 inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
           >
-            <FileDown className="h-3 w-3" /> Exportar PDF
+            <FileDown className="h-3 w-3" /> Exportar
           </button>
         </div>
       </div>
 
-      <div className="rounded-xl border border-border bg-card">
-        <div className="border-b border-border p-5">
-          <h3 className="text-sm font-semibold">🚨 Alertas Ativos ({alerts.length})</h3>
+      <RecommendationsPanel recommendations={recommendations} camps={camps} />
+
+      {alerts.length > 0 && (
+        <div className="rounded-xl border border-border bg-card">
+          <div className="border-b border-border p-5">
+            <h3 className="text-sm font-semibold">🚨 Alertas da conta</h3>
+          </div>
+          <div className="divide-y divide-border">
+            {alerts.map((a, i) => (
+              <div key={i} className="flex items-start gap-3 p-4">
+                <AlertTriangle
+                  className={`mt-0.5 h-4 w-4 shrink-0 ${a.type === "danger" ? "text-destructive" : "text-[oklch(0.77_0.19_70)]"}`}
+                />
+                <p className="text-sm">{a.msg}</p>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="divide-y divide-border">
-          {alerts.length === 0 && (
-            <div className="p-6 text-center text-sm text-muted-foreground">Tudo certo! 🎉</div>
-          )}
-          {alerts.map((a, i) => (
-            <div key={i} className="flex items-start gap-3 p-4">
-              <AlertTriangle
-                className={`mt-0.5 h-4 w-4 shrink-0 ${a.type === "danger" ? "text-destructive" : "text-[oklch(0.77_0.19_70)]"}`}
-              />
-              <p className="text-sm">{a.msg}</p>
-            </div>
-          ))}
-        </div>
+      )}
+    </div>
+  );
+}
+
+// ============== RECOMMENDATIONS PANEL (1-clique para aplicar) ==============
+function RecommendationsPanel({
+  recommendations,
+  camps,
+}: {
+  recommendations: Recommendation[];
+  camps: any[];
+}) {
+  const qc = useQueryClient();
+  const [duplicateFor, setDuplicateFor] = useState<string | null>(null);
+
+  const pause = useMutation({
+    mutationFn: (id: string) => updateCampaignStatus({ data: { campaignId: id, status: "PAUSED" } }),
+    onSuccess: (res) => {
+      if (res.ok) {
+        toast.success("Campanha pausada");
+        qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
+        qc.invalidateQueries({ queryKey: ["meta-camp-conv"] });
+      } else toast.error(res.error || "Falha");
+    },
+  });
+
+  const adjustBudget = useMutation({
+    mutationFn: (vars: { id: string; cents: number }) =>
+      updateBudget({ data: { id: vars.id, dailyBudgetCents: vars.cents, type: "campaign" } }),
+    onSuccess: (res, vars) => {
+      if (res.ok) {
+        toast.success(`Budget ajustado para ${formatBRL(vars.cents / 100)}/dia`);
+        qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
+      } else toast.error(res.error || "Falha (CBO?)");
+    },
+  });
+
+  const apply = (r: Recommendation) => {
+    switch (r.action) {
+      case "PAUSE":
+        pause.mutate(r.campaignId);
+        break;
+      case "DECREASE_BUDGET":
+      case "INCREASE_BUDGET":
+        if (r.suggestedDailyBudgetCents) {
+          adjustBudget.mutate({ id: r.campaignId, cents: r.suggestedDailyBudgetCents });
+        } else {
+          toast.info("Edite o budget na aba Controle (CBO ativo no adset).");
+        }
+        break;
+      case "DUPLICATE_WINNER":
+        setDuplicateFor(r.campaignId);
+        break;
+      case "CHANGE_AUDIENCE":
+      case "CHANGE_CREATIVE":
+      case "FIX_LANDING_PAGE":
+        toast.info(`Ação manual recomendada: ${r.title}. Acesse o Meta Ads Manager.`);
+        break;
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-card">
+      <div className="border-b border-border p-5">
+        <SectionHeader
+          title="🤖 Recomendações Automáticas"
+          subtitle={`${recommendations.length} ações sugeridas baseadas em CVR, ROAS e funil real`}
+        />
       </div>
+      <div className="divide-y divide-border">
+        {recommendations.length === 0 ? (
+          <div className="p-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              ✨ Nenhuma recomendação no momento. Suas campanhas ativas estão saudáveis ou não há gasto suficiente para análise.
+            </p>
+          </div>
+        ) : (
+          recommendations.map((r) => {
+            const meta = ACTION_LABELS[r.action];
+            const isPending =
+              (pause.isPending && pause.variables === r.campaignId) ||
+              (adjustBudget.isPending && adjustBudget.variables?.id === r.campaignId);
+            return (
+              <div key={r.id} className={`flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between ${SEVERITY_STYLES[r.severity]}`}>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{meta.emoji}</span>
+                    <p className="truncate text-sm font-bold">{r.title}</p>
+                    <span className="rounded-full bg-card px-2 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+                      {r.severity}
+                    </span>
+                  </div>
+                  <p className="mt-1 truncate text-xs font-medium text-muted-foreground">
+                    {r.campaignName}
+                  </p>
+                  <p className="mt-1 text-xs">{r.reason}</p>
+                  <div className="mt-1 flex flex-wrap gap-3 text-[11px] text-muted-foreground">
+                    <span>📊 {r.metric}</span>
+                    {r.suggestedDailyBudgetCents && r.currentDailyBudgetCents ? (
+                      <span>
+                        💰 {formatBRL(r.currentDailyBudgetCents / 100)} →{" "}
+                        <strong className="text-foreground">{formatBRL(r.suggestedDailyBudgetCents / 100)}</strong>/dia
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+                <button
+                  onClick={() => apply(r)}
+                  disabled={isPending}
+                  className={`inline-flex shrink-0 items-center gap-1 rounded-md px-3 py-2 text-xs font-bold disabled:opacity-50 ${meta.color}`}
+                >
+                  {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Zap className="h-3 w-3" />}
+                  {meta.label}
+                </button>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {duplicateFor && (
+        <DuplicateCampaignModal
+          camps={camps}
+          campConv={[]}
+          preselectedId={duplicateFor}
+          onClose={() => setDuplicateFor(null)}
+        />
+      )}
     </div>
   );
 }
