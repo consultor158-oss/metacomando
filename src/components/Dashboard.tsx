@@ -47,7 +47,15 @@ import {
   getConversionFunnel,
   getClickBreakdown,
   getCampaignsConversion,
+  getCampaignDetails,
 } from "../server/meta";
+import {
+  loadCustomApis,
+  addCustomApi,
+  removeCustomApi,
+  testCustomApi,
+  type CustomApi,
+} from "../lib/customApis";
 import { SCALE_STRATEGIES, type ScaleStrategy } from "../lib/scales";
 import {
   generateRecommendations,
