@@ -1129,11 +1129,12 @@ function CampaignControlRow({
           </button>
         )}
       </div>
+      {showDetails && (
+        <CampaignDetailsModal campaignId={c.id} onClose={() => setShowDetails(false)} />
+      )}
     </div>
   );
 }
-
-function CreativeUpload() {
   const [files, setFiles] = useState<File[]>([]);
   const [briefing, setBriefing] = useState("");
   const [generated, setGenerated] = useState<any>(null);
