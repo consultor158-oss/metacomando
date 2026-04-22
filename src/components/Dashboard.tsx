@@ -2367,21 +2367,136 @@ function Empty({ text }: { text: string }) {
   );
 }
 
-function CreativeCard({ ad }: { ad: any }) {
+function AdsetRow({ adset, onChanged }: { adset: any; onChanged: () => void }) {
+  const [editing, setEditing] = useState(false);
+  const [budget, setBudget] = useState(
+    adset.daily_budget ? (parseInt(adset.daily_budget) / 100).toString() : "",
+  );
+  const [busy, setBusy] = useState(false);
+  const isPaused = (adset.effective_status || adset.status) === "PAUSED";
+
+  const toggle = async () => {
+    setBusy(true);
+    await updateAdsetStatus({
+      data: { adsetId: adset.id, status: isPaused ? "ACTIVE" : "PAUSED" },
+    });
+    setBusy(false);
+    onChanged();
+  };
+
+  const saveBudget = async () => {
+    const n = parseFloat(budget);
+    if (!isFinite(n) || n < 1) return;
+    setBusy(true);
+    await updateAdsetBudget({ data: { adsetId: adset.id, dailyBudgetBRL: n } });
+    setBusy(false);
+    setEditing(false);
+    onChanged();
+  };
+
+  return (
+    <div className="rounded-md border border-border bg-muted/20 p-3">
+      <div className="flex items-center justify-between gap-3">
+        <p className="min-w-0 truncate text-sm font-medium">{adset.name}</p>
+        <div className="flex items-center gap-2">
+          <StatusBadge status={adset.effective_status || adset.status} />
+          <button
+            onClick={toggle}
+            disabled={busy}
+            className="rounded border border-border bg-card px-2 py-1 text-xs hover:bg-accent disabled:opacity-50"
+          >
+            {isPaused ? "Ativar" : "Pausar"}
+          </button>
+        </div>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+        {adset.optimization_goal && <span>Otimização: {adset.optimization_goal}</span>}
+        {adset.bid_amount && <span>• Bid: {formatBRL(parseInt(adset.bid_amount) / 100)}</span>}
+        {!editing ? (
+          <span className="flex items-center gap-2">
+            • Budget:{" "}
+            {adset.daily_budget ? `${formatBRL(parseInt(adset.daily_budget) / 100)}/dia` : "—"}
+            <button
+              onClick={() => setEditing(true)}
+              className="rounded border border-border bg-card px-2 py-0.5 text-[10px] hover:bg-accent"
+            >
+              Editar
+            </button>
+          </span>
+        ) : (
+          <span className="flex items-center gap-1">
+            <span>R$</span>
+            <input
+              type="number"
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
+              className="w-20 rounded border border-border bg-background px-2 py-0.5 text-xs"
+            />
+            <button
+              onClick={saveBudget}
+              disabled={busy}
+              className="rounded bg-primary px-2 py-0.5 text-[10px] text-primary-foreground hover:opacity-90 disabled:opacity-50"
+            >
+              Salvar
+            </button>
+            <button
+              onClick={() => setEditing(false)}
+              className="rounded border border-border bg-card px-2 py-0.5 text-[10px] hover:bg-accent"
+            >
+              Cancelar
+            </button>
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CreativeCard({ ad, onChanged }: { ad: any; onChanged: () => void }) {
   const cre = ad.creative || {};
   const story = cre.object_story_spec || {};
   const link = story.link_data || story.video_data || {};
-  const img = cre.image_url || cre.thumbnail_url || link.image_hash || link.picture;
+  const img =
+    cre.image_url ||
+    cre.thumbnail_url ||
+    link.picture ||
+    ad._previewImage ||
+    null;
   const title = cre.title || link.name || link.title || ad.name;
   const body = cre.body || link.message || link.description;
   const cta = cre.call_to_action_type || link.call_to_action?.type;
   const isVideo = !!(cre.video_id || link.video_id);
+  const isPaused = (ad.effective_status || ad.status) === "PAUSED";
+
+  const [editingName, setEditingName] = useState(false);
+  const [name, setName] = useState(ad.name || "");
+  const [busy, setBusy] = useState(false);
+
+  const togglePause = async () => {
+    setBusy(true);
+    await updateAdStatus({
+      data: { adId: ad.id, status: isPaused ? "ACTIVE" : "PAUSED" },
+    });
+    setBusy(false);
+    onChanged();
+  };
+
+  const saveName = async () => {
+    if (!name.trim() || name === ad.name) {
+      setEditingName(false);
+      return;
+    }
+    setBusy(true);
+    await updateAdName({ data: { adId: ad.id, name: name.trim() } });
+    setBusy(false);
+    setEditingName(false);
+    onChanged();
+  };
 
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-muted/10">
       <div className="relative flex aspect-square items-center justify-center bg-muted/40">
         {img ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img src={img} alt={title || "Criativo"} className="h-full w-full object-cover" />
         ) : (
           <div className="flex flex-col items-center text-muted-foreground">
@@ -2392,13 +2507,56 @@ function CreativeCard({ ad }: { ad: any }) {
         <div className="absolute left-2 top-2">
           <StatusBadge status={ad.effective_status || ad.status} />
         </div>
+        <button
+          onClick={togglePause}
+          disabled={busy}
+          className="absolute right-2 top-2 rounded border border-border bg-card/90 px-2 py-1 text-[10px] backdrop-blur hover:bg-accent disabled:opacity-50"
+        >
+          {isPaused ? "Ativar" : "Pausar"}
+        </button>
       </div>
       <div className="p-3">
-        <p className="line-clamp-1 text-sm font-medium">{title || ad.name}</p>
+        {editingName ? (
+          <div className="flex items-center gap-1">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="flex-1 rounded border border-border bg-background px-2 py-1 text-xs"
+            />
+            <button
+              onClick={saveName}
+              disabled={busy}
+              className="rounded bg-primary px-2 py-1 text-[10px] text-primary-foreground hover:opacity-90 disabled:opacity-50"
+            >
+              OK
+            </button>
+            <button
+              onClick={() => {
+                setEditingName(false);
+                setName(ad.name || "");
+              }}
+              className="rounded border border-border bg-card px-2 py-1 text-[10px] hover:bg-accent"
+            >
+              X
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setEditingName(true)}
+            className="line-clamp-1 w-full text-left text-sm font-medium hover:text-primary"
+            title="Clique para editar o nome"
+          >
+            {ad.name || title}
+          </button>
+        )}
+        {title && title !== ad.name && (
+          <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">Título: {title}</p>
+        )}
         {body && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{body}</p>}
         <div className="mt-2 flex flex-wrap gap-1 text-xs">
           {cta && <span className="rounded bg-primary/15 px-2 py-0.5 text-primary">{cta}</span>}
           {isVideo && <span className="rounded bg-muted px-2 py-0.5 text-muted-foreground">Vídeo</span>}
+          <span className="rounded bg-muted px-2 py-0.5 text-muted-foreground">ID: {ad.id}</span>
         </div>
         {ad.insights && (
           <div className="mt-3 grid grid-cols-3 gap-2 border-t border-border pt-2 text-xs">
@@ -2408,7 +2566,9 @@ function CreativeCard({ ad }: { ad: any }) {
             </div>
             <div>
               <p className="text-muted-foreground">ROAS</p>
-              <p className={`font-semibold ${ad.insights.roas >= 2 ? "text-[oklch(0.7_0.18_162)]" : ""}`}>
+              <p
+                className={`font-semibold ${ad.insights.roas >= 2 ? "text-[oklch(0.7_0.18_162)]" : ""}`}
+              >
                 {ad.insights.roas.toFixed(2)}x
               </p>
             </div>
@@ -2418,16 +2578,26 @@ function CreativeCard({ ad }: { ad: any }) {
             </div>
           </div>
         )}
-        {cre.instagram_permalink_url && (
+        <div className="mt-3 flex flex-wrap gap-2 border-t border-border pt-2">
+          {cre.instagram_permalink_url && (
+            <a
+              href={cre.instagram_permalink_url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+            >
+              <ExternalLink className="h-3 w-3" /> Instagram
+            </a>
+          )}
           <a
-            href={cre.instagram_permalink_url}
+            href={`https://www.facebook.com/adsmanager/manage/ads/edit?act=&selected_ad_ids=${ad.id}`}
             target="_blank"
             rel="noreferrer"
-            className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"
           >
-            <ExternalLink className="h-3 w-3" /> Ver no Instagram
+            <ExternalLink className="h-3 w-3" /> Editar no Ads Manager
           </a>
-        )}
+        </div>
       </div>
     </div>
   );
