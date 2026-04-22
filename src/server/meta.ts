@@ -27,11 +27,30 @@ async function metaFetch(path: string, params: Record<string, string> = {}, init
   } catch {
     data = { raw: text };
   }
-  if (!res.ok) {
-    const msg = data?.error?.message || `Meta API ${res.status}`;
-    throw new Error(`${msg} [${res.status}]`);
+  if (!res.ok || data?.error) {
+    const err = data?.error || {};
+    const e: any = new Error(err.message || `Meta API ${res.status}`);
+    e.code = err.code;
+    e.subcode = err.error_subcode;
+    e.type = err.type;
+    e.fbtrace_id = err.fbtrace_id;
+    e.status = res.status;
+    e.is_token_expired = err.code === 190;
+    throw e;
   }
   return data;
+}
+
+function errorPayload(e: any) {
+  return {
+    ok: false as const,
+    error: e?.message || "Erro desconhecido",
+    code: e?.code,
+    subcode: e?.subcode,
+    type: e?.type,
+    is_token_expired: !!e?.is_token_expired,
+    fbtrace_id: e?.fbtrace_id,
+  };
 }
 
 // ==================== INSIGHTS (overview KPIs) ====================
