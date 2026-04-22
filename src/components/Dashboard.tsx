@@ -1592,14 +1592,71 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
 
 // ============== APIs / IA ==============
 function IATab() {
+  const [apis, setApis] = useState<CustomApi[]>([]);
+  const [showForm, setShowForm] = useState(false);
+
+  useEffect(() => {
+    setApis(loadCustomApis());
+  }, []);
+
+  const refresh = () => setApis(loadCustomApis());
+
   const prompts = [
     { title: "Imagem (Midjourney)", body: "/imagine cinematic product photo of [PRODUTO], golden hour, ultra detailed, 35mm, --ar 4:5" },
     { title: "Música/VSL (Suno)", body: "Upbeat brazilian funk pop, 90 bpm, motivational hook for [PRODUTO], 30s" },
     { title: "Roteiro VSL (IA)", body: "Roteiro de 30s para Reels: gancho 3s, problema, solução [PRODUTO], CTA forte" },
     { title: "Headline (IA)", body: "Gere 10 headlines de Meta Ads para [PRODUTO] focado em [DOR]" },
   ];
+
   return (
     <div className="space-y-6">
+      {/* APIs Personalizadas */}
+      <div className="rounded-xl border border-border bg-card">
+        <div className="flex items-center justify-between border-b border-border p-5">
+          <div>
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <KeyRound className="h-4 w-4 text-primary" /> APIs personalizadas
+            </h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Conecte qualquer API externa (CRM, Webhook, ZeroBounce, OpenAI extra, n8n, Make…) e use direto na dashboard
+            </p>
+          </div>
+          <button
+            onClick={() => setShowForm((v) => !v)}
+            className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="h-3 w-3" /> {showForm ? "Cancelar" : "Adicionar API"}
+          </button>
+        </div>
+
+        {showForm && (
+          <div className="border-b border-border p-5">
+            <CustomApiForm
+              onSaved={() => {
+                refresh();
+                setShowForm(false);
+              }}
+            />
+          </div>
+        )}
+
+        <div className="divide-y divide-border">
+          {apis.length === 0 && !showForm && (
+            <div className="p-8 text-center text-sm text-muted-foreground">
+              Nenhuma API cadastrada ainda. Clique em "Adicionar API" para conectar a primeira.
+            </div>
+          )}
+          {apis.map((a) => (
+            <CustomApiRow
+              key={a.id}
+              api={a}
+              onRemoved={refresh}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Docs Meta */}
       <div className="rounded-xl border border-border bg-card p-5">
         <h3 className="text-sm font-semibold">📚 Meta Graph API v21.0</h3>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -1613,6 +1670,7 @@ function IATab() {
         </ul>
       </div>
 
+      {/* Prompts IA */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {prompts.map((p, i) => (
           <div key={i} className="rounded-xl border border-border bg-card p-5">
@@ -1629,6 +1687,479 @@ function IATab() {
             </button>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function CustomApiForm({ onSaved }: { onSaved: () => void }) {
+  const [name, setName] = useState("");
+  const [baseUrl, setBaseUrl] = useState("");
+  const [authType, setAuthType] = useState<CustomApi["authType"]>("bearer");
+  const [authKey, setAuthKey] = useState("");
+  const [authValue, setAuthValue] = useState("");
+  const [defaultPath, setDefaultPath] = useState("");
+  const [notes, setNotes] = useState("");
+
+  const submit = () => {
+    if (!name.trim() || !baseUrl.trim()) {
+      toast.error("Nome e URL base são obrigatórios");
+      return;
+    }
+    addCustomApi({
+      name: name.trim(),
+      baseUrl: baseUrl.trim(),
+      authType,
+      authKey: authKey.trim() || undefined,
+      authValue: authValue.trim() || undefined,
+      defaultPath: defaultPath.trim() || undefined,
+      notes: notes.trim() || undefined,
+    });
+    toast.success("API adicionada!");
+    onSaved();
+  };
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <Field label="Nome da API">
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Ex: ZeroBounce, n8n Webhook, OpenAI…"
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </Field>
+      <Field label="URL base">
+        <input
+          value={baseUrl}
+          onChange={(e) => setBaseUrl(e.target.value)}
+          placeholder="https://api.exemplo.com/v1"
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </Field>
+      <Field label="Tipo de autenticação">
+        <select
+          value={authType}
+          onChange={(e) => setAuthType(e.target.value as CustomApi["authType"])}
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <option value="none">Nenhuma</option>
+          <option value="bearer">Bearer token (Authorization)</option>
+          <option value="header">Header customizado (ex: X-API-Key)</option>
+          <option value="query">Query param (ex: ?api_key=…)</option>
+        </select>
+      </Field>
+      {authType !== "none" && (
+        <>
+          {(authType === "header" || authType === "query") && (
+            <Field label={authType === "header" ? "Nome do header" : "Nome do query param"}>
+              <input
+                value={authKey}
+                onChange={(e) => setAuthKey(e.target.value)}
+                placeholder={authType === "header" ? "X-API-Key" : "api_key"}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </Field>
+          )}
+          <Field label="Token / Chave">
+            <input
+              value={authValue}
+              onChange={(e) => setAuthValue(e.target.value)}
+              type="password"
+              placeholder="••••••••••••••••"
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </Field>
+        </>
+      )}
+      <Field label="Endpoint padrão (opcional)">
+        <input
+          value={defaultPath}
+          onChange={(e) => setDefaultPath(e.target.value)}
+          placeholder="/contacts ou /webhook/abc123"
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </Field>
+      <Field label="Notas (opcional)">
+        <input
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Para que serve esta API?"
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </Field>
+      <div className="sm:col-span-2 flex justify-end">
+        <button
+          onClick={submit}
+          className="inline-flex items-center gap-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+        >
+          Salvar API
+        </button>
+      </div>
+      <p className="sm:col-span-2 text-xs text-muted-foreground">
+        🔒 As chaves ficam armazenadas apenas no seu navegador (localStorage). Nunca são enviadas a outros servidores.
+      </p>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs font-medium uppercase text-muted-foreground">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function CustomApiRow({ api, onRemoved }: { api: CustomApi; onRemoved: () => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const [pathOverride, setPathOverride] = useState(api.defaultPath || "");
+  const [method, setMethod] = useState<"GET" | "POST">("GET");
+  const [body, setBody] = useState("");
+  const [result, setResult] = useState<{ ok: boolean; status: number; data: any; error?: string } | null>(null);
+  const [testing, setTesting] = useState(false);
+
+  const test = async () => {
+    setTesting(true);
+    try {
+      const r = await testCustomApi(api, pathOverride, method, body);
+      setResult(r);
+      if (r.ok) toast.success(`✓ ${r.status} OK`);
+      else toast.error(`✗ ${r.status} — ${r.error || "falhou"}`);
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const remove = () => {
+    if (confirm(`Remover a API "${api.name}"?`)) {
+      removeCustomApi(api.id);
+      toast.success("API removida");
+      onRemoved();
+    }
+  };
+
+  return (
+    <div className="p-4">
+      <div className="flex items-start justify-between gap-3">
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="min-w-0 flex-1 text-left"
+        >
+          <p className="truncate font-medium">{api.name}</p>
+          <p className="truncate text-xs text-muted-foreground">
+            {api.baseUrl}
+            {api.notes && ` • ${api.notes}`}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            🔐 {api.authType === "none" ? "Sem auth" : api.authType === "bearer" ? "Bearer" : `${api.authType}: ${api.authKey || ""}`}
+          </p>
+        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:bg-accent"
+          >
+            {expanded ? "Fechar" : "Testar"}
+          </button>
+          <button
+            onClick={remove}
+            className="inline-flex items-center gap-1 rounded-md bg-destructive/15 px-2 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/25"
+            title="Remover API"
+          >
+            <Trash2 className="h-3 w-3" />
+          </button>
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="mt-4 space-y-3 rounded-lg border border-border bg-muted/20 p-4">
+          <div className="grid gap-3 sm:grid-cols-[100px_1fr]">
+            <select
+              value={method}
+              onChange={(e) => setMethod(e.target.value as "GET" | "POST")}
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+            >
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+            </select>
+            <input
+              value={pathOverride}
+              onChange={(e) => setPathOverride(e.target.value)}
+              placeholder="/endpoint"
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          {method === "POST" && (
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder='{"email":"teste@dominio.com"}'
+              rows={3}
+              className="w-full rounded-md border border-border bg-background p-3 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          )}
+          <button
+            onClick={test}
+            disabled={testing}
+            className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            {testing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
+            {testing ? "Chamando…" : "Executar chamada"}
+          </button>
+          {result && (
+            <div className="rounded-md border border-border bg-card p-3">
+              <p className="mb-2 text-xs font-semibold">
+                Status:{" "}
+                <span className={result.ok ? "text-[oklch(0.7_0.18_162)]" : "text-destructive"}>
+                  {result.status} {result.ok ? "OK" : "ERRO"}
+                </span>
+              </p>
+              <pre className="max-h-60 overflow-auto whitespace-pre-wrap text-xs">
+                {result.error
+                  ? result.error
+                  : typeof result.data === "string"
+                    ? result.data
+                    : JSON.stringify(result.data, null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============== CAMPAIGN DETAILS MODAL ==============
+function CampaignDetailsModal({ campaignId, onClose }: { campaignId: string; onClose: () => void }) {
+  const details = useQuery({
+    queryKey: ["meta-campaign-details", campaignId],
+    queryFn: () => getCampaignDetails({ data: { campaignId, datePreset: "last_30d" } }),
+    staleTime: 5 * 60_000,
+  });
+
+  useEffect(() => {
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onEsc);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onEsc);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  const data = details.data?.ok ? details.data.data : null;
+  const err = details.data && !details.data.ok ? details.data.error : null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-background/80 p-4 backdrop-blur-sm sm:p-8"
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-5xl rounded-xl border border-border bg-card shadow-2xl"
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-4 border-b border-border p-5">
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Detalhes da campanha</p>
+            <h2 className="mt-1 truncate text-lg font-semibold">
+              {data?.campaign?.name || (details.isFetching ? "Carregando…" : "Campanha")}
+            </h2>
+            {data?.campaign && (
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <StatusBadge status={data.campaign.effective_status || data.campaign.status} />
+                <span>• Objetivo: {data.campaign.objective}</span>
+                {data.campaign.bid_strategy && <span>• Bid: {data.campaign.bid_strategy}</span>}
+                {data.campaign.daily_budget && (
+                  <span>• Budget: {formatBRL(parseInt(data.campaign.daily_budget) / 100)}/dia</span>
+                )}
+              </div>
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-md border border-border bg-card p-2 hover:bg-accent"
+            aria-label="Fechar"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="max-h-[75vh] overflow-y-auto p-5 space-y-6">
+          {details.isFetching && !data && (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          )}
+
+          {err && (
+            <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+              {err}
+            </div>
+          )}
+
+          {data && (
+            <>
+              {/* KPIs */}
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <Mini label="Gasto" value={formatBRL(data.insights.spend)} />
+                <Mini label="Receita" value={formatBRL(data.insights.revenue)} />
+                <Mini
+                  label="ROAS"
+                  value={`${data.insights.roas.toFixed(2)}x`}
+                  highlight={data.insights.roas >= 2 ? "good" : data.insights.roas >= 1 ? "warn" : "bad"}
+                />
+                <Mini label="CPA" value={formatBRL(data.insights.cpa)} />
+                <Mini label="Impressões" value={formatNumber(data.insights.impressions)} />
+                <Mini label="Cliques no link" value={formatNumber(data.insights.link_clicks)} />
+                <Mini label="CTR" value={formatPct(data.insights.ctr)} />
+                <Mini label="CPM" value={formatBRL(data.insights.cpm)} />
+              </div>
+
+              {/* Adsets */}
+              <Section title={`Conjuntos de anúncios (${data.adsets.length})`}>
+                {data.adsets.length === 0 ? (
+                  <Empty text="Nenhum adset" />
+                ) : (
+                  <div className="space-y-2">
+                    {data.adsets.map((s: any) => (
+                      <div key={s.id} className="rounded-md border border-border bg-muted/20 p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="min-w-0 truncate text-sm font-medium">{s.name}</p>
+                          <StatusBadge status={s.effective_status || s.status} />
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {s.optimization_goal && `Otimização: ${s.optimization_goal}`}
+                          {s.daily_budget && ` • Budget: ${formatBRL(parseInt(s.daily_budget) / 100)}/dia`}
+                          {s.bid_amount && ` • Bid: ${formatBRL(parseInt(s.bid_amount) / 100)}`}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Section>
+
+              {/* Ads + Creatives */}
+              <Section title={`Anúncios e criativos (${data.ads.length})`}>
+                {data.ads.length === 0 ? (
+                  <Empty text="Nenhum anúncio" />
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {data.ads.map((ad: any) => (
+                      <CreativeCard key={ad.id} ad={ad} />
+                    ))}
+                  </div>
+                )}
+              </Section>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Mini({ label, value, highlight }: { label: string; value: string; highlight?: "good" | "warn" | "bad" }) {
+  const tone =
+    highlight === "good"
+      ? "text-[oklch(0.7_0.18_162)]"
+      : highlight === "warn"
+        ? "text-[oklch(0.77_0.19_70)]"
+        : highlight === "bad"
+          ? "text-destructive"
+          : "text-foreground";
+  return (
+    <div className="rounded-lg border border-border bg-muted/20 p-3">
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className={`mt-1 text-base font-semibold ${tone}`}>{value}</p>
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h3 className="mb-2 text-sm font-semibold">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function Empty({ text }: { text: string }) {
+  return (
+    <p className="rounded-md border border-dashed border-border bg-muted/10 p-4 text-center text-xs text-muted-foreground">
+      {text}
+    </p>
+  );
+}
+
+function CreativeCard({ ad }: { ad: any }) {
+  const cre = ad.creative || {};
+  const story = cre.object_story_spec || {};
+  const link = story.link_data || story.video_data || {};
+  const img = cre.image_url || cre.thumbnail_url || link.image_hash || link.picture;
+  const title = cre.title || link.name || link.title || ad.name;
+  const body = cre.body || link.message || link.description;
+  const cta = cre.call_to_action_type || link.call_to_action?.type;
+  const isVideo = !!(cre.video_id || link.video_id);
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-border bg-muted/10">
+      <div className="relative flex aspect-square items-center justify-center bg-muted/40">
+        {img ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={img} alt={title || "Criativo"} className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex flex-col items-center text-muted-foreground">
+            {isVideo ? <Video className="h-8 w-8" /> : <ImageIcon className="h-8 w-8" />}
+            <p className="mt-2 text-xs">Pré-visualização indisponível</p>
+          </div>
+        )}
+        <div className="absolute left-2 top-2">
+          <StatusBadge status={ad.effective_status || ad.status} />
+        </div>
+      </div>
+      <div className="p-3">
+        <p className="line-clamp-1 text-sm font-medium">{title || ad.name}</p>
+        {body && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{body}</p>}
+        <div className="mt-2 flex flex-wrap gap-1 text-xs">
+          {cta && <span className="rounded bg-primary/15 px-2 py-0.5 text-primary">{cta}</span>}
+          {isVideo && <span className="rounded bg-muted px-2 py-0.5 text-muted-foreground">Vídeo</span>}
+        </div>
+        {ad.insights && (
+          <div className="mt-3 grid grid-cols-3 gap-2 border-t border-border pt-2 text-xs">
+            <div>
+              <p className="text-muted-foreground">Gasto</p>
+              <p className="font-semibold">{formatBRL(ad.insights.spend)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">ROAS</p>
+              <p className={`font-semibold ${ad.insights.roas >= 2 ? "text-[oklch(0.7_0.18_162)]" : ""}`}>
+                {ad.insights.roas.toFixed(2)}x
+              </p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">CTR</p>
+              <p className="font-semibold">{formatPct(ad.insights.ctr)}</p>
+            </div>
+          </div>
+        )}
+        {cre.instagram_permalink_url && (
+          <a
+            href={cre.instagram_permalink_url}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+          >
+            <ExternalLink className="h-3 w-3" /> Ver no Instagram
+          </a>
+        )}
       </div>
     </div>
   );
