@@ -962,7 +962,107 @@ function Controle({ camps, loading, onRefresh }: { camps: any[]; loading: boolea
   );
 }
 
-function CreativeUpload() {
+function CampaignControlRow({
+  c,
+  onToggle,
+  toggling,
+}: {
+  c: any;
+  onToggle: (status: "ACTIVE" | "PAUSED") => void;
+  toggling: boolean;
+}) {
+  const qc = useQueryClient();
+  const isActive = (c.effective_status || c.status) === "ACTIVE";
+  const currentBudget = c.daily_budget ? parseInt(c.daily_budget) / 100 : 0;
+  const [editing, setEditing] = useState(false);
+  const [budgetInput, setBudgetInput] = useState(currentBudget || 50);
+
+  const saveBudget = useMutation({
+    mutationFn: () =>
+      updateBudget({
+        data: { id: c.id, dailyBudgetCents: Math.round(budgetInput * 100), type: "campaign" },
+      }),
+    onSuccess: (res) => {
+      if (res.ok) {
+        toast.success(`Orçamento atualizado: ${formatBRL(budgetInput)}/dia`);
+        qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
+        setEditing(false);
+      } else {
+        toast.error(res.error || "Falha ao atualizar orçamento (CBO ativo? edite no adset)");
+      }
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
+  });
+
+  return (
+    <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-medium">{c.name}</p>
+        <p className="text-xs text-muted-foreground">
+          {c.objective} • {formatBRL(c.spend)} gasto • ROAS {c.roas.toFixed(2)}x
+          {currentBudget > 0 && ` • Budget ${formatBRL(currentBudget)}/dia`}
+        </p>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <StatusBadge status={c.effective_status || c.status} />
+
+        {editing ? (
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-muted-foreground">R$</span>
+            <input
+              type="number"
+              value={budgetInput}
+              min={1}
+              step={1}
+              onChange={(e) => setBudgetInput(parseFloat(e.target.value || "0"))}
+              className="w-24 rounded-md border border-border bg-background px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <button
+              onClick={() => saveBudget.mutate()}
+              disabled={saveBudget.isPending || budgetInput < 1}
+              className="rounded-md bg-primary px-2 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              {saveBudget.isPending ? "…" : "Salvar"}
+            </button>
+            <button
+              onClick={() => setEditing(false)}
+              className="rounded-md border border-border bg-card px-2 py-1 text-xs hover:bg-accent"
+            >
+              ✕
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setEditing(true)}
+            className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:bg-accent"
+          >
+            💰 Editar budget
+          </button>
+        )}
+
+        {isActive ? (
+          <button
+            onClick={() => onToggle("PAUSED")}
+            disabled={toggling}
+            className="inline-flex items-center gap-1 rounded-md bg-[oklch(0.77_0.19_70/0.2)] px-3 py-1.5 text-xs font-medium text-[oklch(0.77_0.19_70)] hover:bg-[oklch(0.77_0.19_70/0.3)] disabled:opacity-50"
+          >
+            <Pause className="h-3 w-3" /> Pausar
+          </button>
+        ) : (
+          <button
+            onClick={() => onToggle("ACTIVE")}
+            disabled={toggling}
+            className="inline-flex items-center gap-1 rounded-md bg-[oklch(0.7_0.18_162/0.2)] px-3 py-1.5 text-xs font-medium text-[oklch(0.7_0.18_162)] hover:bg-[oklch(0.7_0.18_162/0.3)] disabled:opacity-50"
+          >
+            <Play className="h-3 w-3" /> Ativar
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
   const [files, setFiles] = useState<File[]>([]);
   const [briefing, setBriefing] = useState("");
   const [generated, setGenerated] = useState<any>(null);
