@@ -1485,11 +1485,92 @@ function DuplicateCampaignModal({
   );
 }
 
+// Playbook por estratégia: passos práticos pós-criação
+const SCALE_PLAYBOOKS: Record<string, { audience: string; creatives: string; postLaunch: string[]; killRule: string; scaleRule: string }> = {
+  abo: {
+    audience: "1 público por adset (interesses específicos OU lookalike 1-3%). Não misture.",
+    creatives: "3 a 5 criativos por adset, formatos variados (estático, carrossel, vídeo).",
+    postLaunch: ["Aguarde 48h sem mexer (fase de aprendizado)", "Pause adsets com CPA > meta após 50 impressões/conversões", "Em winners (ROI ≥ 2): +20–30%/dia"],
+    killRule: "CPA > R$10 OU ROAS < 1 após 48h",
+    scaleRule: "+20–30% por dia mantendo ROAS estável",
+  },
+  cbo: {
+    audience: "3 a 5 adsets dentro da MESMA campanha. Mix de lookalike + interesses + amplo.",
+    creatives: "Pelo menos 3 criativos por adset. A IA do Meta vai escolher os melhores.",
+    postLaunch: ["Não pause adsets nas primeiras 72h", "Após 50 conversões/campanha: +20% a cada 3 dias", "Refresh criativo a cada 7-14 dias"],
+    killRule: "Campanha inteira com ROAS < 1 após 72h e 50+ impressões/adset",
+    scaleRule: "+20% a cada 3 dias enquanto ROAS estiver acima da meta",
+  },
+  "111": {
+    audience: "1 público amplo OU 1 interesse de teste. Nada de stack.",
+    creatives: "1 único criativo. Esse é o teste — quer saber se ELE funciona.",
+    postLaunch: ["Avalie em 24-48h", "Se bater meta: duplique o adset variando criativo", "Se falhar: mate e teste outro criativo"],
+    killRule: "Sem conversões em 48h com 1.000+ impressões",
+    scaleRule: "Duplicar (não escalar verba) — escalar via horizontal",
+  },
+  baiana: {
+    audience: "Públicos amplos (Brasil 18-65, sem interesse). Deixa o algoritmo trabalhar.",
+    creatives: "50 criativos diferentes (1 por adset). Testagem em massa.",
+    postLaunch: ["Após 24h: pause os com ROI < 2", "Mantenha os winners (ROI ≥ 2)", "Replique winners até 250 adsets"],
+    killRule: "Adset com ROI < 2 após 24h e R$7 gastos",
+    scaleRule: "Replicar adsets winners (não aumentar verba do mesmo)",
+  },
+  russa: {
+    audience: "Públicos narrow (interesses específicos, lookalike 1%). Qualidade > quantidade.",
+    creatives: "2-3 criativos testados, com histórico positivo de ROAS.",
+    postLaunch: ["Aumente +20-30%/dia somente se ROAS estável", "Se ROAS cair: volte ao orçamento anterior", "Monitore frequência (alerta se > 3)"],
+    killRule: "ROAS cair >20% após aumento de verba",
+    scaleRule: "+20–30% por dia, conservador",
+  },
+  vertical: {
+    audience: "Mantenha o público que JÁ está performando (não troque).",
+    creatives: "Mantenha os criativos vencedores. Adicione 1-2 novos a cada semana.",
+    postLaunch: ["Aumente +20-30%/dia somente após 7 dias de ROAS estável", "Se freq > 3: adicione novo criativo", "Não aumente verba 2 dias seguidos sem dado"],
+    killRule: "ROAS cair >25% após aumento",
+    scaleRule: "+20–30% por dia, regra dos 20%",
+  },
+  horizontal: {
+    audience: "Replicar adset winner para 2-3 novos públicos (lookalikes diferentes, interesses correlatos).",
+    creatives: "Mesmo criativo vencedor + 1-2 variações por novo adset.",
+    postLaunch: ["Avalie cada novo adset em 48h", "Mantenha os que bateram ROAS meta", "Mate o resto sem dó"],
+    killRule: "Novo adset com ROAS < meta após 48h",
+    scaleRule: "Adicionar mais adsets/criativos (não verba)",
+  },
+  bitcamp: {
+    audience: "Públicos amplos (Brasil 18-65). Velocidade de teste.",
+    creatives: "3-5 criativos agressivos por adset. Hooks fortes nos primeiros 3s.",
+    postLaunch: ["Em 24h: avalie tudo", "Pause losers (CPA acima da meta)", "Winners: migrar para CBO conservador"],
+    killRule: "CPA 2x acima da meta em 24h",
+    scaleRule: "Migrar winners para escala estável (CBO/Russa)",
+  },
+  andromeda: {
+    audience: "Lookalikes 1-3% + exclusões de quem já comprou.",
+    creatives: "3-5 criativos com refresh semanal obrigatório.",
+    postLaunch: ["Cheque ROAS e frequência a cada 3-4 dias", "Se ROAS > 2.5x e freq < 3: +20%", "Se freq ≥ 3: refresh criativo antes de escalar"],
+    killRule: "ROAS < 2 OU frequência ≥ 4",
+    scaleRule: "+20% a cada 3-4 dias condicional a ROAS+freq",
+  },
+};
+
 function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: () => void }) {
+  const playbook = SCALE_PLAYBOOKS[strategy.id] ?? SCALE_PLAYBOOKS.abo;
+  const [step, setStep] = useState(1);
+  const totalSteps = 5;
+
   const [name, setName] = useState(`${strategy.defaults.namePrefix} - ${new Date().toLocaleDateString("pt-BR")}`);
   const [budget, setBudget] = useState(strategy.defaults.dailyBudgetCents / 100);
   const [objective, setObjective] = useState(strategy.defaults.objective);
   const [status, setStatus] = useState<"ACTIVE" | "PAUSED">(strategy.defaults.status);
+
+  // Checklist do passo "criativos"
+  const [chk, setChk] = useState<Record<string, boolean>>({
+    publico: false,
+    criativo: false,
+    pixel: false,
+    orcamento: false,
+  });
+  const allChecked = Object.values(chk).every(Boolean);
+
   const qc = useQueryClient();
 
   const create = useMutation({
@@ -1507,86 +1588,279 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
       if (res.ok) {
         toast.success(`Campanha "${name}" criada!`);
         qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
-        onClose();
+        setStep(5); // vai para o passo final (playbook pós-launch)
       } else {
         toast.error(res.error || "Falha ao subir");
       }
     },
   });
 
+  const stepLabels = ["Entender", "Configurar", "Checklist", "Revisar & Subir", "Pós-launch"];
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur" onClick={onClose}>
       <div
-        className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl"
+        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Header */}
         <div className="mb-4 flex items-start justify-between">
-          <div>
+          <div className="flex items-start gap-3">
             <div className="text-3xl">{strategy.emoji}</div>
-            <h3 className="mt-2 text-xl font-bold">{strategy.name}</h3>
+            <div>
+              <h3 className="text-xl font-bold">{strategy.name}</h3>
+              <p className="text-xs text-muted-foreground">Tutorial guiado · passo {step} de {totalSteps}</p>
+            </div>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
         </div>
-        <p className="mb-5 text-sm text-muted-foreground">{strategy.fullDesc}</p>
 
-        <div className="space-y-3">
-          <div>
-            <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">Nome da campanha</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+        {/* Stepper */}
+        <div className="mb-5 flex items-center gap-1">
+          {stepLabels.map((label, i) => {
+            const n = i + 1;
+            const done = n < step;
+            const current = n === step;
+            return (
+              <div key={n} className="flex flex-1 items-center gap-1">
+                <div
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                    done
+                      ? `bg-gradient-to-r ${strategy.color} text-white`
+                      : current
+                        ? "border-2 border-primary bg-background text-primary"
+                        : "border border-border bg-background text-muted-foreground"
+                  }`}
+                >
+                  {done ? "✓" : n}
+                </div>
+                {i < stepLabels.length - 1 && (
+                  <div className={`h-0.5 flex-1 ${done ? `bg-gradient-to-r ${strategy.color}` : "bg-border"}`} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div className="mb-5 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {stepLabels[step - 1]}
+        </div>
+
+        {/* STEP 1 — Entender */}
+        {step === 1 && (
+          <div className="space-y-4">
+            <div className={`rounded-lg bg-gradient-to-br ${strategy.color} p-4 text-white`}>
+              <p className="text-sm leading-relaxed">{strategy.fullDesc}</p>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-border bg-background p-3">
+                <p className="text-[10px] font-semibold uppercase text-muted-foreground">Regra de escala</p>
+                <p className="mt-1 text-sm">{playbook.scaleRule}</p>
+              </div>
+              <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3">
+                <p className="text-[10px] font-semibold uppercase text-destructive">Regra de kill</p>
+                <p className="mt-1 text-sm">{playbook.killRule}</p>
+              </div>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+              💡 Esse passo é só pra você entender a lógica antes de gastar verba. Sem pressa.
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+        )}
+
+        {/* STEP 2 — Configurar */}
+        {step === 2 && (
+          <div className="space-y-3">
             <div>
-              <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">Orçamento diário (R$)</label>
+              <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">Nome da campanha</label>
               <input
-                type="number"
-                value={budget}
-                onChange={(e) => setBudget(parseFloat(e.target.value || "0"))}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
+              <p className="mt-1 text-[11px] text-muted-foreground">Use prefixo padrão pra organizar (ex: {strategy.defaults.namePrefix} - data).</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">Orçamento diário (R$)</label>
+                <input
+                  type="number"
+                  value={budget}
+                  onChange={(e) => setBudget(parseFloat(e.target.value || "0"))}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <p className="mt-1 text-[11px] text-muted-foreground">Sugerido: R$ {(strategy.defaults.dailyBudgetCents / 100).toFixed(2)}</p>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">Status inicial</label>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as any)}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="PAUSED">Pausada (recomendado)</option>
+                  <option value="ACTIVE">Ativa (sobe rodando)</option>
+                </select>
+              </div>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">Status inicial</label>
+              <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">Objetivo</label>
               <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as any)}
+                value={objective}
+                onChange={(e) => setObjective(e.target.value)}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="PAUSED">Pausada</option>
-                <option value="ACTIVE">Ativa</option>
+                <option value="OUTCOME_SALES">Vendas</option>
+                <option value="OUTCOME_LEADS">Leads</option>
+                <option value="OUTCOME_ENGAGEMENT">Engajamento</option>
+                <option value="OUTCOME_TRAFFIC">Tráfego</option>
+                <option value="OUTCOME_AWARENESS">Reconhecimento</option>
+                <option value="OUTCOME_APP_PROMOTION">App</option>
               </select>
             </div>
           </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">Objetivo</label>
-            <select
-              value={objective}
-              onChange={(e) => setObjective(e.target.value)}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="OUTCOME_SALES">Vendas</option>
-              <option value="OUTCOME_LEADS">Leads</option>
-              <option value="OUTCOME_ENGAGEMENT">Engajamento</option>
-              <option value="OUTCOME_TRAFFIC">Tráfego</option>
-              <option value="OUTCOME_AWARENESS">Reconhecimento</option>
-              <option value="OUTCOME_APP_PROMOTION">App</option>
-            </select>
-          </div>
-        </div>
+        )}
 
-        <button
-          onClick={() => create.mutate()}
-          disabled={create.isPending}
-          className={`mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-gradient-to-r ${strategy.color} px-4 py-3 text-sm font-bold text-white shadow-lg hover:opacity-90 disabled:opacity-50`}
-        >
-          {create.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-          {create.isPending ? "Subindo via API…" : "🚀 SUBIR via API"}
-        </button>
+        {/* STEP 3 — Checklist (público / criativo / pixel) */}
+        {step === 3 && (
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">Marque quando estiver pronto. Tudo precisa estar ✓ pra subir com chance real de bater meta.</p>
+
+            <ChecklistItem
+              checked={chk.publico}
+              onToggle={() => setChk((c) => ({ ...c, publico: !c.publico }))}
+              title="Público definido"
+              hint={playbook.audience}
+            />
+            <ChecklistItem
+              checked={chk.criativo}
+              onToggle={() => setChk((c) => ({ ...c, criativo: !c.criativo }))}
+              title="Criativos prontos"
+              hint={playbook.creatives}
+            />
+            <ChecklistItem
+              checked={chk.pixel}
+              onToggle={() => setChk((c) => ({ ...c, pixel: !c.pixel }))}
+              title="Pixel/CAPI funcionando"
+              hint="Confirme eventos de Purchase/Lead chegando no Events Manager nas últimas 24h."
+            />
+            <ChecklistItem
+              checked={chk.orcamento}
+              onToggle={() => setChk((c) => ({ ...c, orcamento: !c.orcamento }))}
+              title="Orçamento de teste reservado"
+              hint={`Reserve pelo menos 7x o orçamento diário (R$ ${(budget * 7).toFixed(2)}) pra ter dado estatístico.`}
+            />
+
+            {!allChecked && (
+              <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-200">
+                ⚠️ Subir sem checklist completo costuma queimar verba. Termine antes de avançar.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* STEP 4 — Revisar & Subir */}
+        {step === 4 && (
+          <div className="space-y-3">
+            <div className="rounded-lg border border-border bg-background p-4">
+              <p className="text-[10px] font-semibold uppercase text-muted-foreground">Resumo</p>
+              <div className="mt-2 space-y-1 text-sm">
+                <div className="flex justify-between"><span className="text-muted-foreground">Nome</span><span className="font-medium">{name}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Estratégia</span><span className="font-medium">{strategy.name}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Objetivo</span><span className="font-medium">{objective}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Orçamento/dia</span><span className="font-medium">R$ {budget.toFixed(2)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className="font-medium">{status}</span></div>
+              </div>
+            </div>
+            <button
+              onClick={() => create.mutate()}
+              disabled={create.isPending}
+              className={`inline-flex w-full items-center justify-center gap-2 rounded-md bg-gradient-to-r ${strategy.color} px-4 py-3 text-sm font-bold text-white shadow-lg hover:opacity-90 disabled:opacity-50`}
+            >
+              {create.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+              {create.isPending ? "Subindo via API…" : "🚀 SUBIR via API"}
+            </button>
+            <p className="text-center text-[11px] text-muted-foreground">Após subir, te mostro o playbook pós-launch.</p>
+          </div>
+        )}
+
+        {/* STEP 5 — Playbook pós-launch */}
+        {step === 5 && (
+          <div className="space-y-3">
+            <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm text-emerald-200">
+              ✅ Campanha no ar. Agora siga esse playbook nos próximos dias:
+            </div>
+            <ol className="space-y-2">
+              {playbook.postLaunch.map((p, i) => (
+                <li key={i} className="flex gap-3 rounded-lg border border-border bg-background p-3 text-sm">
+                  <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-r ${strategy.color} text-xs font-bold text-white`}>{i + 1}</span>
+                  <span>{p}</span>
+                </li>
+              ))}
+            </ol>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs">
+                <p className="font-semibold text-destructive">Kill se:</p>
+                <p className="mt-1 text-foreground">{playbook.killRule}</p>
+              </div>
+              <div className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3 text-xs">
+                <p className="font-semibold text-emerald-300">Escala se:</p>
+                <p className="mt-1 text-foreground">{playbook.scaleRule}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Footer nav */}
+        <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
+          <button
+            onClick={() => (step > 1 ? setStep(step - 1) : onClose())}
+            className="rounded-md border border-border bg-background px-4 py-2 text-xs font-medium hover:bg-muted"
+          >
+            {step === 1 ? "Cancelar" : "← Voltar"}
+          </button>
+          {step < 4 && (
+            <button
+              onClick={() => setStep(step + 1)}
+              disabled={step === 3 && !allChecked}
+              className={`rounded-md bg-gradient-to-r ${strategy.color} px-5 py-2 text-xs font-bold text-white shadow disabled:opacity-50`}
+            >
+              Avançar →
+            </button>
+          )}
+          {step === 5 && (
+            <button
+              onClick={onClose}
+              className={`rounded-md bg-gradient-to-r ${strategy.color} px-5 py-2 text-xs font-bold text-white shadow`}
+            >
+              Concluir
+            </button>
+          )}
+        </div>
       </div>
     </div>
+  );
+}
+
+function ChecklistItem({ checked, onToggle, title, hint }: { checked: boolean; onToggle: () => void; title: string; hint: string }) {
+  return (
+    <button
+      onClick={onToggle}
+      className={`flex w-full items-start gap-3 rounded-lg border p-3 text-left transition ${
+        checked ? "border-emerald-500/50 bg-emerald-500/10" : "border-border bg-background hover:border-primary/40"
+      }`}
+    >
+      <div
+        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 ${
+          checked ? "border-emerald-500 bg-emerald-500 text-white" : "border-muted-foreground"
+        }`}
+      >
+        {checked && "✓"}
+      </div>
+      <div>
+        <p className="text-sm font-semibold">{title}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>
+      </div>
+    </button>
   );
 }
 
