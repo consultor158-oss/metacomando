@@ -511,21 +511,66 @@ export const getCampaignDetails = createServerFn({ method: "GET" })
           "id,name,status,effective_status,objective,daily_budget,lifetime_budget,buying_type,bid_strategy,special_ad_categories,created_time,updated_time,start_time,stop_time,configured_status",
       });
 
-      // Adsets
-      const adsetsRes = await metaFetch(`${data.campaignId}/adsets`, {
-        fields:
-          "id,name,status,effective_status,daily_budget,lifetime_budget,optimization_goal,billing_event,bid_amount,targeting,start_time,end_time",
-        limit: "100",
-      });
-      const adsets = adsetsRes.data ?? [];
+      // Adsets — paginate through all
+      const adsets: any[] = [];
+      {
+        let next: string | null = null;
+        let page = await metaFetch(`${data.campaignId}/adsets`, {
+          fields:
+            "id,name,status,effective_status,daily_budget,lifetime_budget,optimization_goal,billing_event,bid_amount,targeting,start_time,end_time",
+          limit: "100",
+        });
+        adsets.push(...(page.data ?? []));
+        next = page.paging?.next ?? null;
+        let safety = 0;
+        while (next && safety < 20) {
+          const res = await fetch(next);
+          page = await res.json();
+          if (page?.data) adsets.push(...page.data);
+          next = page?.paging?.next ?? null;
+          safety++;
+        }
+      }
 
-      // Ads + creatives
-      const adsRes = await metaFetch(`${data.campaignId}/ads`, {
-        fields:
-          "id,name,status,effective_status,adset_id,creative{id,name,title,body,image_url,thumbnail_url,object_story_spec,asset_feed_spec,video_id,call_to_action_type,instagram_permalink_url,effective_object_story_id}",
-        limit: "200",
-      });
-      const ads = adsRes.data ?? [];
+      // Ads + creatives — paginate through all (NOT just first page)
+      const ads: any[] = [];
+      {
+        let next: string | null = null;
+        let page = await metaFetch(`${data.campaignId}/ads`, {
+          fields:
+            "id,name,status,effective_status,adset_id,created_time,updated_time,creative{id,name,title,body,image_url,thumbnail_url,object_story_spec,asset_feed_spec,video_id,call_to_action_type,instagram_permalink_url,effective_object_story_id,effective_instagram_media_id,object_type}",
+          limit: "100",
+        });
+        ads.push(...(page.data ?? []));
+        next = page.paging?.next ?? null;
+        let safety = 0;
+        while (next && safety < 30) {
+          const res = await fetch(next);
+          page = await res.json();
+          if (page?.data) ads.push(...page.data);
+          next = page?.paging?.next ?? null;
+          safety++;
+        }
+      }
+
+      // Resolve missing thumbnails via the ad's /previews endpoint (best effort)
+      await Promise.all(
+        ads.map(async (a: any) => {
+          const cre = a.creative || {};
+          const story = cre.object_story_spec || {};
+          const link = story.link_data || story.video_data || {};
+          const hasImg = cre.image_url || cre.thumbnail_url || link.picture;
+          if (hasImg) return;
+          try {
+            const prev = await metaFetch(`${a.id}/previews`, {
+              ad_format: "MOBILE_FEED_STANDARD",
+            });
+            const body: string = prev?.data?.[0]?.body || "";
+            const m = body.match(/src=\\?"(https:[^"\\]+\.(?:jpg|jpeg|png|webp)[^"\\]*)/i);
+            if (m) a._previewImage = m[1].replace(/&amp;/g, "&");
+          } catch {}
+        })
+      );
 
       // Insights por campanha
       const camIns = await metaFetch(`${data.campaignId}/insights`, {
@@ -604,3 +649,73 @@ export const getAccountInfo = createServerFn({ method: "GET" }).handler(async ()
     return errorPayload(e);
   }
 });
+
+// ==================== EDIT AD / ADSET ====================
+async function metaPost(path: string, body: Record<string, string>) {
+  const { token } = getCreds();
+  const url = new URL(`${BASE}/${path}`);
+  const form = new URLSearchParams();
+  form.set("access_token", token);
+  for (const [k, v] of Object.entries(body)) form.set(k, v);
+  const res = await fetch(url.toString(), {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: form.toString(),
+  });
+  const text = await res.text();
+  let data: any;
+  try { data = JSON.parse(text); } catch { data = { raw: text }; }
+  if (!res.ok || data?.error) {
+    const err = data?.error || {};
+    const e: any = new Error(err.message || `Meta API ${res.status}`);
+    e.code = err.code;
+    throw e;
+  }
+  return data;
+}
+
+export const updateAdStatus = createServerFn({ method: "POST" })
+  .inputValidator((d: { adId: string; status: "ACTIVE" | "PAUSED" }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const r = await metaPost(data.adId, { status: data.status });
+      return { ok: true as const, data: r };
+    } catch (e) {
+      return errorPayload(e);
+    }
+  });
+
+export const updateAdName = createServerFn({ method: "POST" })
+  .inputValidator((d: { adId: string; name: string }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const r = await metaPost(data.adId, { name: data.name });
+      return { ok: true as const, data: r };
+    } catch (e) {
+      return errorPayload(e);
+    }
+  });
+
+export const updateAdsetStatus = createServerFn({ method: "POST" })
+  .inputValidator((d: { adsetId: string; status: "ACTIVE" | "PAUSED" }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const r = await metaPost(data.adsetId, { status: data.status });
+      return { ok: true as const, data: r };
+    } catch (e) {
+      return errorPayload(e);
+    }
+  });
+
+export const updateAdsetBudget = createServerFn({ method: "POST" })
+  .inputValidator((d: { adsetId: string; dailyBudgetBRL: number }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const cents = Math.max(100, Math.round(data.dailyBudgetBRL * 100)).toString();
+      const r = await metaPost(data.adsetId, { daily_budget: cents });
+      return { ok: true as const, data: r };
+    } catch (e) {
+      return errorPayload(e);
+    }
+  });
+
