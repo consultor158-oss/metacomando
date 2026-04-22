@@ -1169,16 +1169,40 @@ function CreativeUpload() {
 }
 
 // ============== ESCALAS ==============
-function Escalas() {
+function Escalas({ camps, campConv }: { camps: any[]; campConv: any[] }) {
   const [active, setActive] = useState<ScaleStrategy | null>(null);
+  const [duplicateOpen, setDuplicateOpen] = useState<{ preselected?: string } | null>(null);
 
   return (
     <div className="space-y-6">
+      <div className="rounded-xl border-2 border-primary/40 bg-gradient-to-br from-primary/15 via-chart-4/10 to-card p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-primary" />
+              <h3 className="text-base font-bold">Iniciar Campanha pelo Modelo</h3>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Escolha uma campanha que você já tem na dashboard e a Dashboard sobe a cópia
+              <strong className="text-foreground"> automaticamente </strong>
+              com todas as características do modelo (objetivo, buying type, bid strategy, budget).
+            </p>
+          </div>
+          <button
+            onClick={() => setDuplicateOpen({})}
+            disabled={camps.length === 0}
+            className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-lg hover:bg-primary/90 disabled:opacity-50"
+          >
+            <Sparkles className="h-4 w-4" />
+            Escolher modelo & subir
+          </button>
+        </div>
+      </div>
+
       <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-chart-4/10 p-5">
-        <h3 className="text-sm font-semibold">📋 Guia Geral de Subida</h3>
+        <h3 className="text-sm font-semibold">📋 Estratégias prontas (campanha do zero)</h3>
         <p className="mt-2 text-sm text-muted-foreground">
-          1. Anexe criativos no Controle → 2. Escolha estratégia abaixo → 3. Defina público / orçamento / objetivo →
-          4. Clique <strong className="text-primary">SUBIR via API</strong>. Regra de ROI: pause sempre que CPA &gt; R$10.
+          Ou crie uma campanha nova a partir das estratégias abaixo. Regra: pause se CPA &gt; R$10.
         </p>
       </div>
 
@@ -1201,6 +1225,206 @@ function Escalas() {
       </div>
 
       {active && <ScaleModal strategy={active} onClose={() => setActive(null)} />}
+      {duplicateOpen && (
+        <DuplicateCampaignModal
+          camps={camps}
+          campConv={campConv}
+          preselectedId={duplicateOpen.preselected}
+          onClose={() => setDuplicateOpen(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ============== DUPLICATE CAMPAIGN MODAL ==============
+function DuplicateCampaignModal({
+  camps,
+  campConv,
+  onClose,
+  preselectedId,
+}: {
+  camps: any[];
+  campConv: any[];
+  onClose: () => void;
+  preselectedId?: string;
+}) {
+  const qc = useQueryClient();
+  const [sourceId, setSourceId] = useState<string>(preselectedId || camps[0]?.id || "");
+  const source = camps.find((c) => c.id === sourceId);
+  const sourceConv = campConv.find((c) => c.campaign_id === sourceId);
+
+  const currentBudget = source?.daily_budget ? parseInt(source.daily_budget) / 100 : 50;
+  const [name, setName] = useState(
+    source ? `${source.name} — cópia ${new Date().toLocaleDateString("pt-BR")}` : "",
+  );
+  const [budget, setBudget] = useState(currentBudget);
+  const [status, setStatus] = useState<"ACTIVE" | "PAUSED">("PAUSED");
+
+  // sincroniza budget/nome quando troca o source
+  const onChangeSource = (id: string) => {
+    setSourceId(id);
+    const s = camps.find((c) => c.id === id);
+    if (s) {
+      setBudget(s.daily_budget ? parseInt(s.daily_budget) / 100 : 50);
+      setName(`${s.name} — cópia ${new Date().toLocaleDateString("pt-BR")}`);
+    }
+  };
+
+  const dup = useMutation({
+    mutationFn: () =>
+      duplicateCampaign({
+        data: {
+          sourceCampaignId: sourceId,
+          newName: name || undefined,
+          dailyBudgetCents: Math.round(budget * 100),
+          status,
+        },
+      }),
+    onSuccess: (res: any) => {
+      if (res.ok) {
+        toast.success(`✅ Campanha duplicada do modelo "${res.clonedFrom?.name}"`);
+        qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
+        onClose();
+      } else {
+        toast.error(res.error || "Falha ao duplicar");
+      }
+    },
+  });
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur"
+      onClick={onClose}
+    >
+      <div
+        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-border bg-card p-6 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-start justify-between">
+          <div>
+            <div className="text-3xl">🚀</div>
+            <h3 className="mt-2 text-xl font-bold">Iniciar campanha pelo modelo</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Escolha o modelo. Vamos clonar com objetivo + buying type + bid strategy + budget.
+            </p>
+          </div>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">✕</button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+              Modelo (campanha existente)
+            </label>
+            <select
+              value={sourceId}
+              onChange={(e) => onChangeSource(e.target.value)}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {camps.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {(c.effective_status || c.status) === "ACTIVE" ? "🟢 " : "⏸️ "}
+                  {c.name} · ROAS {(c.roas ?? 0).toFixed(2)}x
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {source && (
+            <div className="rounded-lg border border-border bg-muted/30 p-4">
+              <p className="text-xs font-semibold uppercase text-muted-foreground">
+                Características que serão clonadas
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-xs text-muted-foreground">Objetivo</span>
+                  <p className="font-medium">{source.objective || "—"}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground">Buying Type</span>
+                  <p className="font-medium">{source.buying_type || "AUCTION"}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground">Bid Strategy</span>
+                  <p className="font-medium">{source.bid_strategy || "automática"}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground">Budget atual</span>
+                  <p className="font-medium">{formatBRL(currentBudget)}/dia</p>
+                </div>
+                {sourceConv && (
+                  <>
+                    <div>
+                      <span className="text-xs text-muted-foreground">Performance modelo</span>
+                      <p className="font-medium">
+                        ROAS {sourceConv.roas?.toFixed(2)}x · {sourceConv.purchases} compras
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted-foreground">CVR Click→Compra</span>
+                      <p className="font-medium">{sourceConv.cvr_click_to_purchase?.toFixed(2)}%</p>
+                    </div>
+                  </>
+                )}
+              </div>
+              <p className="mt-3 rounded bg-primary/10 p-2 text-xs text-primary">
+                ℹ️ Adsets, criativos e públicos NÃO são copiados pela Graph API neste passo (Meta exige
+                duplicação ad-a-ad). A campanha-mãe será criada com os mesmos parâmetros para você anexar
+                criativos no painel Meta ou via aba Controle.
+              </p>
+            </div>
+          )}
+
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+              Nome da nova campanha
+            </label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+                Budget diário (R$)
+              </label>
+              <input
+                type="number"
+                value={budget}
+                min={1}
+                onChange={(e) => setBudget(parseFloat(e.target.value || "0"))}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium uppercase text-muted-foreground">
+                Status inicial
+              </label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as any)}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="PAUSED">Pausada (revisar antes)</option>
+                <option value="ACTIVE">Ativa imediatamente</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={() => dup.mutate()}
+          disabled={!sourceId || dup.isPending || budget < 1}
+          className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-gradient-to-r from-primary to-chart-4 px-4 py-3 text-sm font-bold text-white shadow-lg hover:opacity-90 disabled:opacity-50"
+        >
+          {dup.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+          {dup.isPending ? "Subindo via API…" : "🚀 Subir cópia via API"}
+        </button>
+      </div>
     </div>
   );
 }
