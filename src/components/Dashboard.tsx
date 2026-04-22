@@ -99,6 +99,24 @@ export function Dashboard() {
     refetchInterval: stale * 2,
   });
 
+  const funnel = useQuery({
+    queryKey: ["meta-funnel", datePreset],
+    queryFn: () => getConversionFunnel({ data: { datePreset } }),
+    staleTime: stale,
+  });
+
+  const clickBreakdown = useQuery({
+    queryKey: ["meta-click-breakdown", datePreset],
+    queryFn: () => getClickBreakdown({ data: { datePreset } }),
+    staleTime: stale,
+  });
+
+  const campConv = useQuery({
+    queryKey: ["meta-camp-conv", datePreset, onlyActive],
+    queryFn: () => getCampaignsConversion({ data: { datePreset, onlyActive } }),
+    staleTime: stale,
+  });
+
   const acc = account.data?.ok ? account.data.data : null;
   const insightsRows = insights.data?.ok ? insights.data.data : [];
   const camps = campaigns.data?.ok ? campaigns.data.data : [];
