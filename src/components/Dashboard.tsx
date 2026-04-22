@@ -1646,7 +1646,12 @@ function Automacao({
         </div>
       </div>
 
-      <RecommendationsPanel recommendations={recommendations} camps={camps} />
+      <RecommendationsPanel recommendations={recommendations} camps={camps} campConv={campConv} />
+
+      <AutoModePanel recommendations={recommendations} camps={camps} campConv={campConv} />
+
+      <AuditLogPanel />
+
 
       {alerts.length > 0 && (
         <div className="rounded-xl border border-border bg-card">
