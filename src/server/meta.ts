@@ -210,6 +210,64 @@ export const createCampaign = createServerFn({ method: "POST" })
     }
   });
 
+// ==================== DUPLICATE CAMPAIGN (clone existing as template) ====================
+// Lê uma campanha existente e cria uma nova idêntica (objetivo, buying_type, budget, bid_strategy)
+// Opcionalmente sobrescreve nome/budget/status.
+export const duplicateCampaign = createServerFn({ method: "POST" })
+  .inputValidator(
+    (d: {
+      sourceCampaignId: string;
+      newName?: string;
+      dailyBudgetCents?: number;
+      status?: "ACTIVE" | "PAUSED";
+    }) => d,
+  )
+  .handler(async ({ data }) => {
+    try {
+      const { actId, token } = getCreds();
+      // 1) lê a campanha origem
+      const src = await metaFetch(data.sourceCampaignId, {
+        fields:
+          "name,objective,buying_type,bid_strategy,daily_budget,lifetime_budget,special_ad_categories,status",
+      });
+
+      const finalName =
+        data.newName ||
+        `${src.name} — cópia ${new Date().toLocaleDateString("pt-BR")} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+
+      const body = new URLSearchParams({
+        name: finalName,
+        objective: src.objective || "OUTCOME_SALES",
+        buying_type: src.buying_type || "AUCTION",
+        status: data.status || "PAUSED",
+        special_ad_categories: JSON.stringify(src.special_ad_categories || []),
+        access_token: token,
+      });
+
+      // budget: usa o sobrescrito; senão herda da origem
+      const budgetCents =
+        data.dailyBudgetCents ?? (src.daily_budget ? parseInt(src.daily_budget) : 0);
+      if (budgetCents > 0) body.set("daily_budget", String(budgetCents));
+
+      if (src.bid_strategy) body.set("bid_strategy", src.bid_strategy);
+
+      const result = await metaFetch(`${actId}/campaigns`, {}, { method: "POST", body });
+      return {
+        ok: true,
+        data: result,
+        clonedFrom: { id: data.sourceCampaignId, name: src.name },
+        appliedTemplate: {
+          objective: src.objective,
+          buying_type: src.buying_type,
+          bid_strategy: src.bid_strategy,
+          daily_budget: budgetCents,
+        },
+      };
+    } catch (e) {
+      return errorPayload(e);
+    }
+  });
+
 // ==================== ADSETS LIST ====================
 export const getAdSets = createServerFn({ method: "GET" })
   .inputValidator((d: { campaignId?: string }) => d ?? {})
