@@ -67,21 +67,26 @@ export const getAccountInsights = createServerFn({ method: "GET" })
         time_increment: "1",
         level: "account",
       });
-      return { ok: true, data: insights.data ?? [] };
+      return { ok: true as const, data: insights.data ?? [] };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : "Erro desconhecido", data: [] };
+      return { ...errorPayload(e), data: [] as any[] };
     }
   });
 
 // ==================== CAMPAIGNS LIST ====================
-export const getCampaigns = createServerFn({ method: "GET" }).handler(async () => {
+export const getCampaigns = createServerFn({ method: "GET" })
+  .inputValidator((d: { onlyActive?: boolean; datePreset?: string }) => d ?? {})
+  .handler(async ({ data }) => {
   try {
     const { actId } = getCreds();
-    const camps = await metaFetch(`${actId}/campaigns`, {
+    const datePreset = data.datePreset || "last_7d";
+    const params: Record<string, string> = {
       fields:
-        "id,name,status,objective,daily_budget,lifetime_budget,buying_type,bid_strategy,created_time,updated_time",
-      limit: "100",
-    });
+        "id,name,status,effective_status,objective,daily_budget,lifetime_budget,buying_type,bid_strategy,created_time,updated_time",
+      limit: "200",
+    };
+    if (data.onlyActive) params.effective_status = JSON.stringify(["ACTIVE"]);
+    const camps = await metaFetch(`${actId}/campaigns`, params);
     const ids = (camps.data ?? []).map((c: any) => c.id);
 
     // Fetch insights per campaign in batch
