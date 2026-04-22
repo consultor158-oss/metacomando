@@ -2307,17 +2307,7 @@ function CampaignDetailsModal({ campaignId, onClose }: { campaignId: string; onC
                 ) : (
                   <div className="space-y-2">
                     {data.adsets.map((s: any) => (
-                      <div key={s.id} className="rounded-md border border-border bg-muted/20 p-3">
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="min-w-0 truncate text-sm font-medium">{s.name}</p>
-                          <StatusBadge status={s.effective_status || s.status} />
-                        </div>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {s.optimization_goal && `Otimização: ${s.optimization_goal}`}
-                          {s.daily_budget && ` • Budget: ${formatBRL(parseInt(s.daily_budget) / 100)}/dia`}
-                          {s.bid_amount && ` • Bid: ${formatBRL(parseInt(s.bid_amount) / 100)}`}
-                        </p>
-                      </div>
+                      <AdsetRow key={s.id} adset={s} onChanged={() => details.refetch()} />
                     ))}
                   </div>
                 )}
@@ -2328,9 +2318,9 @@ function CampaignDetailsModal({ campaignId, onClose }: { campaignId: string; onC
                 {data.ads.length === 0 ? (
                   <Empty text="Nenhum anúncio" />
                 ) : (
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {data.ads.map((ad: any) => (
-                      <CreativeCard key={ad.id} ad={ad} />
+                      <CreativeCard key={ad.id} ad={ad} onChanged={() => details.refetch()} />
                     ))}
                   </div>
                 )}
