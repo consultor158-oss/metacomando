@@ -277,6 +277,170 @@ export const generateAdCopy = createServerFn({ method: "POST" })
     }
   });
 
+// ==================== CONVERSION FUNNEL (account-level) ====================
+// Puxa o funil completo de conversão: impressões -> link click -> LPV -> ATC -> Checkout -> Purchase
+const FUNNEL_ACTIONS = [
+  "link_click",
+  "landing_page_view",
+  "add_to_cart",
+  "initiate_checkout",
+  "add_payment_info",
+  "purchase",
+  "lead",
+  "complete_registration",
+  "view_content",
+];
+
+function pickAction(actions: any[], type: string): number {
+  const a = (actions ?? []).find((x: any) => x.action_type === type);
+  return a ? parseFloat(a.value || "0") : 0;
+}
+function pickActionValue(values: any[], type: string): number {
+  const a = (values ?? []).find((x: any) => x.action_type === type);
+  return a ? parseFloat(a.value || "0") : 0;
+}
+
+export const getConversionFunnel = createServerFn({ method: "GET" })
+  .inputValidator((d: { datePreset?: string }) => d ?? {})
+  .handler(async ({ data }) => {
+    try {
+      const { actId } = getCreds();
+      const datePreset = data.datePreset || "last_7d";
+      const res = await metaFetch(`${actId}/insights`, {
+        date_preset: datePreset,
+        level: "account",
+        fields:
+          "spend,impressions,clicks,inline_link_clicks,unique_clicks,unique_inline_link_clicks,actions,action_values,cost_per_action_type,cost_per_unique_click",
+      });
+      const row = (res.data ?? [])[0] || {};
+      const actions = row.actions ?? [];
+      const values = row.action_values ?? [];
+      const cpa = row.cost_per_action_type ?? [];
+
+      const funnel = {
+        impressions: parseInt(row.impressions || "0"),
+        clicks_all: parseInt(row.clicks || "0"),
+        link_clicks: parseInt(row.inline_link_clicks || pickAction(actions, "link_click").toString()),
+        landing_page_views: pickAction(actions, "landing_page_view"),
+        view_content: pickAction(actions, "view_content"),
+        add_to_cart: pickAction(actions, "add_to_cart"),
+        initiate_checkout: pickAction(actions, "initiate_checkout"),
+        add_payment_info: pickAction(actions, "add_payment_info"),
+        purchases: pickAction(actions, "purchase"),
+        leads: pickAction(actions, "lead"),
+        registrations: pickAction(actions, "complete_registration"),
+        revenue: pickActionValue(values, "purchase"),
+        spend: parseFloat(row.spend || "0"),
+        cost_per_link_click: pickActionValue(cpa, "link_click"),
+        cost_per_lpv: pickActionValue(cpa, "landing_page_view"),
+        cost_per_atc: pickActionValue(cpa, "add_to_cart"),
+        cost_per_checkout: pickActionValue(cpa, "initiate_checkout"),
+        cost_per_purchase: pickActionValue(cpa, "purchase"),
+      };
+      return { ok: true as const, data: funnel };
+    } catch (e) {
+      return { ...errorPayload(e), data: null as any };
+    }
+  });
+
+// ==================== PLACEMENT / DESTINATION BREAKDOWN ====================
+// "Para onde foi o clique" — breakdown por placement, device e action_destination
+export const getClickBreakdown = createServerFn({ method: "GET" })
+  .inputValidator((d: { datePreset?: string; breakdown?: string }) => d ?? {})
+  .handler(async ({ data }) => {
+    try {
+      const { actId } = getCreds();
+      const datePreset = data.datePreset || "last_7d";
+      const breakdown = data.breakdown || "publisher_platform,platform_position,impression_device";
+      const res = await metaFetch(`${actId}/insights`, {
+        date_preset: datePreset,
+        level: "account",
+        breakdowns: breakdown,
+        fields:
+          "spend,impressions,clicks,inline_link_clicks,ctr,cpc,actions,action_values",
+        limit: "200",
+      });
+      const rows = (res.data ?? []).map((r: any) => {
+        const linkClicks = parseInt(r.inline_link_clicks || "0");
+        const purchases = pickAction(r.actions, "purchase");
+        const revenue = pickActionValue(r.action_values, "purchase");
+        const spend = parseFloat(r.spend || "0");
+        return {
+          publisher_platform: r.publisher_platform || "—",
+          platform_position: r.platform_position || "—",
+          impression_device: r.impression_device || "—",
+          impressions: parseInt(r.impressions || "0"),
+          clicks: parseInt(r.clicks || "0"),
+          link_clicks: linkClicks,
+          ctr: parseFloat(r.ctr || "0"),
+          cpc: parseFloat(r.cpc || "0"),
+          spend,
+          purchases,
+          revenue,
+          roas: spend > 0 ? revenue / spend : 0,
+          cvr: linkClicks > 0 ? (purchases / linkClicks) * 100 : 0,
+        };
+      });
+      return { ok: true as const, data: rows };
+    } catch (e) {
+      return { ...errorPayload(e), data: [] as any[] };
+    }
+  });
+
+// ==================== CAMPAIGN-LEVEL CONVERSION DETAILS ====================
+// Detalha por campanha: link clicks, LPV, ATC, Checkout, Purchase, CVR — para "ver se realmente vende"
+export const getCampaignsConversion = createServerFn({ method: "GET" })
+  .inputValidator((d: { datePreset?: string; onlyActive?: boolean }) => d ?? {})
+  .handler(async ({ data }) => {
+    try {
+      const { actId } = getCreds();
+      const datePreset = data.datePreset || "last_7d";
+      const params: Record<string, string> = {
+        level: "campaign",
+        date_preset: datePreset,
+        fields:
+          "campaign_id,campaign_name,spend,impressions,clicks,inline_link_clicks,ctr,cpc,actions,action_values,cost_per_action_type",
+        limit: "500",
+      };
+      if (data.onlyActive) params.filtering = JSON.stringify([{ field: "campaign.effective_status", operator: "IN", value: ["ACTIVE"] }]);
+      const res = await metaFetch(`${actId}/insights`, params);
+      const rows = (res.data ?? []).map((r: any) => {
+        const spend = parseFloat(r.spend || "0");
+        const linkClicks = parseInt(r.inline_link_clicks || "0");
+        const lpv = pickAction(r.actions, "landing_page_view");
+        const atc = pickAction(r.actions, "add_to_cart");
+        const ic = pickAction(r.actions, "initiate_checkout");
+        const purchases = pickAction(r.actions, "purchase");
+        const revenue = pickActionValue(r.action_values, "purchase");
+        return {
+          campaign_id: r.campaign_id,
+          campaign_name: r.campaign_name,
+          spend,
+          impressions: parseInt(r.impressions || "0"),
+          clicks: parseInt(r.clicks || "0"),
+          link_clicks: linkClicks,
+          ctr: parseFloat(r.ctr || "0"),
+          cpc: parseFloat(r.cpc || "0"),
+          landing_page_views: lpv,
+          add_to_cart: atc,
+          initiate_checkout: ic,
+          purchases,
+          revenue,
+          roas: spend > 0 ? revenue / spend : 0,
+          cpa: purchases > 0 ? spend / purchases : 0,
+          cvr_click_to_purchase: linkClicks > 0 ? (purchases / linkClicks) * 100 : 0,
+          cvr_lpv_to_purchase: lpv > 0 ? (purchases / lpv) * 100 : 0,
+          drop_click_to_lpv: linkClicks > 0 ? ((linkClicks - lpv) / linkClicks) * 100 : 0,
+          drop_atc_to_purchase: atc > 0 ? ((atc - purchases) / atc) * 100 : 0,
+          really_sells: purchases > 0 && revenue > spend, // verdade do "vende"
+        };
+      });
+      return { ok: true as const, data: rows };
+    } catch (e) {
+      return { ...errorPayload(e), data: [] as any[] };
+    }
+  });
+
 // ==================== ACCOUNT INFO ====================
 export const getAccountInfo = createServerFn({ method: "GET" }).handler(async () => {
   try {
