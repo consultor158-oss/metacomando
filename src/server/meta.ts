@@ -499,6 +499,99 @@ export const getCampaignsConversion = createServerFn({ method: "GET" })
     }
   });
 
+// ==================== CAMPAIGN DETAILS (adsets + ads + creatives + insights) ====================
+export const getCampaignDetails = createServerFn({ method: "GET" })
+  .inputValidator((d: { campaignId: string; datePreset?: string }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const datePreset = data.datePreset || "last_7d";
+      // Campaign with full fields
+      const campaign = await metaFetch(data.campaignId, {
+        fields:
+          "id,name,status,effective_status,objective,daily_budget,lifetime_budget,buying_type,bid_strategy,special_ad_categories,created_time,updated_time,start_time,stop_time,configured_status",
+      });
+
+      // Adsets
+      const adsetsRes = await metaFetch(`${data.campaignId}/adsets`, {
+        fields:
+          "id,name,status,effective_status,daily_budget,lifetime_budget,optimization_goal,billing_event,bid_amount,targeting,start_time,end_time",
+        limit: "100",
+      });
+      const adsets = adsetsRes.data ?? [];
+
+      // Ads + creatives
+      const adsRes = await metaFetch(`${data.campaignId}/ads`, {
+        fields:
+          "id,name,status,effective_status,adset_id,creative{id,name,title,body,image_url,thumbnail_url,object_story_spec,asset_feed_spec,video_id,call_to_action_type,instagram_permalink_url,effective_object_story_id}",
+        limit: "200",
+      });
+      const ads = adsRes.data ?? [];
+
+      // Insights por campanha
+      const camIns = await metaFetch(`${data.campaignId}/insights`, {
+        date_preset: datePreset,
+        fields:
+          "spend,impressions,clicks,inline_link_clicks,ctr,cpc,cpm,reach,frequency,actions,action_values,purchase_roas",
+      });
+      const ci = (camIns.data ?? [])[0] || {};
+      const purchases = pickAction(ci.actions, "purchase");
+      const revenue = pickActionValue(ci.action_values, "purchase");
+      const spend = parseFloat(ci.spend || "0");
+      const insights = {
+        spend,
+        impressions: parseInt(ci.impressions || "0"),
+        clicks: parseInt(ci.clicks || "0"),
+        link_clicks: parseInt(ci.inline_link_clicks || "0"),
+        ctr: parseFloat(ci.ctr || "0"),
+        cpc: parseFloat(ci.cpc || "0"),
+        cpm: parseFloat(ci.cpm || "0"),
+        reach: parseInt(ci.reach || "0"),
+        frequency: parseFloat(ci.frequency || "0"),
+        purchases,
+        revenue,
+        roas: spend > 0 ? revenue / spend : 0,
+        cpa: purchases > 0 ? spend / purchases : 0,
+      };
+
+      // Insights por ad (em batch via /insights level=ad)
+      let adInsightsMap: Record<string, any> = {};
+      try {
+        const adIns = await metaFetch(`${data.campaignId}/insights`, {
+          date_preset: datePreset,
+          level: "ad",
+          fields: "ad_id,spend,impressions,clicks,ctr,actions,action_values",
+          limit: "500",
+        });
+        for (const r of adIns.data ?? []) {
+          const p = pickAction(r.actions, "purchase");
+          const v = pickActionValue(r.action_values, "purchase");
+          const s = parseFloat(r.spend || "0");
+          adInsightsMap[r.ad_id] = {
+            spend: s,
+            impressions: parseInt(r.impressions || "0"),
+            clicks: parseInt(r.clicks || "0"),
+            ctr: parseFloat(r.ctr || "0"),
+            purchases: p,
+            revenue: v,
+            roas: s > 0 ? v / s : 0,
+          };
+        }
+      } catch {}
+
+      const adsEnriched = ads.map((a: any) => ({
+        ...a,
+        insights: adInsightsMap[a.id] || null,
+      }));
+
+      return {
+        ok: true as const,
+        data: { campaign, adsets, ads: adsEnriched, insights },
+      };
+    } catch (e) {
+      return { ...errorPayload(e), data: null as any };
+    }
+  });
+
 // ==================== ACCOUNT INFO ====================
 export const getAccountInfo = createServerFn({ method: "GET" }).handler(async () => {
   try {
