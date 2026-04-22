@@ -151,7 +151,7 @@ export const updateCampaignStatus = createServerFn({ method: "POST" })
       );
       return { ok: true, data: result };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : "Erro" };
+      return errorPayload(e);
     }
   });
 
@@ -173,7 +173,7 @@ export const updateBudget = createServerFn({ method: "POST" })
       );
       return { ok: true, data: result };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : "Erro" };
+      return errorPayload(e);
     }
   });
 
@@ -206,7 +206,7 @@ export const createCampaign = createServerFn({ method: "POST" })
       const result = await metaFetch(`${actId}/campaigns`, {}, { method: "POST", body });
       return { ok: true, data: result, strategy: data.strategy };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : "Erro" };
+      return errorPayload(e);
     }
   });
 
@@ -223,7 +223,7 @@ export const getAdSets = createServerFn({ method: "GET" })
       });
       return { ok: true, data: res.data ?? [] };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : "Erro", data: [] };
+      return { ...errorPayload(e), data: [] as any[] };
     }
   });
 
@@ -273,7 +273,7 @@ export const generateAdCopy = createServerFn({ method: "POST" })
       } catch {}
       return { ok: true, raw: content, parsed };
     } catch (e) {
-      return { ok: false, error: e instanceof Error ? e.message : "Erro" };
+      return errorPayload(e);
     }
   });
 
@@ -286,6 +286,6 @@ export const getAccountInfo = createServerFn({ method: "GET" }).handler(async ()
     });
     return { ok: true, data: info };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "Erro" };
+    return errorPayload(e);
   }
 });
