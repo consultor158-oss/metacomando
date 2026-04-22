@@ -40,8 +40,12 @@ import {
   getCampaigns,
   getAccountInfo,
   updateCampaignStatus,
+  updateBudget,
   createCampaign,
   generateAdCopy,
+  getConversionFunnel,
+  getClickBreakdown,
+  getCampaignsConversion,
 } from "../server/meta";
 import { SCALE_STRATEGIES, type ScaleStrategy } from "../lib/scales";
 import { formatBRL, formatNumber, formatPct } from "../lib/format";
