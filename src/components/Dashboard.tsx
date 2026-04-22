@@ -243,9 +243,20 @@ export function Dashboard() {
             onRefresh={() => qc.invalidateQueries({ queryKey: ["meta-campaigns"] })}
           />
         )}
-        {tab === "escalas" && <Escalas />}
+        {tab === "escalas" && (
+          <Escalas
+            camps={camps}
+            campConv={campConv.data?.ok ? campConv.data.data : []}
+          />
+        )}
         {tab === "ia" && <IATab />}
-        {tab === "automacao" && <Automacao camps={camps} roas={overallROAS} />}
+        {tab === "automacao" && (
+          <Automacao
+            camps={camps}
+            campConv={campConv.data?.ok ? campConv.data.data : []}
+            roas={overallROAS}
+          />
+        )}
       </main>
 
       <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
