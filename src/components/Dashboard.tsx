@@ -34,6 +34,11 @@ import {
   KeyRound,
   ExternalLink,
   Loader2,
+  X,
+  Trash2,
+  Plus,
+  Image as ImageIcon,
+  Video,
 } from "lucide-react";
 import {
   getAccountInsights,
