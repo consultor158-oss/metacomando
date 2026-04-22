@@ -42,12 +42,19 @@ import {
   updateCampaignStatus,
   updateBudget,
   createCampaign,
+  duplicateCampaign,
   generateAdCopy,
   getConversionFunnel,
   getClickBreakdown,
   getCampaignsConversion,
 } from "../server/meta";
 import { SCALE_STRATEGIES, type ScaleStrategy } from "../lib/scales";
+import {
+  generateRecommendations,
+  ACTION_LABELS,
+  SEVERITY_STYLES,
+  type Recommendation,
+} from "../lib/recommendations";
 import { formatBRL, formatNumber, formatPct } from "../lib/format";
 
 type Tab = "overview" | "analise" | "controle" | "escalas" | "ia" | "automacao";
