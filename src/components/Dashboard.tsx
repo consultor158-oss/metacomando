@@ -1050,16 +1050,31 @@ function CampaignControlRow({
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
   });
 
+  const [showDetails, setShowDetails] = useState(false);
+
   return (
     <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0 flex-1">
-        <p className="truncate font-medium">{c.name}</p>
+        <button
+          onClick={() => setShowDetails(true)}
+          className="block max-w-full truncate text-left font-medium hover:text-primary hover:underline"
+          title="Ver criativos e detalhes"
+        >
+          {c.name}
+        </button>
         <p className="text-xs text-muted-foreground">
           {c.objective} • {formatBRL(c.spend)} gasto • ROAS {c.roas.toFixed(2)}x
           {currentBudget > 0 && ` • Budget ${formatBRL(currentBudget)}/dia`}
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={() => setShowDetails(true)}
+          className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:bg-accent"
+          title="Ver criativos, adsets e métricas"
+        >
+          <Eye className="h-3 w-3" /> Detalhes
+        </button>
         <StatusBadge status={c.effective_status || c.status} />
 
         {editing ? (
