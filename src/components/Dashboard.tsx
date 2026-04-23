@@ -51,7 +51,7 @@ import {
   getAccountInfo,
   updateCampaignStatus,
   updateBudget,
-  createCampaign,
+  createFullScale,
   duplicateCampaign,
   generateAdCopy,
   getConversionFunnel,
