@@ -75,7 +75,7 @@ function TutorialTab({ creatives }: { creatives: any[] }) {
 
 function EscalasTab() {
   const [step, setStep] = useState(1);
-  const geo = useQuery({ queryKey: ["geo-insights"], queryFn: () => getGeoInsights({ type: "region" }) });
+  const geo = useQuery({ queryKey: ["geo-insights"], queryFn: () => getGeoInsights({ data: { type: "region" } }) });
   
   return (
     <div className="space-y-6">
