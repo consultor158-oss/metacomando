@@ -249,61 +249,7 @@ export function Dashboard() {
   );
 }
 
-function WorldMap({ data }: { data: any[] }) {
-  return (
-    <Card className="overflow-hidden bg-[#0a0a0a] relative h-[350px] flex items-center justify-center border-border/50">
-       <div className="absolute top-4 left-4 z-10">
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <div className="h-2 w-2 bg-red-600 rounded-full animate-pulse" />
-            Distribuição em Tempo Real
-          </h3>
-          <p className="text-[10px] text-zinc-500 uppercase font-bold">Monitoramento em Tempo Real</p>
-       </div>
-
-       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596436889106-be35e843f974?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-overlay" />
-       <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
-       <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0%,rgba(220,38,38,0.05)_50%,transparent_100%)] animate-[spin_8s_linear_infinite] pointer-events-none" />
-
-
-       
-       <div className="absolute inset-0">
-          {/* São Paulo */}
-          <div className="absolute top-[75%] left-[62%]">
-             <div className="h-4 w-4 bg-red-600 rounded-full animate-ping absolute opacity-75" />
-             <div className="h-3 w-3 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.8)]" />
-          </div>
-          {/* Nordeste */}
-          <div className="absolute top-[45%] left-[75%]">
-             <div className="h-5 w-5 bg-red-600 rounded-full animate-ping absolute opacity-75" />
-             <div className="h-4 w-4 bg-red-600 rounded-full shadow-[0_0_20px_rgba(220,38,38,0.9)] border-2 border-white/20" />
-          </div>
-          {/* Brasília */}
-          <div className="absolute top-[55%] left-[55%]">
-             <div className="h-3 w-3 bg-red-600 rounded-full animate-pulse opacity-60 shadow-[0_0_10px_rgba(220,38,38,0.5)]" />
-          </div>
-          {/* Sul */}
-          <div className="absolute top-[85%] left-[55%]">
-             <div className="h-2 w-2 bg-red-600 rounded-full opacity-40 shadow-[0_0_8px_rgba(220,38,38,0.4)]" />
-          </div>
-       </div>
-
-
-       <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md p-3 rounded-lg border border-white/10 flex items-center gap-4">
-          <div className="flex flex-col">
-            <span className="text-[9px] text-zinc-400 uppercase font-bold">Cobertura</span>
-            <span className="text-xs font-bold text-white">Todos os Estados</span>
-          </div>
-          <div className="h-6 w-px bg-white/10" />
-          <div className="flex flex-col">
-            <span className="text-[9px] text-zinc-400 uppercase font-bold">ROAS Médio</span>
-            <span className="text-xs font-bold text-red-500">3.12x</span>
-          </div>
-       </div>
-    </Card>
-  );
-}
-
-function OverviewTab({ stats, funnel, geoData }: { stats: any; funnel: any; geoData: any[] }) {
+function OverviewTab({ stats, funnel }: { stats: any; funnel: any }) {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -312,8 +258,6 @@ function OverviewTab({ stats, funnel, geoData }: { stats: any; funnel: any; geoD
         <KPICard title="ROAS" value={(parseFloat(stats.purchase_roas?.[0]?.value || 0)).toFixed(2) + "x"} icon={<TrendingUp className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} trend="+0.5x" positive />
         <KPICard title="Impressões" value={formatNumber(stats.impressions || 0)} icon={<Eye className="h-4 w-4 text-primary" />} trend="+24k" />
       </div>
-
-      <WorldMap data={geoData} />
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="col-span-1">
