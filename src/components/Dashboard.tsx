@@ -39,6 +39,10 @@ import {
   Plus,
   Image as ImageIcon,
   Video,
+  ShieldCheck,
+  CheckCircle2,
+  ThumbsUp,
+  Check,
 } from "lucide-react";
 import {
   getAccountInsights,
