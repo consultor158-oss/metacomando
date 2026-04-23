@@ -528,6 +528,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
       setBidStrategy(campaign.bid_strategy || "");
       setObjective(campaign.objective || "");
       setBuyingType(campaign.buying_type || "");
+      setSpecialAdCategories(campaign.special_ad_categories || ["NONE"]);
     }
   }, [campaign]);
 
@@ -543,7 +544,8 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
         status: status,
         bid_strategy: bidStrategy || undefined,
         objective: objective || undefined,
-        buying_type: buyingType || undefined
+        buying_type: buyingType || undefined,
+        special_ad_categories: specialAdCategories
       }
     });
     if (res.ok) {
