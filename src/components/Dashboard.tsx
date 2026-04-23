@@ -42,7 +42,12 @@ import {
   deleteCampaign,
   getGeoInsights,
   createFullScale,
-  getPages
+  getPages,
+  getCampaignDetails,
+  updateAdStatus,
+  updateAdName,
+  updateAdsetStatus,
+  updateAdsetBudget
 } from "../server/meta";
 import { WhatsAppModal } from "./WhatsAppModal";
 import { SCALE_STRATEGIES, ScaleStrategy } from "../lib/scales";
@@ -86,6 +91,8 @@ import {
 import { Label } from "./ui/label";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Input } from "./ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { ScrollArea } from "./ui/scroll-area";
 
 type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "tutorial" | "settings";
 
@@ -511,6 +518,13 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
   const [specialAdCategories, setSpecialAdCategories] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
+  // Fetch full details
+  const details = useQuery({
+    queryKey: ["meta-campaign-details", campaign?.id],
+    queryFn: () => getCampaignDetails({ data: { campaignId: campaign.id } }),
+    enabled: !!campaign && isOpen
+  });
+
   useEffect(() => {
     if (campaign) {
       setName(campaign.name || "");
@@ -558,129 +572,218 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
     setSaving(false);
   };
 
+  const handleUpdateAdsetStatus = async (id: string, current: string) => {
+    const newStatus = current === "ACTIVE" ? "PAUSED" : "ACTIVE";
+    const res = await updateAdsetStatus({ data: { adsetId: id, status: newStatus as any } });
+    if (res.ok) {
+      toast.success("Status do conjunto atualizado");
+      details.refetch();
+    }
+  };
+
+  const handleUpdateAdStatus = async (id: string, current: string) => {
+    const newStatus = current === "ACTIVE" ? "PAUSED" : "ACTIVE";
+    const res = await updateAdStatus({ data: { adId: id, status: newStatus as any } });
+    if (res.ok) {
+      toast.success("Status do anúncio atualizado");
+      details.refetch();
+    }
+  };
+
   if (!campaign) return null;
+
+  const fullData = details.data?.ok ? details.data.data : null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Editar Campanha</DialogTitle>
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-0">
+          <DialogTitle>Edição Completa: {name}</DialogTitle>
           <DialogDescription>
-            Configure todos os detalhes da sua campanha no Meta Ads.
+            Gerencie campanha, conjuntos de anúncios e criativos.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="name">Nome da Campanha</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="status">Status</Label>
-              <Select value={status} onValueChange={(v: any) => setStatus(v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ACTIVE">Ativo</SelectItem>
-                  <SelectItem value="PAUSED">Pausado</SelectItem>
-                  <SelectItem value="ARCHIVED">Arquivado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="buying_type">Tipo de Compra</Label>
-              <Select value={buyingType} onValueChange={setBuyingType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="AUCTION">Leilão</SelectItem>
-                  <SelectItem value="RESERVATION">Reserva</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="special_ad_categories">Categorias Especiais</Label>
-              <Select 
-                value={specialAdCategories[0] || "NONE"} 
-                onValueChange={(v) => setSpecialAdCategories([v])}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="NONE">Nenhuma</SelectItem>
-                  <SelectItem value="HOUSING">Moradia</SelectItem>
-                  <SelectItem value="EMPLOYMENT">Emprego</SelectItem>
-                  <SelectItem value="CREDIT">Crédito</SelectItem>
-                  <SelectItem value="ISSUES_ELECTIONS_POLITICS">Temas Sociais/Políticos</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+
+        <Tabs defaultValue="settings" className="flex-1 flex flex-col overflow-hidden">
+          <div className="px-6 border-b">
+            <TabsList className="w-full justify-start h-12 bg-transparent gap-6">
+              <TabsTrigger value="settings" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Configurações</TabsTrigger>
+              <TabsTrigger value="adsets" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Conjuntos ({fullData?.adsets?.length || 0})</TabsTrigger>
+              <TabsTrigger value="ads" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Anúncios ({fullData?.ads?.length || 0})</TabsTrigger>
+              <TabsTrigger value="creatives" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Visual Criativos</TabsTrigger>
+            </TabsList>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="objective">Objetivo</Label>
-              <Select value={objective} onValueChange={setObjective}>
-                <SelectTrigger className="text-xs">
-                  <SelectValue placeholder="Selecione o objetivo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="OUTCOME_SALES">Vendas</SelectItem>
-                  <SelectItem value="OUTCOME_LEADS">Cadastros</SelectItem>
-                  <SelectItem value="OUTCOME_ENGAGEMENT">Engajamento</SelectItem>
-                  <SelectItem value="OUTCOME_TRAFFIC">Tráfego</SelectItem>
-                  <SelectItem value="OUTCOME_AWARENESS">Reconhecimento</SelectItem>
-                  <SelectItem value="OUTCOME_APP_PROMOTION">Promoção App</SelectItem>
-                  <SelectItem value="CONVERSIONS">Conversões (Legado)</SelectItem>
-                  <SelectItem value="MESSAGES">Mensagens (Legado)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="bid_strategy">Estratégia de Lance</Label>
-              <Select value={bidStrategy} onValueChange={setBidStrategy}>
-                <SelectTrigger className="text-xs">
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="LOWEST_COST_WITHOUT_CAP">Menor Custo</SelectItem>
-                  <SelectItem value="LOWEST_COST_WITH_BID_CAP">Limite Lance</SelectItem>
-                  <SelectItem value="COST_CAP">Limite Custo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <ScrollArea className="flex-1">
+            <div className="p-6">
+              <TabsContent value="settings" className="mt-0 space-y-4">
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Nome da Campanha</Label>
+                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="status">Status</Label>
+                      <Select value={status} onValueChange={(v: any) => setStatus(v)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ACTIVE">Ativo</SelectItem>
+                          <SelectItem value="PAUSED">Pausado</SelectItem>
+                          <SelectItem value="ARCHIVED">Arquivado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="objective">Objetivo</Label>
+                      <Select value={objective} onValueChange={setObjective}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="OUTCOME_SALES">Vendas</SelectItem>
+                          <SelectItem value="OUTCOME_LEADS">Cadastros</SelectItem>
+                          <SelectItem value="OUTCOME_ENGAGEMENT">Engajamento</SelectItem>
+                          <SelectItem value="OUTCOME_TRAFFIC">Tráfego</SelectItem>
+                          <SelectItem value="OUTCOME_AWARENESS">Reconhecimento</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="budget_type">Tipo Orçamento</Label>
-              <Select value={budgetType} onValueChange={(v: any) => setBudgetType(v)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="daily">Diário</SelectItem>
-                  <SelectItem value="lifetime">Vitalício</SelectItem>
-                </SelectContent>
-              </Select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="budget_type">Tipo Orçamento</Label>
+                      <Select value={budgetType} onValueChange={(v: any) => setBudgetType(v)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="daily">Diário</SelectItem>
+                          <SelectItem value="lifetime">Vitalício</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="budget">Valor (R$)</Label>
+                      <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="adsets" className="mt-0">
+                <div className="space-y-3">
+                  {details.isLoading ? (
+                    <div className="text-center py-10 text-muted-foreground">Carregando conjuntos...</div>
+                  ) : fullData?.adsets?.map((as: any) => (
+                    <div key={as.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <Switch 
+                          checked={as.status === "ACTIVE"} 
+                          onCheckedChange={() => handleUpdateAdsetStatus(as.id, as.status)}
+                        />
+                        <div>
+                          <p className="text-sm font-medium">{as.name}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Input 
+                              type="number" 
+                              className="h-6 w-20 text-[10px]" 
+                              defaultValue={as.daily_budget ? parseInt(as.daily_budget)/100 : parseInt(as.lifetime_budget)/100}
+                              onBlur={async (e) => {
+                                const val = parseFloat(e.target.value);
+                                if (!isNaN(val)) {
+                                  await updateAdsetBudget({ data: { adsetId: as.id, dailyBudgetBRL: val } });
+                                  toast.success("Orçamento atualizado");
+                                }
+                              }}
+                            />
+                            <span className="text-[10px] text-muted-foreground uppercase">
+                              {as.daily_budget ? "Diário" : "Total"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="text-[10px]">{as.optimization_goal}</Badge>
+                    </div>
+                  ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="ads" className="mt-0">
+                 <div className="space-y-3">
+                  {details.isLoading ? (
+                    <div className="text-center py-10 text-muted-foreground">Carregando anúncios...</div>
+                  ) : fullData?.ads?.map((ad: any) => (
+                    <div key={ad.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <Switch 
+                          checked={ad.status === "ACTIVE"} 
+                          onCheckedChange={() => handleUpdateAdStatus(ad.id, ad.status)}
+                        />
+                        <div className="h-10 w-10 rounded overflow-hidden bg-muted border">
+                          <img 
+                            src={ad.creative?.image_url || ad.creative?.thumbnail_url || ad._previewImage || "https://placehold.co/100x100?text=Ad"} 
+                            className="h-full w-full object-cover" 
+                            onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/100x100?text=Ad"; }}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{ad.name}</p>
+                          <p className="text-[10px] text-muted-foreground truncate max-w-[300px]">{ad.creative?.body || ad.creative?.title || "Sem texto"}</p>
+                        </div>
+                      </div>
+                      <div className="text-right ml-4">
+                         <p className="text-xs font-bold">{ad.insights?.roas?.toFixed(2) || "0.00"}x ROAS</p>
+                         <p className="text-[10px] text-muted-foreground">{formatBRL(ad.insights?.spend || 0)} investido</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="creatives" className="mt-0">
+                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                   {fullData?.ads?.map((ad: any) => (
+                     <Card key={ad.id} className="overflow-hidden border-2 hover:border-primary transition-colors cursor-pointer">
+                        <div className="aspect-square relative">
+                          <img 
+                            src={ad.creative?.image_url || ad.creative?.thumbnail_url || ad._previewImage || "https://placehold.co/400x400?text=Criativo"} 
+                            className="h-full w-full object-cover"
+                            onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/400x400?text=Ad"; }}
+                          />
+                          <div className="absolute top-2 right-2">
+                             <Badge className={ad.status === "ACTIVE" ? "bg-[oklch(0.7_0.18_162)]" : "bg-muted"}>
+                               {ad.status === "ACTIVE" ? "Ativo" : "Pausado"}
+                             </Badge>
+                          </div>
+                        </div>
+                        <div className="p-3 bg-card">
+                           <p className="text-[10px] font-bold uppercase truncate">{ad.name}</p>
+                           <div className="grid grid-cols-2 gap-2 mt-2">
+                             <div className="bg-muted/50 p-1.5 rounded text-center">
+                                <p className="text-[8px] text-muted-foreground">ROAS</p>
+                                <p className="text-xs font-bold">{ad.insights?.roas?.toFixed(2) || "0.00"}x</p>
+                             </div>
+                             <div className="bg-muted/50 p-1.5 rounded text-center">
+                                <p className="text-[8px] text-muted-foreground">CTR</p>
+                                <p className="text-xs font-bold">{ad.insights?.ctr?.toFixed(2) || "0.00"}%</p>
+                             </div>
+                           </div>
+                        </div>
+                     </Card>
+                   ))}
+                 </div>
+              </TabsContent>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="budget">Valor (R$)</Label>
-              <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} />
-            </div>
-          </div>
-          
-          <div className="p-3 bg-muted/50 rounded-lg text-[10px] text-muted-foreground">
-            <p className="font-bold mb-1">Nota sobre a Meta API:</p>
-            <p>Algumas configurações como Objetivo e Tipo de Compra podem não ser alteráveis após a criação da campanha, dependendo da sua conta de anúncios.</p>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
+          </ScrollArea>
+        </Tabs>
+
+        <DialogFooter className="p-6 border-t bg-muted/20">
+          <Button variant="outline" onClick={onClose} disabled={saving}>Fechar</Button>
           <Button onClick={handleSave} disabled={saving}>
             {saving ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : null}
             Salvar Alterações
