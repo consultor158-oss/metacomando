@@ -153,12 +153,6 @@ export function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton isActive={view === "map"} onClick={() => setView("map")}>
-                      <MapIcon className="h-4 w-4" />
-                      <span>Mapa de Criativos</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "tutorial"} onClick={() => setView("tutorial")}>
                       <PlayCircle className="h-4 w-4" />
                       <span>Tutorial Guiado</span>
