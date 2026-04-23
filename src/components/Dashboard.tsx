@@ -64,7 +64,11 @@ import {
   updateAdsetBudget,
   updateAdsetSpendLimit,
   deleteCampaign,
+  getGeoInsights,
+  getAccountCreatives,
+  uploadImage,
 } from "../server/meta";
+
 import {
   loadCustomApis,
   addCustomApi,
