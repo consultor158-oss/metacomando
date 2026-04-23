@@ -545,11 +545,11 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar Campanha</DialogTitle>
           <DialogDescription>
-            Configure os detalhes da sua campanha no Meta Ads.
+            Configure todos os detalhes da sua campanha no Meta Ads.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -557,6 +557,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
             <Label htmlFor="name">Nome da Campanha</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
+          
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="status">Status</Label>
@@ -567,31 +568,47 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                 <SelectContent>
                   <SelectItem value="ACTIVE">Ativo</SelectItem>
                   <SelectItem value="PAUSED">Pausado</SelectItem>
+                  <SelectItem value="ARCHIVED">Arquivado</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="budget_type">Tipo Orçamento</Label>
-              <Select value={budgetType} onValueChange={(v: any) => setBudgetType(v)} disabled>
+              <Label htmlFor="buying_type">Tipo de Compra</Label>
+              <Select value={buyingType} onValueChange={setBuyingType}>
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="daily">Diário</SelectItem>
-                  <SelectItem value="lifetime">Vitalício</SelectItem>
+                  <SelectItem value="AUCTION">Leilão</SelectItem>
+                  <SelectItem value="RESERVATION">Reserva</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="budget">Valor do Orçamento (R$)</Label>
-              <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} />
+              <Label htmlFor="objective">Objetivo</Label>
+              <Select value={objective} onValueChange={setObjective}>
+                <SelectTrigger className="text-xs">
+                  <SelectValue placeholder="Selecione o objetivo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="OUTCOME_SALES">Vendas</SelectItem>
+                  <SelectItem value="OUTCOME_LEADS">Cadastros</SelectItem>
+                  <SelectItem value="OUTCOME_ENGAGEMENT">Engajamento</SelectItem>
+                  <SelectItem value="OUTCOME_TRAFFIC">Tráfego</SelectItem>
+                  <SelectItem value="OUTCOME_AWARENESS">Reconhecimento</SelectItem>
+                  <SelectItem value="OUTCOME_APP_PROMOTION">Promoção App</SelectItem>
+                  <SelectItem value="CONVERSIONS">Conversões (Legado)</SelectItem>
+                  <SelectItem value="MESSAGES">Mensagens (Legado)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="bid_strategy">Estratégia de Lance</Label>
               <Select value={bidStrategy} onValueChange={setBidStrategy}>
-                <SelectTrigger>
+                <SelectTrigger className="text-xs">
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
                 <SelectContent>
@@ -602,9 +619,29 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
               </Select>
             </div>
           </div>
-          <div className="grid gap-2">
-            <Label>Objetivo (Inalterável)</Label>
-            <Input value={campaign.objective} disabled className="bg-muted text-xs h-8" />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="budget_type">Tipo Orçamento</Label>
+              <Select value={budgetType} onValueChange={(v: any) => setBudgetType(v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">Diário</SelectItem>
+                  <SelectItem value="lifetime">Vitalício</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="budget">Valor (R$)</Label>
+              <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} />
+            </div>
+          </div>
+          
+          <div className="p-3 bg-muted/50 rounded-lg text-[10px] text-muted-foreground">
+            <p className="font-bold mb-1">Nota sobre a Meta API:</p>
+            <p>Algumas configurações como Objetivo e Tipo de Compra podem não ser alteráveis após a criação da campanha, dependendo da sua conta de anúncios.</p>
           </div>
         </div>
         <DialogFooter>
