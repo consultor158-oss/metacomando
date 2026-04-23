@@ -1831,6 +1831,21 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
                 <p className="text-[10px] text-muted-foreground">💡 O checklist de criativo marcará automaticamente quando você selecionar os 4 acima.</p>
               </div>
             </div>
+            
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={applyBestTargeting} 
+                  onChange={e => setApplyBestTargeting(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                <span className="text-xs font-bold">Otimizar Público (Retail/E-commerce)</span>
+              </label>
+              <p className="mt-1 text-[10px] text-muted-foreground ml-6">
+                Inclui "Compradores Envolvidos" e interesses em "Online Shopping" para maximizar ROAS.
+              </p>
+            </div>
 
             <div className="space-y-2">
               <ChecklistItem
