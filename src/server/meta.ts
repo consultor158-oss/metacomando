@@ -41,6 +41,33 @@ async function metaFetch(path: string, params: Record<string, string> = {}, init
   return data;
 }
 
+async function metaPost(path: string, body: Record<string, string>) {
+  const { token } = getCreds();
+  const url = new URL(`${BASE}/${path}`);
+  const form = new URLSearchParams();
+  form.set("access_token", token);
+  for (const [k, v] of Object.entries(body)) form.set(k, v);
+  const res = await fetch(url.toString(), {
+    method: "POST",
+    headers: { "Content-Type": "application/x-form-urlencoded" },
+    body: form.toString(),
+  });
+  const text = await res.text();
+  let data: any;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = { raw: text };
+  }
+  if (!res.ok || data?.error) {
+    const err = data?.error || {};
+    const e: any = new Error(err.message || `Meta API ${res.status}`);
+    e.code = err.code;
+    throw e;
+  }
+  return data;
+}
+
 function errorPayload(e: any) {
   return {
     ok: false as const,
@@ -77,89 +104,61 @@ export const getAccountInsights = createServerFn({ method: "GET" })
 export const getCampaigns = createServerFn({ method: "GET" })
   .inputValidator((d: { onlyActive?: boolean; datePreset?: string }) => d ?? {})
   .handler(async ({ data }) => {
-  try {
-    const { actId } = getCreds();
-    const datePreset = data.datePreset || "last_7d";
-    const params: Record<string, string> = {
-      fields:
-        "id,name,status,effective_status,objective,daily_budget,lifetime_budget,buying_type,bid_strategy,created_time,updated_time",
-      limit: "200",
-    };
-    if (data.onlyActive) params.effective_status = JSON.stringify(["ACTIVE"]);
-    const camps = await metaFetch(`${actId}/campaigns`, params);
-    const ids = (camps.data ?? []).map((c: any) => c.id);
-
-    // Fetch insights per campaign in batch
-    let insightsMap: Record<string, any> = {};
-    if (ids.length) {
-      const ins = await metaFetch(`${actId}/insights`, {
-        level: "campaign",
-        date_preset: datePreset,
-        fields: "campaign_id,spend,impressions,clicks,ctr,cpc,actions,action_values,purchase_roas",
-        limit: "500",
-      });
-      for (const row of ins.data ?? []) {
-        insightsMap[row.campaign_id] = row;
-      }
-    }
-
-    const enriched = (camps.data ?? []).map((c: any) => {
-      const i = insightsMap[c.id] ?? {};
-      const purchases =
-        (i.actions ?? []).find((a: any) => a.action_type === "purchase")?.value || "0";
-      const purchaseValue =
-        (i.action_values ?? []).find((a: any) => a.action_type === "purchase")?.value || "0";
-      const roas = i.purchase_roas?.[0]?.value || "0";
-      const spend = parseFloat(i.spend || "0");
-      const conv = parseFloat(purchases);
-      const cpa = conv > 0 ? spend / conv : 0;
-      return {
-        ...c,
-        spend,
-        impressions: parseInt(i.impressions || "0"),
-        clicks: parseInt(i.clicks || "0"),
-        ctr: parseFloat(i.ctr || "0"),
-        cpc: parseFloat(i.cpc || "0"),
-        conversions: conv,
-        revenue: parseFloat(purchaseValue),
-        roas: parseFloat(roas),
-        cpa,
+    try {
+      const { actId } = getCreds();
+      const datePreset = data.datePreset || "last_7d";
+      const params: Record<string, string> = {
+        fields:
+          "id,name,status,effective_status,objective,daily_budget,lifetime_budget,buying_type,bid_strategy,created_time,updated_time",
+        limit: "200",
       };
-    });
+      if (data.onlyActive) params.effective_status = JSON.stringify(["ACTIVE"]);
+      const camps = await metaFetch(`${actId}/campaigns`, params);
+      const ids = (camps.data ?? []).map((c: any) => c.id);
 
-    return { ok: true as const, data: enriched };
-  } catch (e) {
-    return { ...errorPayload(e), data: [] as any[] };
-  }
-});
+      // Fetch insights per campaign in batch
+      let insightsMap: Record<string, any> = {};
+      if (ids.length) {
+        const ins = await metaFetch(`${actId}/insights`, {
+          level: "campaign",
+          date_preset: datePreset,
+          fields: "campaign_id,spend,impressions,clicks,ctr,cpc,actions,action_values,purchase_roas",
+          limit: "500",
+        });
+        for (const row of ins.data ?? []) {
+          insightsMap[row.campaign_id] = row;
+        }
+      }
 
-// ==================== EDIT HELPERS ====================
-async function metaPost(path: string, body: Record<string, string>) {
-  const { token } = getCreds();
-  const url = new URL(`${BASE}/${path}`);
-  const form = new URLSearchParams();
-  form.set("access_token", token);
-  for (const [k, v] of Object.entries(body)) form.set(k, v);
-  const res = await fetch(url.toString(), {
-    method: "POST",
-    headers: { "Content-Type": "application/x-form-urlencoded" },
-    body: form.toString(),
+      const enriched = (camps.data ?? []).map((c: any) => {
+        const i = insightsMap[c.id] ?? {};
+        const purchases =
+          (i.actions ?? []).find((a: any) => a.action_type === "purchase")?.value || "0";
+        const purchaseValue =
+          (i.action_values ?? []).find((a: any) => a.action_type === "purchase")?.value || "0";
+        const roas = i.purchase_roas?.[0]?.value || "0";
+        const spend = parseFloat(i.spend || "0");
+        const conv = parseFloat(purchases);
+        const cpa = conv > 0 ? spend / conv : 0;
+        return {
+          ...c,
+          spend,
+          impressions: parseInt(i.impressions || "0"),
+          clicks: parseInt(i.clicks || "0"),
+          ctr: parseFloat(i.ctr || "0"),
+          cpc: parseFloat(i.cpc || "0"),
+          conversions: conv,
+          revenue: parseFloat(purchaseValue),
+          roas: parseFloat(roas),
+          cpa,
+        };
+      });
+
+      return { ok: true as const, data: enriched };
+    } catch (e) {
+      return { ...errorPayload(e), data: [] as any[] };
+    }
   });
-  const text = await res.text();
-  let data: any;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    data = { raw: text };
-  }
-  if (!res.ok || data?.error) {
-    const err = data?.error || {};
-    const e: any = new Error(err.message || `Meta API ${res.status}`);
-    e.code = err.code;
-    throw e;
-  }
-  return data;
-}
 
 // ==================== UPDATE CAMPAIGN STATUS ====================
 export const updateCampaignStatus = createServerFn({ method: "POST" })
@@ -218,8 +217,6 @@ export const createCampaign = createServerFn({ method: "POST" })
   });
 
 // ==================== DUPLICATE CAMPAIGN (clone existing as template) ====================
-// Lê uma campanha existente e cria uma nova idêntica (objetivo, buying_type, budget, bid_strategy)
-// Opcionalmente sobrescreve nome/budget/status.
 export const duplicateCampaign = createServerFn({ method: "POST" })
   .inputValidator(
     (d: {
@@ -231,7 +228,7 @@ export const duplicateCampaign = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     try {
-      const { actId, token } = getCreds();
+      const { actId } = getCreds();
       // 1) lê a campanha origem
       const src = await metaFetch(data.sourceCampaignId, {
         fields:
@@ -242,25 +239,24 @@ export const duplicateCampaign = createServerFn({ method: "POST" })
         data.newName ||
         `${src.name} — cópia ${new Date().toLocaleDateString("pt-BR")} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
 
-      const body = new URLSearchParams({
+      const body: Record<string, string> = {
         name: finalName,
         objective: src.objective || "OUTCOME_SALES",
         buying_type: src.buying_type || "AUCTION",
         status: data.status || "PAUSED",
         special_ad_categories: JSON.stringify(src.special_ad_categories || []),
-        access_token: token,
-      });
+      };
 
       // budget: usa o sobrescrito; senão herda da origem
       const budgetCents =
         data.dailyBudgetCents ?? (src.daily_budget ? parseInt(src.daily_budget) : 0);
-      if (budgetCents > 0) body.set("daily_budget", String(budgetCents));
+      if (budgetCents > 0) body.daily_budget = String(budgetCents);
 
-      if (src.bid_strategy) body.set("bid_strategy", src.bid_strategy);
+      if (src.bid_strategy) body.bid_strategy = src.bid_strategy;
 
-      const result = await metaFetch(`${actId}/campaigns`, {}, { method: "POST", body });
+      const result = await metaPost(`${actId}/campaigns`, body);
       return {
-        ok: true,
+        ok: true as const,
         data: result,
         clonedFrom: { id: data.sourceCampaignId, name: src.name },
         appliedTemplate: {
@@ -286,7 +282,7 @@ export const getAdSets = createServerFn({ method: "GET" })
         fields: "id,name,status,daily_budget,lifetime_budget,targeting,optimization_goal",
         limit: "100",
       });
-      return { ok: true, data: res.data ?? [] };
+      return { ok: true as const, data: res.data ?? [] };
     } catch (e) {
       return { ...errorPayload(e), data: [] as any[] };
     }
@@ -336,26 +332,13 @@ export const generateAdCopy = createServerFn({ method: "POST" })
         const match = content.match(/\{[\s\S]*\}/);
         parsed = match ? JSON.parse(match[0]) : null;
       } catch {}
-      return { ok: true, raw: content, parsed };
+      return { ok: true as const, raw: content, parsed };
     } catch (e) {
       return errorPayload(e);
     }
   });
 
 // ==================== CONVERSION FUNNEL (account-level) ====================
-// Puxa o funil completo de conversão: impressões -> link click -> LPV -> ATC -> Checkout -> Purchase
-const FUNNEL_ACTIONS = [
-  "link_click",
-  "landing_page_view",
-  "add_to_cart",
-  "initiate_checkout",
-  "add_payment_info",
-  "purchase",
-  "lead",
-  "complete_registration",
-  "view_content",
-];
-
 function pickAction(actions: any[], type: string): number {
   const a = (actions ?? []).find((x: any) => x.action_type === type);
   return a ? parseFloat(a.value || "0") : 0;
@@ -409,7 +392,6 @@ export const getConversionFunnel = createServerFn({ method: "GET" })
   });
 
 // ==================== PLACEMENT / DESTINATION BREAKDOWN ====================
-// "Para onde foi o clique" — breakdown por placement, device e action_destination
 export const getClickBreakdown = createServerFn({ method: "GET" })
   .inputValidator((d: { datePreset?: string; breakdown?: string }) => d ?? {})
   .handler(async ({ data }) => {
@@ -453,7 +435,6 @@ export const getClickBreakdown = createServerFn({ method: "GET" })
   });
 
 // ==================== CAMPAIGN-LEVEL CONVERSION DETAILS ====================
-// Detalha por campanha: link clicks, LPV, ATC, Checkout, Purchase, CVR — para "ver se realmente vende"
 export const getCampaignsConversion = createServerFn({ method: "GET" })
   .inputValidator((d: { datePreset?: string; onlyActive?: boolean }) => d ?? {})
   .handler(async ({ data }) => {
@@ -497,7 +478,7 @@ export const getCampaignsConversion = createServerFn({ method: "GET" })
           cvr_lpv_to_purchase: lpv > 0 ? (purchases / lpv) * 100 : 0,
           drop_click_to_lpv: linkClicks > 0 ? ((linkClicks - lpv) / linkClicks) * 100 : 0,
           drop_atc_to_purchase: atc > 0 ? ((atc - purchases) / atc) * 100 : 0,
-          really_sells: purchases > 0 && revenue > spend, // verdade do "vende"
+          really_sells: purchases > 0 && revenue > spend,
         };
       });
       return { ok: true as const, data: rows };
@@ -511,6 +492,7 @@ export const getCampaignDetails = createServerFn({ method: "GET" })
   .inputValidator((d: { campaignId: string; datePreset?: string }) => d)
   .handler(async ({ data }) => {
     try {
+      const { token } = getCreds();
       const datePreset = data.datePreset || "last_7d";
       // Campaign with full fields
       const campaign = await metaFetch(data.campaignId, {
@@ -539,7 +521,7 @@ export const getCampaignDetails = createServerFn({ method: "GET" })
         }
       }
 
-      // Ads + creatives — paginate through all (NOT just first page)
+      // Ads + creatives — paginate through all
       const ads: any[] = [];
       {
         let next: string | null = null;
@@ -560,7 +542,7 @@ export const getCampaignDetails = createServerFn({ method: "GET" })
         }
       }
 
-      // Resolve missing thumbnails via the ad's /previews endpoint (best effort)
+      // Resolve missing thumbnails via preview endpoint
       await Promise.all(
         ads.map(async (a: any) => {
           const cre = a.creative || {};
@@ -605,7 +587,7 @@ export const getCampaignDetails = createServerFn({ method: "GET" })
         cpa: purchases > 0 ? spend / purchases : 0,
       };
 
-      // Insights por ad (em batch via /insights level=ad)
+      // Insights por ad
       let adInsightsMap: Record<string, any> = {};
       try {
         const adIns = await metaFetch(`${data.campaignId}/insights`, {
@@ -651,36 +633,13 @@ export const getAccountInfo = createServerFn({ method: "GET" }).handler(async ()
     const info = await metaFetch(actId, {
       fields: "id,name,currency,account_status,timezone_name,amount_spent,balance",
     });
-    return { ok: true, data: info };
+    return { ok: true as const, data: info };
   } catch (e) {
     return errorPayload(e);
   }
 });
 
 // ==================== EDIT AD / ADSET ====================
-async function metaPost(path: string, body: Record<string, string>) {
-  const { token } = getCreds();
-  const url = new URL(`${BASE}/${path}`);
-  const form = new URLSearchParams();
-  form.set("access_token", token);
-  for (const [k, v] of Object.entries(body)) form.set(k, v);
-  const res = await fetch(url.toString(), {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: form.toString(),
-  });
-  const text = await res.text();
-  let data: any;
-  try { data = JSON.parse(text); } catch { data = { raw: text }; }
-  if (!res.ok || data?.error) {
-    const err = data?.error || {};
-    const e: any = new Error(err.message || `Meta API ${res.status}`);
-    e.code = err.code;
-    throw e;
-  }
-  return data;
-}
-
 export const updateAdStatus = createServerFn({ method: "POST" })
   .inputValidator((d: { adId: string; status: "ACTIVE" | "PAUSED" }) => d)
   .handler(async ({ data }) => {
@@ -756,4 +715,3 @@ export const deleteCampaign = createServerFn({ method: "POST" })
       return errorPayload(e);
     }
   });
-
