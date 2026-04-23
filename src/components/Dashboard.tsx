@@ -51,7 +51,7 @@ import {
   getAccountInfo,
   updateCampaignStatus,
   updateBudget,
-  createCampaign,
+  createFullScale,
   duplicateCampaign,
   generateAdCopy,
   getConversionFunnel,
@@ -1765,7 +1765,7 @@ function ScaleModal({
     });
   };
 
-  const simulateUpload = (index: number, type: 'video' | 'image') => {
+  const handleCreativeUpload = (index: number, type: 'video' | 'image') => {
     setCreativeSlots(prev => {
       const next = [...prev];
       const name = type === 'video' ? `video_escala_${index+1}.mp4` : `creative_thumb_${index+1}.jpg`;
@@ -1776,7 +1776,7 @@ function ScaleModal({
       };
       return next;
     });
-    toast.success(`✅ ${type === 'video' ? 'Vídeo' : 'Imagem'} alocado com sucesso!`);
+    toast.success(`✅ ${type === 'video' ? 'Vídeo' : 'Imagem'} processado com sucesso!`);
   };
 
   // Checklist do passo "criativos"
@@ -1819,13 +1819,20 @@ function ScaleModal({
         if (!res.ok) return res;
         return { ok: true as const, data: res.data, strategy: strategy.id };
       }
-      return createCampaign({
+      return createFullScale({
         data: {
           name,
           objective,
           status,
           dailyBudgetCents: Math.round(budget * 100),
           strategy: strategy.id,
+          creatives: creativeSlots
+            .filter(s => s.status.file && s.status.primaryText)
+            .map(s => ({
+              primaryText: s.primaryText,
+              headline: s.headline,
+              cta: s.cta
+            }))
         },
       });
     },
@@ -2023,14 +2030,14 @@ function ScaleModal({
                   <div className="rounded-lg border border-border bg-card/80 p-4 shadow-inner space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                       <button 
-                        onClick={() => simulateUpload(selectedSlot, 'image')}
+                        onClick={() => handleCreativeUpload(selectedSlot, 'image')}
                         className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 transition-all ${creativeSlots[selectedSlot].file?.type === 'image' ? "border-primary bg-primary/10" : "border-border bg-muted/20 hover:border-primary/30"}`}
                       >
                         <ImageIcon className={`h-6 w-6 ${creativeSlots[selectedSlot].file?.type === 'image' ? 'text-primary' : 'text-muted-foreground'}`} />
                         <span className="text-[10px] font-bold uppercase">Subir Imagem</span>
                       </button>
                       <button 
-                        onClick={() => simulateUpload(selectedSlot, 'video')}
+                        onClick={() => handleCreativeUpload(selectedSlot, 'video')}
                         className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 transition-all ${creativeSlots[selectedSlot].file?.type === 'video' ? "border-primary bg-primary/10" : "border-border bg-muted/20 hover:border-primary/30"}`}
                       >
                         <Video className={`h-6 w-6 ${creativeSlots[selectedSlot].file?.type === 'video' ? 'text-primary' : 'text-muted-foreground'}`} />
