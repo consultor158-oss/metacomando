@@ -29,6 +29,7 @@ import {
   getGeoInsights,
   createFullScale,
 } from "../server/meta";
+import { WhatsAppModal } from "./WhatsAppModal";
 import { formatBRL, formatPct } from "../lib/format";
 
 type Tab = "overview" | "tutorial" | "escalas" | "automacao";
