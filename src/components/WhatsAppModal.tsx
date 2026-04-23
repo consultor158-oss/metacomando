@@ -129,54 +129,101 @@ export function WhatsAppModal({ isOpen, onClose, accountId }: WhatsAppModalProps
             </p>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>UTMs Automáticas</Label>
-              <p className="text-[10px] text-muted-foreground">
-                Adiciona parâmetros de rastreio ao link gerado.
-              </p>
-            </div>
-            <Switch
-              checked={config.enableUtms}
-              onCheckedChange={(val) => setConfig({ ...config, enableUtms: val })}
-            />
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label>Mensagens Rápidas (Até 5)</Label>
-              <Button variant="outline" size="sm" onClick={addMessage} disabled={config.quickMessages.length >= 5}>
-                <Plus className="h-4 w-4 mr-1" /> Add
-              </Button>
+          <div className="space-y-4 border-t pt-4">
+            <div className="flex items-center gap-2">
+              <Bell className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-bold">Alertas de Métricas (IA)</h3>
             </div>
             
             <div className="space-y-3">
-              {config.quickMessages.map((msg, idx) => (
-                <div key={idx} className="relative group border rounded-md p-3 bg-muted/30">
-                  <div className="flex items-start gap-2 mb-2">
-                    <span className="text-xs font-bold text-muted-foreground mt-1">#{idx + 1}</span>
-                    <Textarea
-                      placeholder="Script da mensagem..."
-                      className="min-h-[60px] text-sm resize-none bg-background"
-                      value={msg}
-                      onChange={(e) => updateMessage(idx, e.target.value)}
+              {config.triggers?.map((trigger, idx) => (
+                <div key={idx} className="flex items-center gap-2 bg-muted/20 p-2 rounded-lg border border-border/50">
+                  <div className="w-20 text-[10px] font-bold uppercase text-muted-foreground">{trigger.metric}</div>
+                  <div className="flex-1 flex items-center gap-2">
+                    <span className="text-xs font-mono">{trigger.operator}</span>
+                    <Input 
+                      type="number" 
+                      className="h-8 text-xs" 
+                      value={trigger.value} 
+                      onChange={(e) => {
+                        const newTriggers = [...(config.triggers || [])];
+                        newTriggers[idx] = { ...trigger, value: Number(e.target.value) };
+                        setConfig({ ...config, triggers: newTriggers });
+                      }}
                     />
-                    <div className="flex flex-col gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => removeMessage(idx)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => copyLink(idx)}>
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
                   </div>
-                  {msg.trim() && (
-                    <div className="text-[10px] text-muted-foreground truncate italic">
-                      Visualização: wa.me/{config.number.replace(/\D/g, "") || "..."}?text={encodeURIComponent(msg).substring(0, 30)}...
-                    </div>
-                  )}
+                  <Switch 
+                    checked={trigger.enabled} 
+                    onCheckedChange={(val) => {
+                      const newTriggers = [...(config.triggers || [])];
+                      newTriggers[idx] = { ...trigger, enabled: val };
+                      setConfig({ ...config, triggers: newTriggers });
+                    }}
+                  />
                 </div>
               ))}
+            </div>
+
+            <div className="flex items-center justify-between bg-primary/5 p-3 rounded-lg border border-primary/10">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-3 w-3 text-primary" />
+                  <Label className="text-xs">Resumo com Ações de Escala</Label>
+                </div>
+                <p className="text-[9px] text-muted-foreground">
+                  Receba recomendações automáticas de escala por mensagem.
+                </p>
+              </div>
+              <Switch
+                checked={config.alertSummaryEnabled}
+                onCheckedChange={(val) => setConfig({ ...config, alertSummaryEnabled: val })}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4 border-t pt-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Settings2 className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-bold">Configurações de Link</h3>
+              </div>
+              <Switch
+                checked={config.enableUtms}
+                onCheckedChange={(val) => setConfig({ ...config, enableUtms: val })}
+              />
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Mensagens Rápidas (Até 5)</Label>
+                <Button variant="outline" size="sm" className="h-7 text-[10px]" onClick={addMessage} disabled={config.quickMessages.length >= 5}>
+                  <Plus className="h-3 w-3 mr-1" /> Add
+                </Button>
+              </div>
+              
+              <div className="space-y-3">
+                {config.quickMessages.map((msg, idx) => (
+                  <div key={idx} className="relative group border rounded-md p-3 bg-muted/30">
+                    <div className="flex items-start gap-2 mb-2">
+                      <span className="text-xs font-bold text-muted-foreground mt-1">#{idx + 1}</span>
+                      <Textarea
+                        placeholder="Script da mensagem..."
+                        className="min-h-[60px] text-sm resize-none bg-background"
+                        value={msg}
+                        onChange={(e) => updateMessage(idx, e.target.value)}
+                      />
+                      <div className="flex flex-col gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => removeMessage(idx)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => copyLink(idx)}>
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
