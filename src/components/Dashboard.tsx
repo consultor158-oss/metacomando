@@ -1,19 +1,12 @@
-import { useState, useMemo, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Activity,
   TrendingUp,
-  Target,
   Zap,
   Sparkles,
-  Bell,
   Image as ImageIcon,
   Video,
-  Check,
-  Plus,
-  X,
-  ExternalLink,
   MessageCircle,
   ShieldCheck,
   History,
@@ -23,14 +16,10 @@ import {
 } from "lucide-react";
 import {
   getAccountInfo,
-  getAccountInsights,
-  getCampaigns,
   getAccountCreatives,
   getGeoInsights,
-  createFullScale,
 } from "../server/meta";
 import { WhatsAppModal } from "./WhatsAppModal";
-import { formatBRL, formatPct } from "../lib/format";
 
 type Tab = "overview" | "tutorial" | "escalas" | "automacao";
 
