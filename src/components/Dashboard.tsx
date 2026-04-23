@@ -156,9 +156,8 @@ export function Dashboard() {
     staleTime: stale,
   });
 
-  const acc = account.data?.ok ? account.data.data : null;
-  const insightsRows = insights.data?.ok ? insights.data.data : [];
-  const camps = campaigns.data?.ok ? campaigns.data.data : [];
+  const insightsRows = useMemo(() => (insights.data?.ok ? insights.data.data : []), [insights.data]);
+  const camps = useMemo(() => (campaigns.data?.ok ? campaigns.data.data : []), [campaigns.data]);
 
   // Detect token expired
   const tokenExpired =
