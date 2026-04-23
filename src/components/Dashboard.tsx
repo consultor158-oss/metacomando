@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -21,10 +21,8 @@ import {
   MousePointer2,
   DollarSign,
   Target,
-  Map as MapIcon,
   Activity,
   ZapOff,
-  AlertTriangle,
   CheckCircle2,
   Clock
 } from "lucide-react";
@@ -36,7 +34,8 @@ import {
   getConversionFunnel,
   updateCampaignStatus,
   getGeoInsights,
-  createFullScale
+  createFullScale,
+  getPages
 } from "../server/meta";
 import { WhatsAppModal } from "./WhatsAppModal";
 import { SCALE_STRATEGIES, ScaleStrategy } from "../lib/scales";
@@ -70,8 +69,17 @@ import {
   SidebarInset,
   SidebarTrigger
 } from "./ui/sidebar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { Label } from "./ui/label";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 
-type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "tutorial" | "settings" | "map";
+type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "tutorial" | "settings";
 
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
@@ -84,8 +92,10 @@ export function Dashboard() {
   const creatives = useQuery({ queryKey: ["meta-creatives"], queryFn: () => getAccountCreatives() });
   const funnel = useQuery({ queryKey: ["meta-funnel"], queryFn: () => getConversionFunnel({ data: { datePreset: "last_30d" } }) });
   const geoData = useQuery({ queryKey: ["meta-geo"], queryFn: () => getGeoInsights({ data: { type: "region", datePreset: "last_30d" } }) });
+  const pages = useQuery({ queryKey: ["meta-pages"], queryFn: () => getPages() });
 
   const accountData = account.data?.ok ? account.data.data : null;
+  const pagesData = pages.data?.ok ? pages.data.data : [];
   const campaignsData = campaigns.data?.ok ? campaigns.data.data : [];
   const creativesData = creatives.data?.ok ? creatives.data.data : [];
   const funnelData = funnel.data?.ok ? funnel.data.data : null;
@@ -150,12 +160,6 @@ export function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton isActive={view === "map"} onClick={() => setView("map")}>
-                      <MapIcon className="h-4 w-4" />
-                      <span>Mapa de Criativos</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "tutorial"} onClick={() => setView("tutorial")}>
                       <PlayCircle className="h-4 w-4" />
                       <span>Tutorial Guiado</span>
@@ -196,7 +200,6 @@ export function Dashboard() {
                   {view === "automation" && "Automação"}
                   {view === "tutorial" && "Tutorial Guiado"}
                   {view === "settings" && "Configurações"}
-                  {view === "map" && "Mapa de Criativos"}
                 </h1>
                 <p className="text-xs text-muted-foreground">
                   {accountData ? `Conta: ${accountData.name}` : "Carregando conta..."}
@@ -212,7 +215,7 @@ export function Dashboard() {
           </header>
 
           <main className="flex-1 p-6 overflow-y-auto">
-            {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} geoData={geoInsightsData} />}
+            {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} />}
             {view === "campaigns" && <CampaignsTab campaigns={campaignsData} refresh={() => campaigns.refetch()} />}
             {view === "scales" && <ScalesTab onSelect={(s) => setDryRunData({ strategy: s })} />}
             {view === "creatives" && <CreativesTab creatives={creativesData} />}
@@ -222,7 +225,6 @@ export function Dashboard() {
                if (tutorialStrategy) setDryRunData({ strategy: tutorialStrategy, creatives: selected });
             }} />}
             {view === "settings" && <SettingsTab account={accountData} />}
-            {view === "map" && <DeliveryMapTab geoData={geoInsightsData} />}
           </main>
         </SidebarInset>
 
@@ -236,67 +238,14 @@ export function Dashboard() {
           isOpen={!!dryRunData} 
           onClose={() => setDryRunData(null)} 
           data={dryRunData} 
+          pages={pagesData}
         />
       </div>
     </SidebarProvider>
   );
 }
 
-function WorldMap({ data }: { data: any[] }) {
-  return (
-    <Card className="overflow-hidden bg-[#0a0a0a] relative h-[350px] flex items-center justify-center border-border/50">
-       <div className="absolute top-4 left-4 z-10">
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <div className="h-2 w-2 bg-red-600 rounded-full animate-pulse" />
-            Distribuição em Tempo Real
-          </h3>
-          <p className="text-[10px] text-zinc-500 uppercase font-bold">Monitoramento em Tempo Real</p>
-       </div>
-
-       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596436889106-be35e843f974?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-overlay" />
-       <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
-       <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0%,rgba(220,38,38,0.05)_50%,transparent_100%)] animate-[spin_8s_linear_infinite] pointer-events-none" />
-
-
-       
-       <div className="absolute inset-0">
-          {/* São Paulo */}
-          <div className="absolute top-[75%] left-[62%]">
-             <div className="h-4 w-4 bg-red-600 rounded-full animate-ping absolute opacity-75" />
-             <div className="h-3 w-3 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.8)]" />
-          </div>
-          {/* Nordeste */}
-          <div className="absolute top-[45%] left-[75%]">
-             <div className="h-5 w-5 bg-red-600 rounded-full animate-ping absolute opacity-75" />
-             <div className="h-4 w-4 bg-red-600 rounded-full shadow-[0_0_20px_rgba(220,38,38,0.9)] border-2 border-white/20" />
-          </div>
-          {/* Brasília */}
-          <div className="absolute top-[55%] left-[55%]">
-             <div className="h-3 w-3 bg-red-600 rounded-full animate-pulse opacity-60 shadow-[0_0_10px_rgba(220,38,38,0.5)]" />
-          </div>
-          {/* Sul */}
-          <div className="absolute top-[85%] left-[55%]">
-             <div className="h-2 w-2 bg-red-600 rounded-full opacity-40 shadow-[0_0_8px_rgba(220,38,38,0.4)]" />
-          </div>
-       </div>
-
-
-       <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md p-3 rounded-lg border border-white/10 flex items-center gap-4">
-          <div className="flex flex-col">
-            <span className="text-[9px] text-zinc-400 uppercase font-bold">Cobertura</span>
-            <span className="text-xs font-bold text-white">Todos os Estados</span>
-          </div>
-          <div className="h-6 w-px bg-white/10" />
-          <div className="flex flex-col">
-            <span className="text-[9px] text-zinc-400 uppercase font-bold">ROAS Médio</span>
-            <span className="text-xs font-bold text-red-500">3.12x</span>
-          </div>
-       </div>
-    </Card>
-  );
-}
-
-function OverviewTab({ stats, funnel, geoData }: { stats: any; funnel: any; geoData: any[] }) {
+function OverviewTab({ stats, funnel }: { stats: any; funnel: any }) {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -305,8 +254,6 @@ function OverviewTab({ stats, funnel, geoData }: { stats: any; funnel: any; geoD
         <KPICard title="ROAS" value={(parseFloat(stats.purchase_roas?.[0]?.value || 0)).toFixed(2) + "x"} icon={<TrendingUp className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} trend="+0.5x" positive />
         <KPICard title="Impressões" value={formatNumber(stats.impressions || 0)} icon={<Eye className="h-4 w-4 text-primary" />} trend="+24k" />
       </div>
-
-      <WorldMap data={geoData} />
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="col-span-1">
@@ -723,119 +670,38 @@ function AutomationTab() {
   );
 }
 
-function DeliveryMapTab({ geoData }: { geoData: any[] }) {
-  const regions = geoData;
 
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-xl font-bold">Mapa de Veiculação</h2>
-          <p className="text-xs text-muted-foreground">Distribuição geográfica dos seus anúncios no Brasil.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-[10px] font-bold uppercase">Sudeste (45%)</Badge>
-          <Badge variant="outline" className="text-[10px] font-bold uppercase">Sul (20%)</Badge>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 overflow-hidden h-[500px] relative bg-[#0a0a0a] flex items-center justify-center">
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596436889106-be35e843f974?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-overlay" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-[#0a0a0a]/50" />
-
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-             {/* Scanner Radar Effect */}
-             <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0%,rgba(220,38,38,0.1)_50%,transparent_100%)] animate-[spin_4s_linear_infinite]" />
-             
-             <div className="relative w-full h-full">
-                {/* São Paulo */}
-                <div className="absolute top-[75%] left-[62%]">
-                   <div className="h-10 w-10 bg-red-600/20 rounded-full animate-ping absolute -translate-x-1/2 -translate-y-1/2" />
-                   <div className="h-6 w-6 bg-red-600/40 rounded-full animate-pulse absolute -translate-x-1/2 -translate-y-1/2" />
-                   <div className="h-4 w-4 bg-red-600 rounded-full shadow-[0_0_20px_rgba(220,38,38,1)] border-2 border-white/40 -translate-x-1/2 -translate-y-1/2" />
-                </div>
-                
-                {/* Rio de Janeiro */}
-                <div className="absolute top-[73%] left-[66%] h-3 w-3 bg-red-600/60 rounded-full animate-pulse" />
-                
-                {/* Brasília */}
-                <div className="absolute top-[55%] left-[55%] h-3 w-3 bg-red-600/60 rounded-full animate-pulse" />
-                
-                {/* Curitiba */}
-                <div className="absolute top-[82%] left-[58%] h-2 w-2 bg-red-600/40 rounded-full" />
-                
-                {/* Nordeste / Salvador */}
-                <div className="absolute top-[48%] left-[72%] h-2 w-2 bg-red-600/40 rounded-full" />
-             </div>
-          </div>
-
-          <div className="absolute bottom-4 left-4 right-4 bg-background/80 backdrop-blur-md p-4 rounded-lg border border-border flex justify-between items-center">
-             <div className="flex items-center gap-4">
-               <div className="flex flex-col">
-                 <span className="text-[10px] uppercase text-muted-foreground font-bold">Top Região</span>
-                 <span className="text-sm font-bold">São Paulo, SP</span>
-               </div>
-               <div className="h-8 w-px bg-border" />
-               <div className="flex flex-col">
-                 <span className="text-[10px] uppercase text-muted-foreground font-bold">ROAS Médio</span>
-                 <span className="text-sm font-bold text-[oklch(0.7_0.18_162)]">2.8x</span>
-               </div>
-             </div>
-             <Button variant="ghost" size="sm" className="gap-2">
-               Ver Detalhes <ChevronRight className="h-4 w-4" />
-             </Button>
-          </div>
-        </Card>
-
-        <Card className="h-[500px]">
-          <CardHeader>
-            <CardTitle className="text-sm uppercase tracking-wider">Performance por Estado</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 overflow-y-auto max-h-[400px]">
-            {regions.length > 0 ? regions.map((r: any, i: number) => (
-              <div key={i} className="flex items-center justify-between border-b border-border/50 pb-2">
-                <div>
-                  <p className="text-xs font-bold">{r.region || r.country}</p>
-                  <p className="text-[10px] text-muted-foreground">{formatNumber(r.impressions)} impressões</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs font-bold">{formatBRL(parseFloat(r.spend))}</p>
-                  <p className="text-[10px] text-[oklch(0.7_0.18_162)] font-bold">
-                    {(parseFloat(r.spend) > 0 ? 1.5 + Math.random() : 0).toFixed(2)}x ROAS
-                  </p>
-                </div>
-              </div>
-            )) : (
-              <div className="text-center py-10">
-                <p className="text-xs text-muted-foreground">Carregando dados geográficos...</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-function DryRunModal({ isOpen, onClose, data }: { isOpen: boolean, onClose: () => void, data: { strategy: ScaleStrategy; creatives?: any[] } | null }) {
+function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClose: () => void, data: { strategy: ScaleStrategy; creatives?: any[] } | null, pages: any[] }) {
   const [isActivating, setIsActivating] = useState(false);
+  const [selectedPage, setSelectedPage] = useState<string>("");
+  const [destination, setDestination] = useState<"WHATSAPP" | "SALES">("WHATSAPP");
+
+  useEffect(() => {
+    if (pages.length > 0 && !selectedPage) {
+      setSelectedPage(pages[0].id);
+    }
+  }, [pages]);
 
   const handleActivate = async () => {
-    if (!data) return;
+    if (!data || !selectedPage) {
+      if (!selectedPage) toast.error("Selecione uma Página do Facebook");
+      return;
+    }
     setIsActivating(true);
     try {
       const res = await createFullScale({
         data: {
           name: `[IA ULTRA] ${data.strategy.defaults.namePrefix || data.strategy.name} - ${new Date().toLocaleDateString()}`,
-          objective: data.strategy.defaults.objective,
+          objective: destination === "WHATSAPP" ? "OUTCOME_ENGAGEMENT" : data.strategy.defaults.objective,
           dailyBudgetCents: data.strategy.defaults.dailyBudgetCents,
           strategy: data.strategy.id,
           status: data.strategy.defaults.status,
+          pageId: selectedPage,
+          destination: destination,
           creatives: data.creatives?.map(c => ({
             primaryText: "Performance Copy",
             headline: c.name || "Headline",
-            cta: "SHOP_NOW"
+            cta: destination === "WHATSAPP" ? "MESSAGE_PAGE" : "SHOP_NOW"
           }))
         }
       });
@@ -861,22 +727,52 @@ function DryRunModal({ isOpen, onClose, data }: { isOpen: boolean, onClose: () =
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-slate-950 border-primary/20 text-slate-100">
+      <DialogContent className="max-w-2xl bg-slate-950 border-primary/20 text-slate-100 overflow-y-auto max-h-[90vh]">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
             <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-2xl">
               {strategy.emoji}
             </div>
             <div>
-              <DialogTitle className="text-xl">Prévia da Ativação (Dry-Run)</DialogTitle>
+              <DialogTitle className="text-xl font-bold">Configuração da Página e Destino</DialogTitle>
               <DialogDescription className="text-slate-400">
-                Revise as ações que serão executadas via API na sua conta de anúncios.
+                Ajuste os detalhes finais antes de subir para o Facebook.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase text-slate-500">Página do Facebook</Label>
+              <Select value={selectedPage} onValueChange={setSelectedPage}>
+                <SelectTrigger className="bg-slate-900 border-slate-800">
+                  <SelectValue placeholder="Selecione a Página" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
+                  {pages.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase text-slate-500">Destino do Tráfego</Label>
+              <RadioGroup value={destination} onValueChange={(v: any) => setDestination(v)} className="flex gap-4 mt-2">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="WHATSAPP" id="r1" />
+                  <Label htmlFor="r1" className="text-sm cursor-pointer">WhatsApp</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="SALES" id="r2" />
+                  <Label htmlFor="r2" className="text-sm cursor-pointer">Vendas/Site</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800">
               <p className="text-[10px] uppercase font-bold text-slate-500 mb-1">Estratégia</p>
@@ -895,8 +791,8 @@ function DryRunModal({ isOpen, onClose, data }: { isOpen: boolean, onClose: () =
             <div className="space-y-2">
               <ActionItem icon={<CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} text={`Criar 1 Campanha: "[IA ULTRA] ${strategy.defaults.namePrefix || strategy.name}..."`} />
               <ActionItem icon={<CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} text={`Criar ${adsetCount} Conjuntos de Anúncios (AdSets)`} />
-              <ActionItem icon={<CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} text={`Vincular ${creatives?.length || strategy.creativeCount || 1} Criativos em cada AdSet`} />
-              <ActionItem icon={<Clock className="h-4 w-4 text-blue-400" />} text={`Status Inicial: ${strategy.defaults.status === "ACTIVE" ? "ATIVO (Publicar Imediatamente)" : "PAUSADO (Rascunho)"}`} />
+              <ActionItem icon={<MessageCircle className="h-4 w-4 text-green-400" />} text={`Destino: ${destination === "WHATSAPP" ? "WhatsApp (Conversas)" : "Site (Vendas)"}`} />
+              <ActionItem icon={<Clock className="h-4 w-4 text-blue-400" />} text={`Status Inicial: ${strategy.defaults.status === "ACTIVE" ? "ATIVO" : "PAUSADO"}`} />
             </div>
           </div>
 
@@ -912,13 +808,6 @@ function DryRunModal({ isOpen, onClose, data }: { isOpen: boolean, onClose: () =
               </div>
             </div>
           )}
-
-          <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0" />
-            <p className="text-[11px] text-amber-200/80 leading-relaxed">
-              Esta ação criará múltiplos elementos na sua conta de anúncios. Verifique se os limites de orçamento estão corretos antes de confirmar.
-            </p>
-          </div>
         </div>
 
         <DialogFooter className="gap-2">
@@ -926,12 +815,12 @@ function DryRunModal({ isOpen, onClose, data }: { isOpen: boolean, onClose: () =
           <Button 
             className="bg-[oklch(0.7_0.18_162)] hover:bg-[oklch(0.6_0.16_162)] text-black font-bold gap-2" 
             onClick={handleActivate}
-            disabled={isActivating}
+            disabled={isActivating || !selectedPage}
           >
             {isActivating ? (
-              <> <RefreshCw className="h-4 w-4 animate-spin" /> Processando... </>
+              <> <RefreshCw className="h-4 w-4 animate-spin" /> Subindo API... </>
             ) : (
-              <> <Rocket className="h-4 w-4" /> Confirmar e Subir API </>
+              <> <Rocket className="h-4 w-4" /> Ativar no Facebook </>
             )}
           </Button>
         </DialogFooter>
