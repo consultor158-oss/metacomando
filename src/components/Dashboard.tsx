@@ -711,22 +711,8 @@ function CampaignsTable({ camps, loading, onRefresh }: { camps: any[]; loading: 
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    ACTIVE: "bg-[oklch(0.7_0.18_162/0.2)] text-[oklch(0.7_0.18_162)]",
-    PAUSED: "bg-[oklch(0.77_0.19_70/0.2)] text-[oklch(0.77_0.19_70)]",
-    DELETED: "bg-destructive/20 text-destructive",
-    ARCHIVED: "bg-muted text-muted-foreground",
-    PENDING_REVIEW: "bg-chart-4/20 text-chart-4",
-    DISAPPROVED: "bg-destructive/20 text-destructive",
-    IN_PROCESS: "bg-primary/20 text-primary",
-  };
-  return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${map[status] || "bg-muted text-muted-foreground"}`}>
-      {status}
-    </span>
-  );
-}
+// StatusBadge is defined at the end to avoid duplication
+
 
 // ============== ANÁLISE ==============
 function Analise({
