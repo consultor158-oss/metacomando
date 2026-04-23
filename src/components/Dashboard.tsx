@@ -71,10 +71,10 @@ export function Dashboard() {
   const [isWAModalOpen, setIsWAModalOpen] = useState(false);
 
   const account = useQuery({ queryKey: ["meta-account"], queryFn: () => getAccountInfo() });
-  const insights = useQuery({ queryKey: ["meta-insights"], queryFn: () => getAccountInsights({ datePreset: "last_30d" }) });
-  const campaigns = useQuery({ queryKey: ["meta-campaigns"], queryFn: () => getCampaigns({ datePreset: "last_30d" }) });
+  const insights = useQuery({ queryKey: ["meta-insights"], queryFn: () => getAccountInsights({ data: { datePreset: "last_30d" } }) });
+  const campaigns = useQuery({ queryKey: ["meta-campaigns"], queryFn: () => getCampaigns({ data: { datePreset: "last_30d" } }) });
   const creatives = useQuery({ queryKey: ["meta-creatives"], queryFn: () => getAccountCreatives() });
-  const funnel = useQuery({ queryKey: ["meta-funnel"], queryFn: () => getConversionFunnel({ datePreset: "last_30d" }) });
+  const funnel = useQuery({ queryKey: ["meta-funnel"], queryFn: () => getConversionFunnel({ data: { datePreset: "last_30d" } }) });
 
   const stats = insights.data?.ok ? insights.data.data[0] || {} : {};
 
