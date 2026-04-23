@@ -209,7 +209,7 @@ export function Dashboard() {
           </header>
 
           <main className="flex-1 p-6 overflow-y-auto">
-            {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} geoData={geoInsightsData} />}
+            {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} />}
             {view === "campaigns" && <CampaignsTab campaigns={campaignsData} refresh={() => campaigns.refetch()} />}
             {view === "scales" && <ScalesTab onSelect={(s) => setDryRunData({ strategy: s })} />}
             {view === "creatives" && <CreativesTab creatives={creativesData} />}
