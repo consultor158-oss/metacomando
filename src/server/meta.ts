@@ -162,13 +162,22 @@ export const getCampaigns = createServerFn({ method: "GET" })
 
 // ==================== UPDATE CAMPAIGN ====================
 export const updateCampaign = createServerFn({ method: "POST" })
-  .inputValidator((d: { campaignId: string; name?: string; status?: "ACTIVE" | "PAUSED"; daily_budget?: number }) => d)
+  .inputValidator((d: { 
+    campaignId: string; 
+    name?: string; 
+    status?: "ACTIVE" | "PAUSED"; 
+    daily_budget?: number;
+    bid_strategy?: string;
+    special_ad_categories?: string[];
+  }) => d)
   .handler(async ({ data }) => {
     try {
-      const body: Record<string, string> = {};
+      const body: Record<string, any> = {};
       if (data.name) body.name = data.name;
       if (data.status) body.status = data.status;
       if (data.daily_budget !== undefined) body.daily_budget = String(data.daily_budget);
+      if (data.bid_strategy) body.bid_strategy = data.bid_strategy;
+      if (data.special_ad_categories) body.special_ad_categories = JSON.stringify(data.special_ad_categories);
       
       const result = await metaPost(data.campaignId, body);
       return { ok: true as const, data: result };
