@@ -38,21 +38,41 @@ export function Dashboard() {
   const account = useQuery({ queryKey: ["meta-account"], queryFn: () => getAccountInfo() });
   const creatives = useQuery({ queryKey: ["meta-creatives"], queryFn: () => getAccountCreatives() });
 
+  const [isWAModalOpen, setIsWAModalOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border p-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold flex items-center gap-2"><Zap className="text-primary" /> Meta Ads Ultra</h1>
-        <div className="flex gap-2">
-           <button onClick={() => setTab("tutorial")} className={`px-4 py-2 rounded-md ${tab === 'tutorial' ? 'bg-primary text-white' : 'hover:bg-muted'}`}>Tutorial</button>
-           <button onClick={() => setTab("escalas")} className={`px-4 py-2 rounded-md ${tab === 'escalas' ? 'bg-primary text-white' : 'hover:bg-muted'}`}>Escalas</button>
+      <header className="border-b border-border p-4 flex justify-between items-center bg-card/50 backdrop-blur-md sticky top-0 z-50">
+        <h1 className="text-xl font-bold flex items-center gap-2"><Zap className="text-primary fill-primary" /> Meta Ads Ultra</h1>
+        <div className="flex gap-1 bg-muted/50 p-1 rounded-lg">
+           <button onClick={() => setTab("tutorial")} className={`px-4 py-2 text-xs font-bold rounded-md transition-all ${tab === 'tutorial' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:bg-muted'}`}>Tutorial</button>
+           <button onClick={() => setTab("escalas")} className={`px-4 py-2 text-xs font-bold rounded-md transition-all ${tab === 'escalas' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:bg-muted'}`}>Escalas</button>
+           <button onClick={() => setIsWAModalOpen(true)} className="px-4 py-2 text-xs font-bold rounded-md text-[oklch(0.7_0.18_162)] hover:bg-[oklch(0.7_0.18_162)]/10 flex items-center gap-2">
+             <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+           </button>
         </div>
       </header>
 
       <main className="p-6 max-w-7xl mx-auto">
         {tab === "tutorial" && <TutorialTab creatives={creatives.data?.data || []} />}
         {tab === "escalas" && <EscalasTab />}
-        {tab === "overview" && <div className="text-center py-20 text-muted-foreground">Selecione uma aba para começar.</div>}
+        {tab === "overview" && (
+          <div className="text-center py-20 space-y-4">
+            <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+              <Sparkles className="h-8 w-8 text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold">Bem-vindo ao Meta Ads Ultra</h2>
+            <p className="text-muted-foreground max-w-md mx-auto">Sua inteligência artificial para escalar anúncios com precisão cirúrgica.</p>
+            <button onClick={() => setTab("tutorial")} className="bg-primary text-white px-8 py-3 rounded-full font-bold shadow-lg hover:opacity-90 transition-opacity">Começar Agora</button>
+          </div>
+        )}
       </main>
+
+      <WhatsAppModal 
+        isOpen={isWAModalOpen} 
+        onClose={() => setIsWAModalOpen(false)} 
+        accountId={account.data?.id || "default"} 
+      />
     </div>
   );
 }
