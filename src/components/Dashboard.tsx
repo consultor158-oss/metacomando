@@ -2988,13 +2988,119 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Empty({ text }: { text: string }) {
+// ============== TUTORIAL & CRIATIVOS TAB ==============
+function TutorialTab() {
+  const accountCreatives = useQuery({
+    queryKey: ["meta-account-creatives"],
+    queryFn: () => getAccountCreatives(),
+    staleTime: 5 * 60_000,
+  });
+
+  const [selectedCreatives, setSelectedCreatives] = useState<string[]>([]);
+
+  const creatives = accountCreatives.data?.ok ? accountCreatives.data.data : [];
+
+  const toggleCreative = (id: string) => {
+    setSelectedCreatives(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
   return (
-    <p className="rounded-md border border-dashed border-border bg-muted/10 p-4 text-center text-xs text-muted-foreground">
-      {text}
-    </p>
+    <div className="space-y-6">
+      <div className="rounded-xl border border-primary/20 bg-primary/5 p-6">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <ImageIcon className="h-6 w-6 text-primary" /> Tutorial de Criativos & Vinculação
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Selecione abaixo os criativos que você deseja utilizar em suas novas campanhas de escala. 
+          Apenas criativos ativos e válidos na sua conta Meta Ads são exibidos.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {accountCreatives.isFetching ? (
+          Array(4).fill(0).map((_, i) => (
+            <div key={i} className="h-64 animate-pulse rounded-xl bg-muted" />
+          ))
+        ) : creatives.length === 0 ? (
+          <div className="col-span-full py-12 text-center text-muted-foreground border-2 border-dashed rounded-xl">
+            Nenhum criativo encontrado na conta atual.
+          </div>
+        ) : (
+          creatives.map((c: any) => {
+            const isSelected = selectedCreatives.includes(c.id);
+            const img = c.image_url || c.thumbnail_url || (c.object_story_spec?.link_data?.picture);
+            return (
+              <div 
+                key={c.id}
+                onClick={() => toggleCreative(c.id)}
+                className={`group relative cursor-pointer overflow-hidden rounded-xl border-2 transition-all hover:shadow-lg ${isSelected ? 'border-primary ring-2 ring-primary/20' : 'border-border bg-card'}`}
+              >
+                <div className="aspect-square bg-muted">
+                  {img ? (
+                    <img src={img} alt={c.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-muted-foreground">
+                      <ImageIcon className="h-10 w-10 opacity-20" />
+                    </div>
+                  )}
+                  {isSelected && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
+                      <div className="rounded-full bg-primary p-2 text-white shadow-xl">
+                        <Check className="h-6 w-6" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="p-3">
+                  <p className="truncate text-xs font-bold uppercase">{c.name || 'Criativo sem nome'}</p>
+                  <p className="mt-1 text-[10px] text-muted-foreground">ID: {c.id}</p>
+                </div>
+                <div className="absolute top-2 right-2">
+                   <StatusBadge status={c.status} />
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {selectedCreatives.length > 0 && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-40 animate-in fade-in slide-in-from-bottom-4">
+          <button 
+            onClick={() => {
+              localStorage.setItem("selected_tutorial_creatives", JSON.stringify(selectedCreatives));
+              toast.success(`${selectedCreatives.length} criativos vinculados para escala!`);
+            }}
+            className="flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-sm font-bold text-white shadow-2xl hover:scale-105 transition-transform"
+          >
+            <Zap className="h-5 w-5" /> Vincular {selectedCreatives.length} criativos à Escala
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
+
+function StatusBadge({ status }: { status: string }) {
+  const s = (status || "").toUpperCase();
+  const colors: Record<string, string> = {
+    ACTIVE: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    PAUSED: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+    APPROVED: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+    PENDING: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    REJECTED: "bg-destructive/10 text-destructive border-destructive/20",
+    DELETED: "bg-muted text-muted-foreground border-border",
+    ARCHIVED: "bg-muted text-muted-foreground border-border",
+  };
+  return (
+    <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${colors[s] || "bg-muted text-muted-foreground border-border"}`}>
+      {s}
+    </span>
+  );
+}
+
 
 function AdsetRow({ adset, onChanged }: { adset: any; onChanged: () => void }) {
   const [editing, setEditing] = useState(false);
