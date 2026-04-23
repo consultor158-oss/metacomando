@@ -32,7 +32,10 @@ import {
   getAccountInsights,
   getCampaigns,
   getConversionFunnel,
+  updateCampaign,
   updateCampaignStatus,
+  duplicateCampaign,
+  deleteCampaign,
   getGeoInsights,
   createFullScale,
   getPages
