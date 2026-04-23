@@ -23,7 +23,10 @@ import {
   Target,
   Map as MapIcon,
   Activity,
-  ZapOff
+  ZapOff,
+  AlertTriangle,
+  CheckCircle2,
+  Clock
 } from "lucide-react";
 import {
   getAccountInfo,
@@ -32,10 +35,11 @@ import {
   getCampaigns,
   getConversionFunnel,
   updateCampaignStatus,
-  getGeoInsights
+  getGeoInsights,
+  createFullScale
 } from "../server/meta";
 import { WhatsAppModal } from "./WhatsAppModal";
-import { SCALE_STRATEGIES } from "../lib/scales";
+import { SCALE_STRATEGIES, ScaleStrategy } from "../lib/scales";
 import { formatBRL, formatNumber, formatPct } from "../lib/format";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
 import { Badge } from "./ui/badge";
@@ -43,6 +47,14 @@ import { Button } from "./ui/button";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "./ui/table";
 import { Switch } from "./ui/switch";
 import { Progress } from "./ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "./ui/dialog";
 import { 
   SidebarProvider, 
   Sidebar, 
@@ -64,6 +76,7 @@ type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
   const [isWAModalOpen, setIsWAModalOpen] = useState(false);
+  const [dryRunData, setDryRunData] = useState<{ strategy: ScaleStrategy; creatives?: any[] } | null>(null);
 
   const account = useQuery({ queryKey: ["meta-account"], queryFn: () => getAccountInfo() });
   const insights = useQuery({ queryKey: ["meta-insights"], queryFn: () => getAccountInsights({ data: { datePreset: "last_30d" } }) });
@@ -199,10 +212,13 @@ export function Dashboard() {
           <main className="flex-1 p-6 overflow-y-auto">
             {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} />}
             {view === "campaigns" && <CampaignsTab campaigns={campaignsData} refresh={() => campaigns.refetch()} />}
-            {view === "scales" && <ScalesTab />}
+            {view === "scales" && <ScalesTab onSelect={(s) => setDryRunData({ strategy: s })} />}
             {view === "creatives" && <CreativesTab creatives={creativesData} />}
             {view === "automation" && <AutomationTab />}
-            {view === "tutorial" && <TutorialTab creatives={creativesData} />}
+            {view === "tutorial" && <TutorialTab creatives={creativesData} onComplete={(selected) => {
+               const tutorialStrategy = SCALE_STRATEGIES.find(s => s.id === "ia_opt");
+               if (tutorialStrategy) setDryRunData({ strategy: tutorialStrategy, creatives: selected });
+            }} />}
             {view === "settings" && <SettingsTab account={accountData} />}
             {view === "map" && <DeliveryMapTab />}
           </main>
@@ -212,6 +228,12 @@ export function Dashboard() {
           isOpen={isWAModalOpen} 
           onClose={() => setIsWAModalOpen(false)} 
           accountId={accountData ? accountData.id : "default"} 
+        />
+
+        <DryRunModal 
+          isOpen={!!dryRunData} 
+          onClose={() => setDryRunData(null)} 
+          data={dryRunData} 
         />
       </div>
     </SidebarProvider>
@@ -402,7 +424,7 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
   );
 }
 
-function ScalesTab() {
+function ScalesTab({ onSelect }: { onSelect: (s: ScaleStrategy) => void }) {
   return (
     <div className="space-y-6">
       <div className="bg-primary/5 border border-primary/20 p-8 rounded-2xl relative overflow-hidden">
@@ -433,7 +455,11 @@ function ScalesTab() {
                   <span>Meta Sugerida</span>
                   <span className="text-foreground">ROAS {">"} 2.4x</span>
                </div>
-               <Button className="w-full text-xs font-bold group-hover:bg-primary group-hover:text-primary-foreground transition-colors" variant="outline" onClick={() => toast.success(`Iniciando escala ${s.name}...`)}>
+               <Button 
+                 className="w-full text-xs font-bold group-hover:bg-primary group-hover:text-primary-foreground transition-colors" 
+                 variant="outline" 
+                 onClick={() => onSelect(s)}
+               >
                  ATIVAR AGORA
                </Button>
             </CardContent>
@@ -484,7 +510,7 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
   );
 }
 
-function TutorialTab({ creatives }: { creatives: any[] }) {
+function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: (selected: any[]) => void }) {
   const [selected, setSelected] = useState<string[]>([]);
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -517,7 +543,7 @@ function TutorialTab({ creatives }: { creatives: any[] }) {
         <div className="p-6 border-t flex justify-end">
           <Button 
             disabled={selected.length === 0}
-            onClick={() => toast.success("Criativos vinculados com sucesso!")}
+            onClick={() => onComplete(creatives.filter(c => selected.includes(c.id)))}
             className="gap-2"
           >
             Vincular {selected.length} Criativos <ChevronRight className="h-4 w-4" />
@@ -726,6 +752,137 @@ function DeliveryMapTab() {
           </CardContent>
         </Card>
       </div>
+    </div>
+  );
+}
+
+function DryRunModal({ isOpen, onClose, data }: { isOpen: boolean, onClose: () => void, data: { strategy: ScaleStrategy; creatives?: any[] } | null }) {
+  const [isActivating, setIsActivating] = useState(false);
+
+  const handleActivate = async () => {
+    if (!data) return;
+    setIsActivating(true);
+    try {
+      const res = await createFullScale({
+        data: {
+          name: `[IA ULTRA] ${data.strategy.defaults.namePrefix || data.strategy.name} - ${new Date().toLocaleDateString()}`,
+          objective: data.strategy.defaults.objective,
+          dailyBudgetCents: data.strategy.defaults.dailyBudgetCents,
+          strategy: data.strategy.id,
+          status: data.strategy.defaults.status,
+          creatives: data.creatives?.map(c => ({
+            primaryText: "Performance Copy",
+            headline: c.name || "Headline",
+            cta: "SHOP_NOW"
+          }))
+        }
+      });
+
+      if (res.ok) {
+        toast.success(`Estratégia ${data.strategy.name} ativada com sucesso via API!`);
+        onClose();
+      } else {
+        toast.error("Erro ao ativar escala: " + res.error);
+      }
+    } catch (e: any) {
+      toast.error("Erro na conexão: " + e.message);
+    } finally {
+      setIsActivating(false);
+    }
+  };
+
+  if (!data) return null;
+
+  const { strategy, creatives } = data;
+  const adsetCount = strategy.id === "baiana" ? 50 : strategy.id === "abo" ? 3 : 1;
+  const totalBudget = (strategy.defaults.dailyBudgetCents * adsetCount) / 100;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl bg-slate-950 border-primary/20 text-slate-100">
+        <DialogHeader>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-2xl">
+              {strategy.emoji}
+            </div>
+            <div>
+              <DialogTitle className="text-xl">Prévia da Ativação (Dry-Run)</DialogTitle>
+              <DialogDescription className="text-slate-400">
+                Revise as ações que serão executadas via API na sua conta de anúncios.
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="space-y-6 py-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800">
+              <p className="text-[10px] uppercase font-bold text-slate-500 mb-1">Estratégia</p>
+              <p className="text-sm font-bold">{strategy.name}</p>
+            </div>
+            <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800">
+              <p className="text-[10px] uppercase font-bold text-slate-500 mb-1">Orçamento Diário Total</p>
+              <p className="text-sm font-bold text-[oklch(0.7_0.18_162)]">{formatBRL(totalBudget)}</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase text-slate-500 flex items-center gap-2">
+              <Zap className="h-3 w-3" /> Ações Planejadas
+            </h4>
+            <div className="space-y-2">
+              <ActionItem icon={<CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} text={`Criar 1 Campanha: "[IA ULTRA] ${strategy.defaults.namePrefix || strategy.name}..."`} />
+              <ActionItem icon={<CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} text={`Criar ${adsetCount} Conjuntos de Anúncios (AdSets)`} />
+              <ActionItem icon={<CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} text={`Vincular ${creatives?.length || strategy.creativeCount || 1} Criativos em cada AdSet`} />
+              <ActionItem icon={<Clock className="h-4 w-4 text-blue-400" />} text={`Status Inicial: ${strategy.defaults.status === "ACTIVE" ? "ATIVO (Publicar Imediatamente)" : "PAUSADO (Rascunho)"}`} />
+            </div>
+          </div>
+
+          {creatives && creatives.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase text-slate-500">Criativos Selecionados ({creatives.length})</h4>
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {creatives.map((c, i) => (
+                  <div key={i} className="h-16 w-16 flex-shrink-0 rounded-md overflow-hidden border border-slate-800">
+                    <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0" />
+            <p className="text-[11px] text-amber-200/80 leading-relaxed">
+              Esta ação criará múltiplos elementos na sua conta de anúncios. Verifique se os limites de orçamento estão corretos antes de confirmar.
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter className="gap-2">
+          <Button variant="ghost" onClick={onClose} disabled={isActivating}>Cancelar</Button>
+          <Button 
+            className="bg-[oklch(0.7_0.18_162)] hover:bg-[oklch(0.6_0.16_162)] text-black font-bold gap-2" 
+            onClick={handleActivate}
+            disabled={isActivating}
+          >
+            {isActivating ? (
+              <> <RefreshCw className="h-4 w-4 animate-spin" /> Processando... </>
+            ) : (
+              <> <Rocket className="h-4 w-4" /> Confirmar e Subir API </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ActionItem({ icon, text }: { icon: any, text: string }) {
+  return (
+    <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-900/30 border border-slate-800/50">
+      {icon}
+      <span className="text-xs text-slate-300 font-medium">{text}</span>
     </div>
   );
 }
