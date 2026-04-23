@@ -1780,33 +1780,82 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
 
         {/* STEP 3 — Checklist (público / criativo / pixel) */}
         {step === 3 && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <p className="text-xs text-muted-foreground">Marque quando estiver pronto. Tudo precisa estar ✓ pra subir com chance real de bater meta.</p>
 
-            <ChecklistItem
-              checked={chk.publico}
-              onToggle={() => setChk((c) => ({ ...c, publico: !c.publico }))}
-              title="Público definido"
-              hint={playbook.audience}
-            />
-            <ChecklistItem
-              checked={chk.criativo}
-              onToggle={() => setChk((c) => ({ ...c, criativo: !c.criativo }))}
-              title="Criativos prontos"
-              hint={playbook.creatives}
-            />
-            <ChecklistItem
-              checked={chk.pixel}
-              onToggle={() => setChk((c) => ({ ...c, pixel: !c.pixel }))}
-              title="Pixel/CAPI funcionando"
-              hint="Confirme eventos de Purchase/Lead chegando no Events Manager nas últimas 24h."
-            />
-            <ChecklistItem
-              checked={chk.orcamento}
-              onToggle={() => setChk((c) => ({ ...c, orcamento: !c.orcamento }))}
-              title="Orçamento de teste reservado"
-              hint={`Reserve pelo menos 7x o orçamento diário (R$ ${(budget * 7).toFixed(2)}) pra ter dado estatístico.`}
-            />
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+              <h4 className="mb-3 flex items-center gap-2 text-sm font-bold">
+                <Upload className="h-4 w-4" /> Alocação de Criativos
+              </h4>
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <button 
+                    onClick={() => setUploadedCreatives(u => ({ ...u, file: !u.file }))}
+                    className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${uploadedCreatives.file ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+                  >
+                    <div className={`flex h-4 w-4 items-center justify-center rounded-full border ${uploadedCreatives.file ? "bg-primary text-white" : "border-border"}`}>
+                      {uploadedCreatives.file ? "✓" : ""}
+                    </div>
+                    <p className="truncate text-xs font-bold">Imagem/Vídeo</p>
+                  </button>
+                  <button 
+                    onClick={() => setUploadedCreatives(u => ({ ...u, primaryText: !u.primaryText }))}
+                    className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${uploadedCreatives.primaryText ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+                  >
+                    <div className={`flex h-4 w-4 items-center justify-center rounded-full border ${uploadedCreatives.primaryText ? "bg-primary text-white" : "border-border"}`}>
+                      {uploadedCreatives.primaryText ? "✓" : ""}
+                    </div>
+                    <p className="truncate text-xs font-bold">Texto Principal</p>
+                  </button>
+                  <button 
+                    onClick={() => setUploadedCreatives(u => ({ ...u, headline: !u.headline }))}
+                    className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${uploadedCreatives.headline ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+                  >
+                    <div className={`flex h-4 w-4 items-center justify-center rounded-full border ${uploadedCreatives.headline ? "bg-primary text-white" : "border-border"}`}>
+                      {uploadedCreatives.headline ? "✓" : ""}
+                    </div>
+                    <p className="truncate text-xs font-bold">Headline</p>
+                  </button>
+                  <button 
+                    onClick={() => setUploadedCreatives(u => ({ ...u, cta: !u.cta }))}
+                    className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${uploadedCreatives.cta ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+                  >
+                    <div className={`flex h-4 w-4 items-center justify-center rounded-full border ${uploadedCreatives.cta ? "bg-primary text-white" : "border-border"}`}>
+                      {uploadedCreatives.cta ? "✓" : ""}
+                    </div>
+                    <p className="truncate text-xs font-bold">CTA</p>
+                  </button>
+                </div>
+                <p className="text-[10px] text-muted-foreground">💡 O checklist de criativo marcará automaticamente quando você selecionar os 4 acima.</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <ChecklistItem
+                checked={chk.publico}
+                onToggle={() => setChk((c) => ({ ...c, publico: !c.publico }))}
+                title="Público definido"
+                hint={playbook.audience}
+              />
+              <ChecklistItem
+                checked={chk.criativo}
+                onToggle={() => setChk((c) => ({ ...c, criativo: !c.criativo }))}
+                title="Criativos prontos"
+                hint={playbook.creatives}
+              />
+              <ChecklistItem
+                checked={chk.pixel}
+                onToggle={() => setChk((c) => ({ ...c, pixel: !c.pixel }))}
+                title="Pixel/CAPI funcionando"
+                hint="Confirme eventos de Purchase/Lead chegando no Events Manager nas últimas 24h."
+              />
+              <ChecklistItem
+                checked={chk.orcamento}
+                onToggle={() => setChk((c) => ({ ...c, orcamento: !c.orcamento }))}
+                title="Orçamento de teste reservado"
+                hint={`Reserve pelo menos 7x o orçamento diário (R$ ${(budget * 7).toFixed(2)}) pra ter dado estatístico.`}
+              />
+            </div>
 
             {!allChecked && (
               <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-200">
@@ -1815,6 +1864,7 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
             )}
           </div>
         )}
+
 
         {/* STEP 4 — Revisar & Subir */}
         {step === 4 && (
