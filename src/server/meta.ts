@@ -179,23 +179,6 @@ export const updateCampaign = createServerFn({ method: "POST" })
 
 export const updateCampaignStatus = updateCampaign;
 
-// ==================== DELETE CAMPAIGN ====================
-export const deleteCampaign = createServerFn({ method: "POST" })
-  .inputValidator((d: { campaignId: string }) => d)
-  .handler(async ({ data }) => {
-    try {
-      const { token } = getCreds();
-      const res = await fetch(`${BASE}/${data.campaignId}?access_token=${token}`, {
-        method: "DELETE",
-      });
-      const result = await res.json();
-      if (!res.ok || result.error) throw result.error || new Error("Erro ao deletar");
-      return { ok: true as const, data: result };
-    } catch (e) {
-      return errorPayload(e);
-    }
-  });
-
 // ==================== UPDATE BUDGET (deprecated/alias) ====================
 export const updateBudget = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; dailyBudgetCents: number; type: "campaign" | "adset" }) => d)
