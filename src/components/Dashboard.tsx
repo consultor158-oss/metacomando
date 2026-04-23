@@ -802,7 +802,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
     if (pages.length > 0 && !selectedPage) {
       setSelectedPage(pages[0].id);
     }
-  }, [pages]);
+  }, [pages, selectedPage]);
 
   const handleActivate = async () => {
     if (!data || !selectedPage) {
