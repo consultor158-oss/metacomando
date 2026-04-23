@@ -342,6 +342,22 @@ function Header({ acc, datePreset, onDatePreset, onlyActive, onOnlyActive, onRef
             <option value="this_month">Este mês</option>
           </select>
           <button
+            onClick={() => {
+              const num = localStorage.getItem("whatsapp_number") || "";
+              const cleanNum = num.replace(/\D/g, "");
+              if (!cleanNum) {
+                const newNum = prompt("Digite seu número do WhatsApp com DDD (ex: 5511999999999):");
+                if (newNum) localStorage.setItem("whatsapp_number", newNum.replace(/\D/g, ""));
+              } else {
+                window.open(`https://wa.me/${cleanNum}`, "_blank");
+              }
+            }}
+            className="inline-flex items-center gap-1.5 rounded-md bg-[oklch(0.7_0.18_162)] px-3 py-2 text-sm font-medium text-white hover:opacity-90"
+          >
+            <MessageCircle className="h-4 w-4" />
+            WhatsApp
+          </button>
+          <button
             onClick={onRefresh}
             disabled={loading}
             className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
