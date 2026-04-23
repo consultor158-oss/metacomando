@@ -1619,18 +1619,27 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
   const [objective, setObjective] = useState(strategy.defaults.objective);
   const [status, setStatus] = useState<"ACTIVE" | "PAUSED">(strategy.defaults.status);
 
-  // Upload simulado de criativos para o checklist
-  const [uploadedCreatives, setUploadedCreatives] = useState<{
+  // Alocação de criativos por slot (conforme a estratégia pede)
+  const creativeCount = strategy.creativeCount || 3;
+  const [creativeSlots, setCreativeSlots] = useState<Array<{
     file: boolean;
     primaryText: boolean;
     headline: boolean;
     cta: boolean;
-  }>({
+  }>>(Array(creativeCount).fill(null).map(() => ({
     file: false,
     primaryText: false,
     headline: false,
     cta: false,
-  });
+  })));
+
+  const toggleCreativeField = (index: number, field: keyof typeof creativeSlots[0]) => {
+    setCreativeSlots(prev => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: !next[index][field] };
+      return next;
+    });
+  };
 
   // Checklist do passo "criativos"
   const [chk, setChk] = useState<Record<string, boolean>>({
@@ -1640,17 +1649,16 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
     orcamento: false,
   });
 
-  // Efeito para marcar o checklist de criativos automaticamente
+  // Efeito para marcar o checklist de criativos automaticamente quando TODOS os slots estiverem prontos
   useEffect(() => {
-    const isReady = uploadedCreatives.file && 
-                    uploadedCreatives.primaryText && 
-                    uploadedCreatives.headline && 
-                    uploadedCreatives.cta;
-    if (isReady && !chk.criativo) {
+    const allSlotsReady = creativeSlots.every(s => s.file && s.primaryText && s.headline && s.cta);
+    if (allSlotsReady && !chk.criativo) {
       setChk(c => ({ ...c, criativo: true }));
-      toast.success("✅ Criativos prontos no checklist!");
+      toast.success("✅ Todos os criativos foram alocados!");
+    } else if (!allSlotsReady && chk.criativo) {
+      setChk(c => ({ ...c, criativo: false }));
     }
-  }, [uploadedCreatives, chk.criativo]);
+  }, [creativeSlots, chk.criativo]);
 
   const [applyBestTargeting, setApplyBestTargeting] = useState(true);
 
@@ -1812,50 +1820,73 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
             <p className="text-xs text-muted-foreground">Marque quando estiver pronto. Tudo precisa estar ✓ pra subir com chance real de bater meta.</p>
 
             <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-              <h4 className="mb-3 flex items-center gap-2 text-sm font-bold">
-                <Upload className="h-4 w-4" /> Alocação de Criativos
-              </h4>
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <button 
-                    onClick={() => setUploadedCreatives(u => ({ ...u, file: !u.file }))}
-                    className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${uploadedCreatives.file ? "border-primary bg-primary/10" : "border-border bg-card"}`}
-                  >
-                    <div className={`flex h-4 w-4 items-center justify-center rounded-full border ${uploadedCreatives.file ? "bg-primary text-white" : "border-border"}`}>
-                      {uploadedCreatives.file ? "✓" : ""}
-                    </div>
-                    <p className="truncate text-xs font-bold">Imagem/Vídeo</p>
-                  </button>
-                  <button 
-                    onClick={() => setUploadedCreatives(u => ({ ...u, primaryText: !u.primaryText }))}
-                    className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${uploadedCreatives.primaryText ? "border-primary bg-primary/10" : "border-border bg-card"}`}
-                  >
-                    <div className={`flex h-4 w-4 items-center justify-center rounded-full border ${uploadedCreatives.primaryText ? "bg-primary text-white" : "border-border"}`}>
-                      {uploadedCreatives.primaryText ? "✓" : ""}
-                    </div>
-                    <p className="truncate text-xs font-bold">Texto Principal</p>
-                  </button>
-                  <button 
-                    onClick={() => setUploadedCreatives(u => ({ ...u, headline: !u.headline }))}
-                    className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${uploadedCreatives.headline ? "border-primary bg-primary/10" : "border-border bg-card"}`}
-                  >
-                    <div className={`flex h-4 w-4 items-center justify-center rounded-full border ${uploadedCreatives.headline ? "bg-primary text-white" : "border-border"}`}>
-                      {uploadedCreatives.headline ? "✓" : ""}
-                    </div>
-                    <p className="truncate text-xs font-bold">Headline</p>
-                  </button>
-                  <button 
-                    onClick={() => setUploadedCreatives(u => ({ ...u, cta: !u.cta }))}
-                    className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${uploadedCreatives.cta ? "border-primary bg-primary/10" : "border-border bg-card"}`}
-                  >
-                    <div className={`flex h-4 w-4 items-center justify-center rounded-full border ${uploadedCreatives.cta ? "bg-primary text-white" : "border-border"}`}>
-                      {uploadedCreatives.cta ? "✓" : ""}
-                    </div>
-                    <p className="truncate text-xs font-bold">CTA</p>
-                  </button>
+              <div className="mb-4 flex items-center justify-between">
+                <h4 className="flex items-center gap-2 text-sm font-bold">
+                  <Upload className="h-4 w-4" /> Alocação de Criativos ({creativeCount} slots)
+                </h4>
+                <div className="text-[10px] font-bold uppercase text-muted-foreground">
+                  {creativeSlots.filter(s => s.file && s.primaryText && s.headline && s.cta).length} / {creativeCount} prontos
                 </div>
-                <p className="text-[10px] text-muted-foreground">💡 O checklist de criativo marcará automaticamente quando você selecionar os 4 acima.</p>
               </div>
+
+              <div className="max-h-[300px] space-y-4 overflow-y-auto pr-1">
+                {creativeSlots.map((slot, idx) => (
+                  <div key={idx} className="rounded-lg border border-border bg-card/50 p-3">
+                    <p className="mb-2 text-[10px] font-bold uppercase text-muted-foreground">Criativo #{idx + 1}</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button 
+                        onClick={() => toggleCreativeField(idx, "file")}
+                        className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${slot.file ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+                      >
+                        <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${slot.file ? "bg-primary text-white" : "border-border"}`}>
+                          {slot.file ? "✓" : ""}
+                        </div>
+                        {slot.file ? (
+                          <div className="flex items-center gap-1.5 overflow-hidden">
+                            <ImageIcon className="h-3 w-3 shrink-0 text-primary" />
+                            <span className="truncate text-[10px] font-semibold">Alocado</span>
+                          </div>
+                        ) : (
+                          <p className="truncate text-xs font-bold">Mídia</p>
+                        )}
+                      </button>
+
+                      <button 
+                        onClick={() => toggleCreativeField(idx, "primaryText")}
+                        className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${slot.primaryText ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+                      >
+                        <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${slot.primaryText ? "bg-primary text-white" : "border-border"}`}>
+                          {slot.primaryText ? "✓" : ""}
+                        </div>
+                        <p className="truncate text-xs font-bold">Texto</p>
+                      </button>
+
+                      <button 
+                        onClick={() => toggleCreativeField(idx, "headline")}
+                        className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${slot.headline ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+                      >
+                        <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${slot.headline ? "bg-primary text-white" : "border-border"}`}>
+                          {slot.headline ? "✓" : ""}
+                        </div>
+                        <p className="truncate text-xs font-bold">Título</p>
+                      </button>
+
+                      <button 
+                        onClick={() => toggleCreativeField(idx, "cta")}
+                        className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${slot.cta ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+                      >
+                        <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${slot.cta ? "bg-primary text-white" : "border-border"}`}>
+                          {slot.cta ? "✓" : ""}
+                        </div>
+                        <p className="truncate text-xs font-bold">CTA</p>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-[10px] text-muted-foreground italic">
+                💡 Este é um tutorial guiado. Para habilitar o checklist de criativos, você deve alocar todos os {creativeCount} criativos solicitados pelo modelo {strategy.name}.
+              </p>
             </div>
             
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
