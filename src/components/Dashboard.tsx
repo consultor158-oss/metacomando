@@ -2030,14 +2030,14 @@ function ScaleModal({
                   <div className="rounded-lg border border-border bg-card/80 p-4 shadow-inner space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                       <button 
-                        onClick={() => simulateUpload(selectedSlot, 'image')}
+                        onClick={() => handleCreativeUpload(selectedSlot, 'image')}
                         className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 transition-all ${creativeSlots[selectedSlot].file?.type === 'image' ? "border-primary bg-primary/10" : "border-border bg-muted/20 hover:border-primary/30"}`}
                       >
                         <ImageIcon className={`h-6 w-6 ${creativeSlots[selectedSlot].file?.type === 'image' ? 'text-primary' : 'text-muted-foreground'}`} />
                         <span className="text-[10px] font-bold uppercase">Subir Imagem</span>
                       </button>
                       <button 
-                        onClick={() => simulateUpload(selectedSlot, 'video')}
+                        onClick={() => handleCreativeUpload(selectedSlot, 'video')}
                         className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 transition-all ${creativeSlots[selectedSlot].file?.type === 'video' ? "border-primary bg-primary/10" : "border-border bg-muted/20 hover:border-primary/30"}`}
                       >
                         <Video className={`h-6 w-6 ${creativeSlots[selectedSlot].file?.type === 'video' ? 'text-primary' : 'text-muted-foreground'}`} />
