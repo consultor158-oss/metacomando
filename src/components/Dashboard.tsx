@@ -97,16 +97,18 @@ import { formatBRL, formatNumber, formatPct } from "../lib/format";
 import { WhatsAppModal } from "./WhatsAppModal";
 import { getWhatsAppConfig, generateWhatsAppLink } from "../lib/whatsapp";
 
-type Tab = "overview" | "analise" | "controle" | "escalas" | "ia" | "automacao";
+type Tab = "overview" | "analise" | "controle" | "escalas" | "ia" | "automacao" | "tutorial";
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "overview", label: "Visão Geral", icon: Activity },
   { id: "analise", label: "Análise", icon: TrendingUp },
   { id: "controle", label: "Controle", icon: Target },
   { id: "escalas", label: "Escalas", icon: Zap },
+  { id: "tutorial", label: "Tutorial & Criativos", icon: ImageIcon },
   { id: "ia", label: "APIs / IA", icon: Sparkles },
   { id: "automacao", label: "Automação", icon: Bell },
 ];
+
 
 // staleTime por período (período curto = atualiza mais)
 const STALE_BY_PERIOD: Record<string, number> = {
