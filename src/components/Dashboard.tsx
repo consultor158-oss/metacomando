@@ -733,15 +733,9 @@ function DeliveryMapTab({ geoData }: { geoData: any[] }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 overflow-hidden h-[500px] relative bg-[#0a0a0a] flex items-center justify-center">
-          {/* Mock Map with SVG */}
-          <svg viewBox="0 0 1000 500" className="w-full h-full opacity-10 fill-zinc-700">
-            <path d="M100,100 L250,100 L300,150 L280,250 L150,230 Z" />
-            <path d="M280,260 L350,260 L330,480 L250,380 Z" />
-            <path d="M480,80 L580,80 L600,150 L520,150 Z" />
-            <path d="M480,180 L630,180 L650,320 L580,450 L480,350 Z" />
-            <path d="M600,50 L900,50 L950,250 L750,320 L620,300 Z" />
-            <path d="M820,350 L920,350 L940,450 L840,450 Z" />
-          </svg>
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-overlay" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-[#0a0a0a]/50" />
+
           <div className="absolute inset-0 flex items-center justify-center">
              <div className="relative w-full h-full">
                 <div className="absolute top-[68%] left-[31%] h-4 w-4 bg-red-600 rounded-full animate-ping" />
