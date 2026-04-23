@@ -1320,6 +1320,16 @@ function Escalas({ camps, campConv }: { camps: any[]; campConv: any[] }) {
         ))}
       </div>
 
+      {opportunities.length > 0 && (
+        <div className="mt-12">
+          <RecommendationsPanel
+            recommendations={opportunities}
+            camps={camps}
+            campConv={campConv}
+          />
+        </div>
+      )}
+
       {active && <ScaleModal strategy={active} onClose={() => setActive(null)} />}
       {duplicateOpen && (
         <DuplicateCampaignModal
