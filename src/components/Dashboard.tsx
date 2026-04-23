@@ -1612,6 +1612,8 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
     }
   }, [uploadedCreatives, chk.criativo]);
 
+  const [applyBestTargeting, setApplyBestTargeting] = useState(true);
+
   // Efeito para marcar o checklist de criativos automaticamente
   useEffect(() => {
     const isReady = uploadedCreatives.file && 
