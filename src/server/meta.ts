@@ -133,23 +133,41 @@ export const getCampaigns = createServerFn({ method: "GET" })
   }
 });
 
+// ==================== EDIT HELPERS ====================
+async function metaPost(path: string, body: Record<string, string>) {
+  const { token } = getCreds();
+  const url = new URL(`${BASE}/${path}`);
+  const form = new URLSearchParams();
+  form.set("access_token", token);
+  for (const [k, v] of Object.entries(body)) form.set(k, v);
+  const res = await fetch(url.toString(), {
+    method: "POST",
+    headers: { "Content-Type": "application/x-form-urlencoded" },
+    body: form.toString(),
+  });
+  const text = await res.text();
+  let data: any;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = { raw: text };
+  }
+  if (!res.ok || data?.error) {
+    const err = data?.error || {};
+    const e: any = new Error(err.message || `Meta API ${res.status}`);
+    e.code = err.code;
+    throw e;
+  }
+  return data;
+}
+
 // ==================== UPDATE CAMPAIGN STATUS ====================
 export const updateCampaignStatus = createServerFn({ method: "POST" })
   .inputValidator((d: { campaignId: string; status: "ACTIVE" | "PAUSED" }) => d)
   .handler(async ({ data }) => {
     try {
-      const result = await metaFetch(
-        data.campaignId,
-        {},
-        {
-          method: "POST",
-          body: new URLSearchParams({
-            status: data.status,
-            access_token: process.env.META_ACCESS_TOKEN!,
-          }),
-        },
-      );
-      return { ok: true, data: result };
+      const result = await metaPost(data.campaignId, { status: data.status });
+      return { ok: true as const, data: result };
     } catch (e) {
       return errorPayload(e);
     }
@@ -160,18 +178,8 @@ export const updateBudget = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; dailyBudgetCents: number; type: "campaign" | "adset" }) => d)
   .handler(async ({ data }) => {
     try {
-      const result = await metaFetch(
-        data.id,
-        {},
-        {
-          method: "POST",
-          body: new URLSearchParams({
-            daily_budget: String(data.dailyBudgetCents),
-            access_token: process.env.META_ACCESS_TOKEN!,
-          }),
-        },
-      );
-      return { ok: true, data: result };
+      const result = await metaPost(data.id, { daily_budget: String(data.dailyBudgetCents) });
+      return { ok: true as const, data: result };
     } catch (e) {
       return errorPayload(e);
     }
@@ -191,20 +199,19 @@ export const createCampaign = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     try {
-      const { actId, token } = getCreds();
-      const body = new URLSearchParams({
+      const { actId } = getCreds();
+      const body: Record<string, string> = {
         name: data.name,
         objective: data.objective || "OUTCOME_SALES",
         buying_type: data.buyingType || "AUCTION",
         status: data.status || "PAUSED",
         special_ad_categories: JSON.stringify([]),
-        access_token: token,
-      });
+      };
       if (data.dailyBudgetCents) {
-        body.set("daily_budget", String(data.dailyBudgetCents));
+        body.daily_budget = String(data.dailyBudgetCents);
       }
-      const result = await metaFetch(`${actId}/campaigns`, {}, { method: "POST", body });
-      return { ok: true, data: result, strategy: data.strategy };
+      const result = await metaPost(`${actId}/campaigns`, body);
+      return { ok: true as const, data: result, strategy: data.strategy };
     } catch (e) {
       return errorPayload(e);
     }
