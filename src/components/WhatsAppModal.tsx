@@ -185,7 +185,7 @@ export function WhatsAppModal({ isOpen, onClose, accountId }: WhatsAppModalProps
 
         <DialogFooter className="flex flex-col sm:flex-row gap-2">
           <Button variant="ghost" onClick={onClose} className="flex-1">Cancelar</Button>
-          <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700 text-white flex-1">
+          <Button onClick={handleSave} className="bg-[oklch(0.7_0.18_162)] hover:opacity-90 text-white flex-1">
             <Check className="h-4 w-4 mr-2" /> Salvar Configurações
           </Button>
         </DialogFooter>
