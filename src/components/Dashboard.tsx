@@ -1819,13 +1819,20 @@ function ScaleModal({
         if (!res.ok) return res;
         return { ok: true as const, data: res.data, strategy: strategy.id };
       }
-      return createCampaign({
+      return createFullScale({
         data: {
           name,
           objective,
           status,
           dailyBudgetCents: Math.round(budget * 100),
           strategy: strategy.id,
+          creatives: creativeSlots
+            .filter(s => s.status.file && s.status.primaryText)
+            .map(s => ({
+              primaryText: s.primaryText,
+              headline: s.headline,
+              cta: s.cta
+            }))
         },
       });
     },
