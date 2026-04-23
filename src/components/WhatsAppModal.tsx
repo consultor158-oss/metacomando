@@ -108,7 +108,7 @@ export function WhatsAppModal({ isOpen, onClose, accountId }: WhatsAppModalProps
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <MessageCircle className="h-5 w-5 text-green-500" />
+            <MessageCircle className="h-5 w-5 text-[oklch(0.7_0.18_162)]" />
             Configurar WhatsApp - {accountId}
           </DialogTitle>
           <DialogDescription>
