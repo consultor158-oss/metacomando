@@ -688,9 +688,23 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                         />
                         <div>
                           <p className="text-sm font-medium">{as.name}</p>
-                          <p className="text-[10px] text-muted-foreground uppercase">
-                            {as.daily_budget ? `Diário: ${formatBRL(parseInt(as.daily_budget)/100)}` : `Total: ${formatBRL(parseInt(as.lifetime_budget)/100)}`}
-                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Input 
+                              type="number" 
+                              className="h-6 w-20 text-[10px]" 
+                              defaultValue={as.daily_budget ? parseInt(as.daily_budget)/100 : parseInt(as.lifetime_budget)/100}
+                              onBlur={async (e) => {
+                                const val = parseFloat(e.target.value);
+                                if (!isNaN(val)) {
+                                  await updateAdsetBudget({ data: { adsetId: as.id, dailyBudgetBRL: val } });
+                                  toast.success("Orçamento atualizado");
+                                }
+                              }}
+                            />
+                            <span className="text-[10px] text-muted-foreground uppercase">
+                              {as.daily_budget ? "Diário" : "Total"}
+                            </span>
+                          </div>
                         </div>
                       </div>
                       <Badge variant="outline" className="text-[10px]">{as.optimization_goal}</Badge>
