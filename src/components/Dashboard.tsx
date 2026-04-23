@@ -490,8 +490,10 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
   const [name, setName] = useState("");
   const [budget, setBudget] = useState("");
   const [budgetType, setBudgetType] = useState<"daily" | "lifetime">("daily");
-  const [status, setStatus] = useState<"ACTIVE" | "PAUSED">("PAUSED");
+  const [status, setStatus] = useState<"ACTIVE" | "PAUSED" | "ARCHIVED">("PAUSED");
   const [bidStrategy, setBidStrategy] = useState("");
+  const [objective, setObjective] = useState("");
+  const [buyingType, setBuyingType] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -509,6 +511,8 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
       }
       setStatus(campaign.status || "PAUSED");
       setBidStrategy(campaign.bid_strategy || "");
+      setObjective(campaign.objective || "");
+      setBuyingType(campaign.buying_type || "");
     }
   }, [campaign]);
 
@@ -520,10 +524,11 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
         campaignId: campaign.id,
         name,
         daily_budget: budgetType === "daily" ? Math.round(parseFloat(budget) * 100) : undefined,
-        // Meta API usually doesn't allow switching between daily and lifetime budget on existing campaigns easily,
-        // but we send the update if it matches the current type.
+        lifetime_budget: budgetType === "lifetime" ? Math.round(parseFloat(budget) * 100) : undefined,
         status: status,
-        bid_strategy: bidStrategy || undefined
+        bid_strategy: bidStrategy || undefined,
+        objective: objective || undefined,
+        buying_type: buyingType || undefined
       }
     });
     if (res.ok) {
