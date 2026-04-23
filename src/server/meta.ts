@@ -244,20 +244,28 @@ export const createFullScale = createServerFn({ method: "POST" })
           status: data.status || "PAUSED",
           daily_budget: String(data.dailyBudgetCents || 2000),
           billing_event: "IMPRESSIONS",
-          optimization_goal: "OFFSITE_CONVERSIONS",
+          optimization_goal: data.destination === "WHATSAPP" ? "CONVERSIONS" : "OFFSITE_CONVERSIONS",
           targeting: JSON.stringify({ geo_locations: { countries: ["BR"] } }),
-          promoted_object: JSON.stringify({ pixel_id: "PLACEHOLDER", custom_event_type: "PURCHASE" }),
+          promoted_object: data.destination === "WHATSAPP" 
+            ? JSON.stringify({ page_id: data.pageId }) 
+            : JSON.stringify({ pixel_id: "PLACEHOLDER", custom_event_type: "PURCHASE" }),
         };
+
+        if (data.destination === "WHATSAPP") {
+           adsetBody.destination_type = JSON.stringify(["WHATSAPP_MESSAGE"]);
+        }
+
         const adset = await metaPost(`${actId}/adsets`, adsetBody);
         adsets.push(adset.id);
 
         // 3. Create Ads for this AdSet
-        const creatives = data.creatives || [{ primaryText: "Copy padrão", headline: "Headline", cta: "SHOP_NOW" }];
+        const creatives = data.creatives || [{ 
+          primaryText: "Copy padrão", 
+          headline: "Headline", 
+          cta: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : "SHOP_NOW" 
+        }];
+        
         for (const [idx, creative] of creatives.entries()) {
-           // Here we would normally upload the image/video first to get a creative ID
-           // For "REAL" simulation, we'd need a valid creative_id or image_hash.
-           // Since we can't upload files easily in this environment, we'll try to create a basic ad creative
-           // or at least call the endpoint to show it's happening.
            const adBody: Record<string, string> = {
              name: `Anúncio ${idx + 1} - ${adset.id}`,
              adset_id: adset.id,
@@ -265,12 +273,15 @@ export const createFullScale = createServerFn({ method: "POST" })
              creative: JSON.stringify({
                name: `Creative ${idx + 1}`,
                object_story_spec: {
-                 page_id: "PLACEHOLDER",
+                 page_id: data.pageId || "PLACEHOLDER",
                  link_data: {
                    message: creative.primaryText,
-                   link: "https://example.com",
+                   link: data.destination === "WHATSAPP" ? `https://wa.me/PLACEHOLDER` : "https://example.com",
                    caption: creative.headline,
-                   call_to_action: { type: creative.cta, value: { link: "https://example.com" } },
+                   call_to_action: { 
+                     type: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : creative.cta, 
+                     value: { link: "https://example.com" } 
+                   },
                    image_hash: "PLACEHOLDER_HASH" 
                  }
                }
