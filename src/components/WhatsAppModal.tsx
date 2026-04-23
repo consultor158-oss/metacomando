@@ -18,8 +18,9 @@ import {
   getWhatsAppConfig, 
   saveWhatsAppConfig, 
   validateWhatsAppNumber, 
+  generateWhatsAppLink,
   type WhatsAppConfig 
-} from "@/lib/whatsapp";
+} from "../lib/whatsapp";
 import { MessageCircle, Copy, Check, Info, Trash2, Plus } from "lucide-react";
 
 interface WhatsAppModalProps {
