@@ -258,20 +258,26 @@ function WorldMap({ data }: { data: any[] }) {
 
        
        <div className="absolute inset-0">
-          <div className="absolute top-[68%] left-[31%]">
-             <div className="h-4 w-4 bg-red-600 rounded-full animate-ping absolute opacity-75" />
-             <div className="h-4 w-4 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.8)]" />
-          </div>
+          {/* North America */}
           <div className="absolute top-[35%] left-[20%]">
-             <div className="h-3 w-3 bg-red-600 rounded-full animate-pulse opacity-60" />
+             <div className="h-4 w-4 bg-red-600 rounded-full animate-ping absolute opacity-75" />
+             <div className="h-3 w-3 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.8)]" />
           </div>
+          {/* Brazil/South America */}
+          <div className="absolute top-[68%] left-[31%]">
+             <div className="h-5 w-5 bg-red-600 rounded-full animate-ping absolute opacity-75" />
+             <div className="h-4 w-4 bg-red-600 rounded-full shadow-[0_0_20px_rgba(220,38,38,0.9)] border-2 border-white/20" />
+          </div>
+          {/* Europe */}
           <div className="absolute top-[25%] left-[54%]">
-             <div className="h-3 w-3 bg-red-600 rounded-full animate-pulse opacity-60" />
+             <div className="h-3 w-3 bg-red-600 rounded-full animate-pulse opacity-60 shadow-[0_0_10px_rgba(220,38,38,0.5)]" />
           </div>
-          <div className="absolute top-[38%] left-[68%]">
-             <div className="h-2 w-2 bg-red-600 rounded-full opacity-40" />
+          {/* Asia/Japan */}
+          <div className="absolute top-[38%] left-[82%]">
+             <div className="h-2 w-2 bg-red-600 rounded-full opacity-40 shadow-[0_0_8px_rgba(220,38,38,0.4)]" />
           </div>
        </div>
+
 
        <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md p-3 rounded-lg border border-white/10 flex items-center gap-4">
           <div className="flex flex-col">
