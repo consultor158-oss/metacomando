@@ -43,6 +43,7 @@ import {
   CheckCircle2,
   ThumbsUp,
   Check,
+  MessageCircle,
 } from "lucide-react";
 import {
   getAccountInsights,
@@ -340,6 +341,22 @@ function Header({ acc, datePreset, onDatePreset, onlyActive, onOnlyActive, onRef
             <option value="last_30d">Últimos 30 dias</option>
             <option value="this_month">Este mês</option>
           </select>
+          <button
+            onClick={() => {
+              const num = localStorage.getItem("whatsapp_number") || "";
+              const cleanNum = num.replace(/\D/g, "");
+              if (!cleanNum) {
+                const newNum = prompt("Digite seu número do WhatsApp com DDD (ex: 5511999999999):");
+                if (newNum) localStorage.setItem("whatsapp_number", newNum.replace(/\D/g, ""));
+              } else {
+                window.open(`https://wa.me/${cleanNum}`, "_blank");
+              }
+            }}
+            className="inline-flex items-center gap-1.5 rounded-md bg-[oklch(0.7_0.18_162)] px-3 py-2 text-sm font-medium text-white hover:opacity-90"
+          >
+            <MessageCircle className="h-4 w-4" />
+            WhatsApp
+          </button>
           <button
             onClick={onRefresh}
             disabled={loading}
@@ -2316,6 +2333,62 @@ function IATab() {
               onRemoved={refresh}
             />
           ))}
+        </div>
+      </div>
+
+      {/* Gerador de Link WhatsApp */}
+      <div className="rounded-xl border border-border bg-card p-5">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[oklch(0.7_0.18_162/0.2)] text-[oklch(0.7_0.18_162)]">
+            <MessageCircle className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold">Gerador de Link WhatsApp (x1)</h3>
+            <p className="text-xs text-muted-foreground">Crie links diretos para usar em seus anúncios e vender no um-a-um</p>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-3">
+            <div>
+              <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">Seu Número</label>
+              <input 
+                type="text" 
+                placeholder="5511999999999"
+                defaultValue={localStorage.getItem("whatsapp_number") || ""}
+                onChange={(e) => localStorage.setItem("whatsapp_number", e.target.value.replace(/\D/g, ""))}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">Mensagem Inicial (Opcional)</label>
+              <textarea 
+                id="wa-msg"
+                placeholder="Olá, vim do anúncio e quero saber mais sobre o produto!"
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary h-20"
+              />
+            </div>
+          </div>
+          
+          <div className="flex flex-col justify-end gap-2">
+            <button
+              onClick={() => {
+                const num = localStorage.getItem("whatsapp_number") || "";
+                const msg = (document.getElementById("wa-msg") as HTMLTextAreaElement)?.value || "";
+                if (!num) return toast.error("Preencha seu número");
+                const url = `https://wa.me/${num}${msg ? `?text=${encodeURIComponent(msg)}` : ""}`;
+                navigator.clipboard.writeText(url);
+                toast.success("Link do WhatsApp copiado!");
+              }}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-[oklch(0.7_0.18_162)] px-4 py-3 text-sm font-bold text-white hover:opacity-90"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Gerar & Copiar Link Direto
+            </button>
+            <p className="text-[10px] text-center text-muted-foreground">
+              💡 Use este link como URL de destino em suas campanhas de "Tráfego" ou "Vendas" para levar o lead direto para o seu WhatsApp.
+            </p>
+          </div>
         </div>
       </div>
 
