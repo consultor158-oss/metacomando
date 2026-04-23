@@ -2009,24 +2009,93 @@ function ScaleModal({
 
         {/* STEP 4 — Revisar & Subir */}
         {step === 4 && (
-          <div className="space-y-3">
-            <div className="rounded-lg border border-border bg-background p-4">
-              <p className="text-[10px] font-semibold uppercase text-muted-foreground">Resumo</p>
-              <div className="mt-2 space-y-1 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">Nome</span><span className="font-medium">{name}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Estratégia</span><span className="font-medium">{strategy.name}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Objetivo</span><span className="font-medium">{objective}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Orçamento/dia</span><span className="font-medium">R$ {budget.toFixed(2)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className="font-medium">{status}</span></div>
+          <div className="space-y-4">
+            {strategy.id === "ia_opt" && bestRec && healthData && (
+              <div className="space-y-4">
+                <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-card p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-bold flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-primary" />
+                      Verificação de Saúde da Escala
+                    </h4>
+                    <div className={`px-2 py-1 rounded-full text-[10px] font-bold ${healthData.isHealthy ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                      {healthData.isHealthy ? 'PROBABILIDADE ALTA DE VENDAS' : 'PROBABILIDADE MÉDIA'}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-background/50 p-2 rounded-lg border border-border">
+                      <p className="text-[10px] text-muted-foreground uppercase">Score Geral</p>
+                      <p className={`text-xl font-bold ${healthData.overall > 80 ? 'text-emerald-400' : 'text-primary'}`}>{healthData.overall}%</p>
+                    </div>
+                    <div className="bg-background/50 p-2 rounded-lg border border-border">
+                      <p className="text-[10px] text-muted-foreground uppercase">ROAS Atual</p>
+                      <p className="text-xl font-bold">{healthData.roas.toFixed(2)}x</p>
+                    </div>
+                    <div className="bg-background/50 p-2 rounded-lg border border-border">
+                      <p className="text-[10px] text-muted-foreground uppercase">CTR</p>
+                      <p className="text-xl font-bold">{healthData.ctr.toFixed(2)}%</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                      <span>Campanha vencedora identificada: <strong>{bestRec.campaignName}</strong></span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                      <span>Público validado com ROI {healthData.roas.toFixed(2)}x</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                      <span>Criativos com CTR saudável ({healthData.ctr.toFixed(2)}%)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-border bg-muted/20 p-4">
+                  <p className="text-[10px] font-semibold uppercase text-muted-foreground mb-2">Preview da Escala Automática</p>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Ação IA:</span>
+                      <span className="font-bold text-primary flex items-center gap-1">
+                        <TrendingUp className="h-3 w-3" /> Escalar Winner
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Novo Budget sugerido:</span>
+                      <span className="font-bold text-foreground">R$ {budget.toFixed(2)}/dia</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Método:</span>
+                      <span className="font-medium text-foreground">Duplicação com Otimização API</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {strategy.id !== "ia_opt" && (
+              <div className="rounded-lg border border-border bg-background p-4">
+                <p className="text-[10px] font-semibold uppercase text-muted-foreground">Resumo</p>
+                <div className="mt-2 space-y-1 text-sm">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Nome</span><span className="font-medium">{name}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Estratégia</span><span className="font-medium">{strategy.name}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Objetivo</span><span className="font-medium">{objective}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Orçamento/dia</span><span className="font-medium">R$ {budget.toFixed(2)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className="font-medium">{status}</span></div>
+                </div>
+              </div>
+            )}
+            
             <button
               onClick={() => create.mutate()}
-              disabled={create.isPending}
+              disabled={create.isPending || (strategy.id === "ia_opt" && !bestRec)}
               className={`inline-flex w-full items-center justify-center gap-2 rounded-md bg-gradient-to-r ${strategy.color} px-4 py-3 text-sm font-bold text-white shadow-lg hover:opacity-90 disabled:opacity-50`}
             >
               {create.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-              {create.isPending ? "Subindo via API…" : "🚀 SUBIR via API"}
+              {create.isPending ? "Processando via API…" : strategy.id === "ia_opt" ? "🚀 EXECUTAR ESCALA IA" : "🚀 SUBIR via API"}
             </button>
             <p className="text-center text-[11px] text-muted-foreground">Após subir, te mostro o playbook pós-launch.</p>
           </div>
