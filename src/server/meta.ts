@@ -160,19 +160,43 @@ export const getCampaigns = createServerFn({ method: "GET" })
     }
   });
 
-// ==================== UPDATE CAMPAIGN STATUS ====================
-export const updateCampaignStatus = createServerFn({ method: "POST" })
-  .inputValidator((d: { campaignId: string; status: "ACTIVE" | "PAUSED" }) => d)
+// ==================== UPDATE CAMPAIGN ====================
+export const updateCampaign = createServerFn({ method: "POST" })
+  .inputValidator((d: { campaignId: string; name?: string; status?: "ACTIVE" | "PAUSED"; daily_budget?: number }) => d)
   .handler(async ({ data }) => {
     try {
-      const result = await metaPost(data.campaignId, { status: data.status });
+      const body: Record<string, string> = {};
+      if (data.name) body.name = data.name;
+      if (data.status) body.status = data.status;
+      if (data.daily_budget !== undefined) body.daily_budget = String(data.daily_budget);
+      
+      const result = await metaPost(data.campaignId, body);
       return { ok: true as const, data: result };
     } catch (e) {
       return errorPayload(e);
     }
   });
 
-// ==================== UPDATE BUDGET ====================
+export const updateCampaignStatus = updateCampaign;
+
+// ==================== DELETE CAMPAIGN ====================
+export const deleteCampaign = createServerFn({ method: "POST" })
+  .inputValidator((d: { campaignId: string }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const { token } = getCreds();
+      const res = await fetch(`${BASE}/${data.campaignId}?access_token=${token}`, {
+        method: "DELETE",
+      });
+      const result = await res.json();
+      if (!res.ok || result.error) throw result.error || new Error("Erro ao deletar");
+      return { ok: true as const, data: result };
+    } catch (e) {
+      return errorPayload(e);
+    }
+  });
+
+// ==================== UPDATE BUDGET (deprecated/alias) ====================
 export const updateBudget = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; dailyBudgetCents: number; type: "campaign" | "adset" }) => d)
   .handler(async ({ data }) => {
