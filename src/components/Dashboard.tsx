@@ -1619,18 +1619,27 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
   const [objective, setObjective] = useState(strategy.defaults.objective);
   const [status, setStatus] = useState<"ACTIVE" | "PAUSED">(strategy.defaults.status);
 
-  // Upload simulado de criativos para o checklist
-  const [uploadedCreatives, setUploadedCreatives] = useState<{
+  // Alocação de criativos por slot (conforme a estratégia pede)
+  const creativeCount = strategy.creativeCount || 3;
+  const [creativeSlots, setCreativeSlots] = useState<Array<{
     file: boolean;
     primaryText: boolean;
     headline: boolean;
     cta: boolean;
-  }>({
+  }>>(Array(creativeCount).fill(null).map(() => ({
     file: false,
     primaryText: false,
     headline: false,
     cta: false,
-  });
+  })));
+
+  const toggleCreativeField = (index: number, field: keyof typeof creativeSlots[0]) => {
+    setCreativeSlots(prev => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: !next[index][field] };
+      return next;
+    });
+  };
 
   // Checklist do passo "criativos"
   const [chk, setChk] = useState<Record<string, boolean>>({
@@ -1640,17 +1649,16 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
     orcamento: false,
   });
 
-  // Efeito para marcar o checklist de criativos automaticamente
+  // Efeito para marcar o checklist de criativos automaticamente quando TODOS os slots estiverem prontos
   useEffect(() => {
-    const isReady = uploadedCreatives.file && 
-                    uploadedCreatives.primaryText && 
-                    uploadedCreatives.headline && 
-                    uploadedCreatives.cta;
-    if (isReady && !chk.criativo) {
+    const allSlotsReady = creativeSlots.every(s => s.file && s.primaryText && s.headline && s.cta);
+    if (allSlotsReady && !chk.criativo) {
       setChk(c => ({ ...c, criativo: true }));
-      toast.success("✅ Criativos prontos no checklist!");
+      toast.success("✅ Todos os criativos foram alocados!");
+    } else if (!allSlotsReady && chk.criativo) {
+      setChk(c => ({ ...c, criativo: false }));
     }
-  }, [uploadedCreatives, chk.criativo]);
+  }, [creativeSlots, chk.criativo]);
 
   const [applyBestTargeting, setApplyBestTargeting] = useState(true);
 
