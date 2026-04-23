@@ -15,6 +15,11 @@ import {
   X,
   ExternalLink,
   MessageCircle,
+  ShieldCheck,
+  History,
+  Search,
+  ChevronRight,
+  Info
 } from "lucide-react";
 import {
   getAccountInfo,
