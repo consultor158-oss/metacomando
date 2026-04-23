@@ -315,7 +315,7 @@ export function Dashboard() {
 }
 
 // ============== HEADER ==============
-function Header({ acc, datePreset, onDatePreset, onlyActive, onOnlyActive, onRefresh, loading }: any) {
+function Header({ acc, datePreset, onDatePreset, onlyActive, onOnlyActive, onRefresh, onWhatsAppClick, loading }: any) {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-lg">
       <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
