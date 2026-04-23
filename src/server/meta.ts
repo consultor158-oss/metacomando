@@ -220,7 +220,7 @@ export const createFullScale = createServerFn({ method: "POST" })
 
       // 2. Determine how many adsets to create based on strategy
       let adsetCount = 1;
-      if (data.strategy === "baiana") adsetCount = 10; // Simplified from 50
+      if (data.strategy === "baiana") adsetCount = 50; 
       else if (data.strategy === "abo") adsetCount = 3;
 
       const adsets = [];
