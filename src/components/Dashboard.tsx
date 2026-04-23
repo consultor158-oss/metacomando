@@ -1728,24 +1728,55 @@ function ScaleModal({
 
   // Alocação de criativos por slot (conforme a estratégia pede)
   const creativeCount = strategy.creativeCount || 3;
+  const [selectedSlot, setSelectedSlot] = useState(0);
   const [creativeSlots, setCreativeSlots] = useState<Array<{
-    file: boolean;
-    primaryText: boolean;
-    headline: boolean;
-    cta: boolean;
+    file: { name: string; type: 'video' | 'image' } | null;
+    primaryText: string;
+    headline: string;
+    cta: string;
+    status: {
+      file: boolean;
+      primaryText: boolean;
+      headline: boolean;
+      cta: boolean;
+    }
   }>>(Array(creativeCount).fill(null).map(() => ({
-    file: false,
-    primaryText: false,
-    headline: false,
-    cta: false,
+    file: null,
+    primaryText: "",
+    headline: "",
+    cta: "",
+    status: {
+      file: false,
+      primaryText: false,
+      headline: false,
+      cta: false,
+    }
   })));
 
-  const toggleCreativeField = (index: number, field: keyof typeof creativeSlots[0]) => {
+  const updateCreativeField = (index: number, field: 'primaryText' | 'headline' | 'cta', value: string) => {
     setCreativeSlots(prev => {
       const next = [...prev];
-      next[index] = { ...next[index], [field]: !next[index][field] };
+      next[index] = { 
+        ...next[index], 
+        [field]: value,
+        status: { ...next[index].status, [field]: value.length > 3 }
+      };
       return next;
     });
+  };
+
+  const simulateUpload = (index: number, type: 'video' | 'image') => {
+    setCreativeSlots(prev => {
+      const next = [...prev];
+      const name = type === 'video' ? `video_escala_${index+1}.mp4` : `creative_thumb_${index+1}.jpg`;
+      next[index] = { 
+        ...next[index], 
+        file: { name, type },
+        status: { ...next[index].status, file: true }
+      };
+      return next;
+    });
+    toast.success(`✅ ${type === 'video' ? 'Vídeo' : 'Imagem'} alocado com sucesso!`);
   };
 
   // Checklist do passo "criativos"
@@ -1758,7 +1789,7 @@ function ScaleModal({
 
   // Efeito para marcar o checklist de criativos automaticamente quando TODOS os slots estiverem prontos
   useEffect(() => {
-    const allSlotsReady = creativeSlots.every(s => s.file && s.primaryText && s.headline && s.cta);
+    const allSlotsReady = creativeSlots.every(s => s.status.file && s.status.primaryText && s.status.headline && s.status.cta);
     if (allSlotsReady && !chk.criativo) {
       setChk(c => ({ ...c, criativo: true }));
       toast.success("✅ Todos os criativos foram alocados!");
