@@ -439,8 +439,11 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
                      disabled={updating === c.id}
                    />
                 </TableCell>
-                <TableCell>
-                  <div className="font-medium truncate max-w-[280px]">{c.name}</div>
+                <TableCell className="cursor-pointer group" onClick={() => setEditingCampaign(c)}>
+                  <div className="font-medium truncate max-w-[280px] group-hover:text-primary transition-colors flex items-center gap-2">
+                    {c.name}
+                    <Edit2 className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
                   <div className="text-[10px] text-muted-foreground uppercase">{c.objective}</div>
                 </TableCell>
                 <TableCell>
