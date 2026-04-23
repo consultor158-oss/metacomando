@@ -19,9 +19,10 @@ import {
   saveWhatsAppConfig, 
   validateWhatsAppNumber, 
   generateWhatsAppLink,
-  type WhatsAppConfig 
+  type WhatsAppConfig,
+  type WhatsAppTrigger
 } from "../lib/whatsapp";
-import { MessageCircle, Copy, Check, Info, Trash2, Plus } from "lucide-react";
+import { MessageCircle, Copy, Check, Info, Trash2, Plus, Bell, Settings2, BarChart3 } from "lucide-react";
 
 interface WhatsAppModalProps {
   isOpen: boolean;
