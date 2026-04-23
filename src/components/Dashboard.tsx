@@ -60,7 +60,7 @@ import {
   SidebarTrigger
 } from "./ui/sidebar";
 
-type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "tutorial" | "settings";
+type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "tutorial" | "settings" | "map";
 
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
