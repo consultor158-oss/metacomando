@@ -202,9 +202,10 @@ export function Dashboard() {
             {view === "campaigns" && <CampaignsTab campaigns={campaignsData} refresh={() => campaigns.refetch()} />}
             {view === "scales" && <ScalesTab />}
             {view === "creatives" && <CreativesTab creatives={creativesData} />}
-            {view === "automation" && <AutomationPlaceholder />}
+            {view === "automation" && <AutomationTab />}
             {view === "tutorial" && <TutorialTab creatives={creativesData} />}
             {view === "settings" && <SettingsTab account={accountData} />}
+            {view === "map" && <DeliveryMapTab />}
           </main>
         </SidebarInset>
 
