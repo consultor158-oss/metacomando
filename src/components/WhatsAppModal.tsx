@@ -82,24 +82,20 @@ export function WhatsAppModal({ isOpen, onClose, accountId }: WhatsAppModalProps
   };
 
   const copyLink = (index: number) => {
-    const cleanNum = config.number.replace(/\D/g, "");
-    if (!cleanNum) {
+    const url = generateWhatsAppLink(config, {
+      messageIndex: index,
+      utmSource: "meta",
+      utmMedium: "cpc",
+      utmCampaign: "{{campaign.name}}",
+      utmContent: "{{ad.name}}",
+    });
+
+    if (!url) {
       toast.error("Defina o número do WhatsApp antes de copiar o link");
       return;
     }
-
-    let text = config.quickMessages[index] || "";
-    const url = new URL(`https://wa.me/${cleanNum}`);
     
-    // Add UTMs if enabled (placeholder logic)
-    if (config.enableUtms) {
-      const utmStr = "[utm_source=meta&utm_medium=cpc&utm_campaign={{campaign.name}}]";
-      text = text ? `${text}\n\n${utmStr}` : utmStr;
-    }
-    
-    if (text) url.searchParams.set("text", text);
-    
-    navigator.clipboard.writeText(url.toString());
+    navigator.clipboard.writeText(url);
     toast.success("Link copiado para a área de transferência!");
   };
 
