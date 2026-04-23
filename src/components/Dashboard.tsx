@@ -94,6 +94,9 @@ import {
 } from "../lib/auditLog";
 import { formatBRL, formatNumber, formatPct } from "../lib/format";
 
+import { WhatsAppModal } from "./WhatsAppModal";
+import { getWhatsAppConfig, generateWhatsAppLink } from "../lib/whatsapp";
+
 type Tab = "overview" | "analise" | "controle" | "escalas" | "ia" | "automacao";
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
@@ -119,6 +122,7 @@ export function Dashboard() {
   const [tab, setTab] = useState<Tab>("overview");
   const [datePreset, setDatePreset] = useState("last_7d");
   const [onlyActive, setOnlyActive] = useState(true);
+  const [waModalOpen, setWaModalOpen] = useState(false);
   const qc = useQueryClient();
 
   const stale = STALE_BY_PERIOD[datePreset] ?? 5 * 60_000;
@@ -232,7 +236,14 @@ export function Dashboard() {
         onlyActive={onlyActive}
         onOnlyActive={setOnlyActive}
         onRefresh={refreshAll}
+        onWhatsAppClick={() => setWaModalOpen(true)}
         loading={anyLoading}
+      />
+
+      <WhatsAppModal 
+        isOpen={waModalOpen} 
+        onClose={() => setWaModalOpen(false)} 
+        accountId={acc?.id || "global"} 
       />
 
       {tokenExpired && <TokenExpiredBanner msg={apiError || ""} />}
@@ -304,7 +315,7 @@ export function Dashboard() {
 }
 
 // ============== HEADER ==============
-function Header({ acc, datePreset, onDatePreset, onlyActive, onOnlyActive, onRefresh, loading }: any) {
+function Header({ acc, datePreset, onDatePreset, onlyActive, onOnlyActive, onRefresh, onWhatsAppClick, loading }: any) {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-lg">
       <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
@@ -342,16 +353,7 @@ function Header({ acc, datePreset, onDatePreset, onlyActive, onOnlyActive, onRef
             <option value="this_month">Este mês</option>
           </select>
           <button
-            onClick={() => {
-              const num = localStorage.getItem("whatsapp_number") || "";
-              const cleanNum = num.replace(/\D/g, "");
-              if (!cleanNum) {
-                const newNum = prompt("Digite seu número do WhatsApp com DDD (ex: 5511999999999):");
-                if (newNum) localStorage.setItem("whatsapp_number", newNum.replace(/\D/g, ""));
-              } else {
-                window.open(`https://wa.me/${cleanNum}`, "_blank");
-              }
-            }}
+            onClick={onWhatsAppClick}
             className="inline-flex items-center gap-1.5 rounded-md bg-[oklch(0.7_0.18_162)] px-3 py-2 text-sm font-medium text-white hover:opacity-90"
           >
             <MessageCircle className="h-4 w-4" />
