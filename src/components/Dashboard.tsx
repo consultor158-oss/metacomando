@@ -43,6 +43,7 @@ import {
   CheckCircle2,
   ThumbsUp,
   Check,
+  MessageCircle,
 } from "lucide-react";
 import {
   getAccountInsights,
