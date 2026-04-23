@@ -165,10 +165,13 @@ export const updateCampaign = createServerFn({ method: "POST" })
   .inputValidator((d: { 
     campaignId: string; 
     name?: string; 
-    status?: "ACTIVE" | "PAUSED"; 
+    status?: "ACTIVE" | "PAUSED" | "ARCHIVED"; 
     daily_budget?: number;
+    lifetime_budget?: number;
     bid_strategy?: string;
+    objective?: string;
     special_ad_categories?: string[];
+    buying_type?: string;
   }) => d)
   .handler(async ({ data }) => {
     try {
@@ -176,8 +179,11 @@ export const updateCampaign = createServerFn({ method: "POST" })
       if (data.name) body.name = data.name;
       if (data.status) body.status = data.status;
       if (data.daily_budget !== undefined) body.daily_budget = String(data.daily_budget);
+      if (data.lifetime_budget !== undefined) body.lifetime_budget = String(data.lifetime_budget);
       if (data.bid_strategy) body.bid_strategy = data.bid_strategy;
+      if (data.objective) body.objective = data.objective;
       if (data.special_ad_categories) body.special_ad_categories = JSON.stringify(data.special_ad_categories);
+      if (data.buying_type) body.buying_type = data.buying_type;
       
       const result = await metaPost(data.campaignId, body);
       return { ok: true as const, data: result };
