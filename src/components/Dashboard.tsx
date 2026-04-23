@@ -531,7 +531,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
       onSave();
       onClose();
     } else {
-      toast.error("Erro ao atualizar campanha");
+      toast.error(res.error || "Erro ao atualizar campanha");
     }
     setSaving(false);
   };
