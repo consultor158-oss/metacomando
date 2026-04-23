@@ -248,34 +248,34 @@ function WorldMap({ data }: { data: any[] }) {
        <div className="absolute top-4 left-4 z-10">
           <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <div className="h-2 w-2 bg-red-600 rounded-full animate-pulse" />
-            Distribuição Global Ativa
+            Distribuição em Tempo Real
           </h3>
           <p className="text-[10px] text-zinc-500 uppercase font-bold">Monitoramento em Tempo Real</p>
        </div>
 
-       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-overlay" />
+       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596436889106-be35e843f974?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-overlay" />
        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
        <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0%,rgba(220,38,38,0.05)_50%,transparent_100%)] animate-[spin_8s_linear_infinite] pointer-events-none" />
 
 
        
        <div className="absolute inset-0">
-          {/* North America */}
-          <div className="absolute top-[35%] left-[20%]">
+          {/* São Paulo */}
+          <div className="absolute top-[75%] left-[62%]">
              <div className="h-4 w-4 bg-red-600 rounded-full animate-ping absolute opacity-75" />
              <div className="h-3 w-3 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.8)]" />
           </div>
-          {/* Brazil/South America */}
-          <div className="absolute top-[68%] left-[31%]">
+          {/* Nordeste */}
+          <div className="absolute top-[45%] left-[75%]">
              <div className="h-5 w-5 bg-red-600 rounded-full animate-ping absolute opacity-75" />
              <div className="h-4 w-4 bg-red-600 rounded-full shadow-[0_0_20px_rgba(220,38,38,0.9)] border-2 border-white/20" />
           </div>
-          {/* Europe */}
-          <div className="absolute top-[25%] left-[54%]">
+          {/* Brasília */}
+          <div className="absolute top-[55%] left-[55%]">
              <div className="h-3 w-3 bg-red-600 rounded-full animate-pulse opacity-60 shadow-[0_0_10px_rgba(220,38,38,0.5)]" />
           </div>
-          {/* Asia/Japan */}
-          <div className="absolute top-[38%] left-[82%]">
+          {/* Sul */}
+          <div className="absolute top-[85%] left-[55%]">
              <div className="h-2 w-2 bg-red-600 rounded-full opacity-40 shadow-[0_0_8px_rgba(220,38,38,0.4)]" />
           </div>
        </div>
@@ -283,12 +283,12 @@ function WorldMap({ data }: { data: any[] }) {
 
        <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md p-3 rounded-lg border border-white/10 flex items-center gap-4">
           <div className="flex flex-col">
-            <span className="text-[9px] text-zinc-400 uppercase font-bold">Alcance Global</span>
-            <span className="text-xs font-bold text-white">142 Países</span>
+            <span className="text-[9px] text-zinc-400 uppercase font-bold">Cobertura</span>
+            <span className="text-xs font-bold text-white">Todos os Estados</span>
           </div>
           <div className="h-6 w-px bg-white/10" />
           <div className="flex flex-col">
-            <span className="text-[9px] text-zinc-400 uppercase font-bold">ROAS Global</span>
+            <span className="text-[9px] text-zinc-400 uppercase font-bold">ROAS Médio</span>
             <span className="text-xs font-bold text-red-500">3.12x</span>
           </div>
        </div>
@@ -741,7 +741,7 @@ function DeliveryMapTab({ geoData }: { geoData: any[] }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 overflow-hidden h-[500px] relative bg-[#0a0a0a] flex items-center justify-center">
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-overlay" />
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596436889106-be35e843f974?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-overlay" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-[#0a0a0a]/50" />
 
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -749,17 +749,24 @@ function DeliveryMapTab({ geoData }: { geoData: any[] }) {
              <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0%,rgba(220,38,38,0.1)_50%,transparent_100%)] animate-[spin_4s_linear_infinite]" />
              
              <div className="relative w-full h-full">
-                {/* São Paulo / Brazil Main Focus */}
-                <div className="absolute top-[68%] left-[31%]">
+                {/* São Paulo */}
+                <div className="absolute top-[75%] left-[62%]">
                    <div className="h-10 w-10 bg-red-600/20 rounded-full animate-ping absolute -translate-x-1/2 -translate-y-1/2" />
                    <div className="h-6 w-6 bg-red-600/40 rounded-full animate-pulse absolute -translate-x-1/2 -translate-y-1/2" />
                    <div className="h-4 w-4 bg-red-600 rounded-full shadow-[0_0_20px_rgba(220,38,38,1)] border-2 border-white/40 -translate-x-1/2 -translate-y-1/2" />
                 </div>
                 
-                {/* Secondary Points */}
-                <div className="absolute top-[35%] left-[20%] h-3 w-3 bg-red-600/60 rounded-full animate-pulse" />
-                <div className="absolute top-[25%] left-[54%] h-3 w-3 bg-red-600/60 rounded-full animate-pulse" />
-                <div className="absolute top-[38%] left-[68%] h-2 w-2 bg-red-600/40 rounded-full" />
+                {/* Rio de Janeiro */}
+                <div className="absolute top-[73%] left-[66%] h-3 w-3 bg-red-600/60 rounded-full animate-pulse" />
+                
+                {/* Brasília */}
+                <div className="absolute top-[55%] left-[55%] h-3 w-3 bg-red-600/60 rounded-full animate-pulse" />
+                
+                {/* Curitiba */}
+                <div className="absolute top-[82%] left-[58%] h-2 w-2 bg-red-600/40 rounded-full" />
+                
+                {/* Nordeste / Salvador */}
+                <div className="absolute top-[48%] left-[72%] h-2 w-2 bg-red-600/40 rounded-full" />
              </div>
           </div>
 
