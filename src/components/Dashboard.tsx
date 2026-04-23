@@ -71,6 +71,15 @@ import {
   SidebarInset,
   SidebarTrigger
 } from "./ui/sidebar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { Label } from "./ui/label";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 
 type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "tutorial" | "settings" | "map";
 
