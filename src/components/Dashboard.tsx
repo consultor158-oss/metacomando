@@ -508,6 +508,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
   const [bidStrategy, setBidStrategy] = useState("");
   const [objective, setObjective] = useState("");
   const [buyingType, setBuyingType] = useState("");
+  const [specialAdCategories, setSpecialAdCategories] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
