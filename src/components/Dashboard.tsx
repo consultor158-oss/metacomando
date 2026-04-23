@@ -1634,11 +1634,26 @@ function ScaleModal({
   const playbook = SCALE_PLAYBOOKS[strategy.id] ?? SCALE_PLAYBOOKS.abo;
   const [step, setStep] = useState(1);
   const totalSteps = 5;
+  const recommendations = useMemo(
+    () => (strategy.id === "ia_opt" ? generateRecommendations(campConv, camps) : []),
+    [campConv, camps, strategy.id],
+  );
+  const bestRec = recommendations.find((r) => r.severity === "opportunity" && r.action === "INCREASE_BUDGET");
 
   const [name, setName] = useState(`${strategy.defaults.namePrefix} - ${new Date().toLocaleDateString("pt-BR")}`);
   const [budget, setBudget] = useState(strategy.defaults.dailyBudgetCents / 100);
   const [objective, setObjective] = useState(strategy.defaults.objective);
   const [status, setStatus] = useState<"ACTIVE" | "PAUSED">(strategy.defaults.status);
+
+  // Auto-fill logic for IA Otimizada
+  useEffect(() => {
+    if (strategy.id === "ia_opt" && bestRec) {
+      if (bestRec.suggestedDailyBudgetCents) {
+        setBudget(bestRec.suggestedDailyBudgetCents / 100);
+      }
+      setName(`ESCALA IA: ${bestRec.campaignName}`);
+    }
+  }, [strategy.id, bestRec]);
 
   // Alocação de criativos por slot (conforme a estratégia pede)
   const creativeCount = strategy.creativeCount || 3;
