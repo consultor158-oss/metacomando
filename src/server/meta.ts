@@ -517,7 +517,7 @@ export const getCampaignDetails = createServerFn({ method: "GET" })
         let next: string | null = null;
         let page = await metaFetch(`${data.campaignId}/adsets`, {
           fields:
-            "id,name,status,effective_status,daily_budget,lifetime_budget,optimization_goal,billing_event,bid_amount,targeting,start_time,end_time",
+            "id,name,status,effective_status,daily_budget,lifetime_budget,optimization_goal,billing_event,bid_amount,targeting,start_time,end_time,adset_spend_limit,lifetime_spend_cap",
           limit: "100",
         });
         adsets.push(...(page.data ?? []));
@@ -714,6 +714,37 @@ export const updateAdsetBudget = createServerFn({ method: "POST" })
       const cents = Math.max(100, Math.round(data.dailyBudgetBRL * 100)).toString();
       const r = await metaPost(data.adsetId, { daily_budget: cents });
       return { ok: true as const, data: r };
+    } catch (e) {
+      return errorPayload(e);
+    }
+  });
+
+export const updateAdsetSpendLimit = createServerFn({ method: "POST" })
+  .inputValidator((d: { adsetId: string; minDailyBRL?: number; maxDailyBRL?: number }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const limit: any = {};
+      if (data.minDailyBRL !== undefined) limit.min_daily_budget = Math.round(data.minDailyBRL * 100);
+      if (data.maxDailyBRL !== undefined) limit.max_daily_budget = Math.round(data.maxDailyBRL * 100);
+      
+      const r = await metaPost(data.adsetId, { adset_spend_limit: JSON.stringify(limit) });
+      return { ok: true as const, data: r };
+    } catch (e) {
+      return errorPayload(e);
+    }
+  });
+
+export const deleteCampaign = createServerFn({ method: "POST" })
+  .inputValidator((d: { campaignId: string }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const { token } = getCreds();
+      const url = new URL(`${BASE}/${data.campaignId}`);
+      url.searchParams.set("access_token", token);
+      const res = await fetch(url.toString(), { method: "DELETE" });
+      const j = await res.json();
+      if (!res.ok || j.error) throw new Error(j.error?.message || "Erro ao deletar");
+      return { ok: true as const, data: j };
     } catch (e) {
       return errorPayload(e);
     }
