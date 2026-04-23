@@ -24,7 +24,11 @@ import {
   Activity,
   ZapOff,
   CheckCircle2,
-  Clock
+  Clock,
+  Edit2,
+  Copy,
+  Trash2,
+  AlertCircle
 } from "lucide-react";
 import {
   getAccountInfo,
@@ -32,7 +36,10 @@ import {
   getAccountInsights,
   getCampaigns,
   getConversionFunnel,
+  updateCampaign,
   updateCampaignStatus,
+  duplicateCampaign,
+  deleteCampaign,
   getGeoInsights,
   createFullScale,
   getPages
@@ -78,6 +85,7 @@ import {
 } from "./ui/select";
 import { Label } from "./ui/label";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { Input } from "./ui/input";
 
 type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "tutorial" | "settings";
 
@@ -360,6 +368,7 @@ function FunnelStep({ label, count, pct, color }: { label: string, count: number
 
 function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () => void }) {
   const [updating, setUpdating] = useState<string | null>(null);
+  const [editingCampaign, setEditingCampaign] = useState<any | null>(null);
 
   const toggleStatus = async (id: string, current: string) => {
     setUpdating(id);
@@ -370,6 +379,31 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
       refresh();
     } else {
       toast.error("Erro ao atualizar status");
+    }
+    setUpdating(null);
+  };
+
+  const handleDuplicate = async (id: string) => {
+    setUpdating(id);
+    const res = await duplicateCampaign({ data: { sourceCampaignId: id } });
+    if (res.ok) {
+      toast.success("Campanha duplicada com sucesso!");
+      refresh();
+    } else {
+      toast.error("Erro ao duplicar campanha");
+    }
+    setUpdating(null);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta campanha? Esta ação não pode ser desfeita.")) return;
+    setUpdating(id);
+    const res = await deleteCampaign({ data: { campaignId: id } });
+    if (res.ok) {
+      toast.success("Campanha excluída com sucesso!");
+      refresh();
+    } else {
+      toast.error("Erro ao excluir campanha");
     }
     setUpdating(null);
   };
@@ -388,11 +422,11 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
             <TableRow>
               <TableHead>Status</TableHead>
               <TableHead className="w-[300px]">Nome da Campanha</TableHead>
+              <TableHead>Orçamento</TableHead>
               <TableHead>Investido</TableHead>
               <TableHead>ROAS</TableHead>
               <TableHead>CPA</TableHead>
-              <TableHead>CTR</TableHead>
-              <TableHead className="text-right">Ação</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -405,27 +439,115 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
                      disabled={updating === c.id}
                    />
                 </TableCell>
-                <TableCell>
-                  <div className="font-medium truncate max-w-[280px]">{c.name}</div>
+                <TableCell className="cursor-pointer group" onClick={() => setEditingCampaign(c)}>
+                  <div className="font-medium truncate max-w-[280px] group-hover:text-primary transition-colors flex items-center gap-2">
+                    {c.name}
+                    <Edit2 className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
                   <div className="text-[10px] text-muted-foreground uppercase">{c.objective}</div>
+                </TableCell>
+                <TableCell>
+                  {c.daily_budget ? formatBRL(parseInt(c.daily_budget) / 100) : "N/A"}
                 </TableCell>
                 <TableCell>{formatBRL(c.spend)}</TableCell>
                 <TableCell className={`font-bold ${c.roas >= 2.5 ? 'text-[oklch(0.7_0.18_162)]' : 'text-blue-500'}`}>
                   {c.roas.toFixed(2)}x
                 </TableCell>
                 <TableCell>{formatBRL(c.cpa)}</TableCell>
-                <TableCell>{formatPct(c.ctr)}</TableCell>
                 <TableCell className="text-right">
-                   <Button variant="ghost" size="sm" onClick={() => toast.info(`Relatório completo de ${c.name} em breve.`)}>
-                     <BarChart3 className="h-4 w-4" />
-                   </Button>
+                   <div className="flex justify-end gap-1">
+                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingCampaign(c)}>
+                       <Edit2 className="h-3.5 w-3.5" />
+                     </Button>
+                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDuplicate(c.id)}>
+                       <Copy className="h-3.5 w-3.5" />
+                     </Button>
+                     <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(c.id)}>
+                       <Trash2 className="h-3.5 w-3.5" />
+                     </Button>
+                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toast.info(`Relatório completo de ${c.name} em breve.`)}>
+                       <BarChart3 className="h-3.5 w-3.5" />
+                     </Button>
+                   </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </Card>
+
+      <EditCampaignDialog 
+        campaign={editingCampaign} 
+        isOpen={!!editingCampaign} 
+        onClose={() => setEditingCampaign(null)} 
+        onSave={refresh} 
+      />
     </div>
+  );
+}
+
+function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: any, isOpen: boolean, onClose: () => void, onSave: () => void }) {
+  const [name, setName] = useState("");
+  const [budget, setBudget] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (campaign) {
+      setName(campaign.name || "");
+      setBudget(campaign.daily_budget ? (parseInt(campaign.daily_budget) / 100).toString() : "");
+    }
+  }, [campaign]);
+
+  const handleSave = async () => {
+    if (!campaign) return;
+    setSaving(true);
+    const res = await updateCampaign({
+      data: {
+        campaignId: campaign.id,
+        name,
+        daily_budget: Math.round(parseFloat(budget) * 100)
+      }
+    });
+    if (res.ok) {
+      toast.success("Campanha atualizada com sucesso!");
+      onSave();
+      onClose();
+    } else {
+      toast.error("Erro ao atualizar campanha");
+    }
+    setSaving(false);
+  };
+
+  if (!campaign) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Editar Campanha</DialogTitle>
+          <DialogDescription>
+            Altere o nome ou o orçamento diário da sua campanha.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="name">Nome da Campanha</Label>
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="budget">Orçamento Diário (R$)</Label>
+            <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : null}
+            Salvar Alterações
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -680,7 +802,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
     if (pages.length > 0 && !selectedPage) {
       setSelectedPage(pages[0].id);
     }
-  }, [pages]);
+  }, [pages, selectedPage]);
 
   const handleActivate = async () => {
     if (!data || !selectedPage) {
