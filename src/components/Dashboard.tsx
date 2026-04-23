@@ -32,7 +32,8 @@ import {
   getAccountInsights,
   getCampaigns,
   getConversionFunnel,
-  updateCampaignStatus
+  updateCampaignStatus,
+  getGeoInsights
 } from "../server/meta";
 import { WhatsAppModal } from "./WhatsAppModal";
 import { SCALE_STRATEGIES } from "../lib/scales";
