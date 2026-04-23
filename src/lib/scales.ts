@@ -120,7 +120,7 @@ export const SCALE_STRATEGIES: ScaleStrategy[] = [
     emoji: "🔮",
     shortDesc: "Escala via motor de recomendações IA. +20% em winners reais.",
     fullDesc:
-      "Deixe nosso algoritmo de IA identificar os vencedores reais (com base em ROAS e CPA) e sugerir o aumento de verba ideal para escalar sem perder a mão.",
+      "Nossa IA analisa ROAS, CTR e CVR para identificar vencedores reais. O 'SUBIR' executa a escala via API duplicando sets/campanhas com orçamentos otimizados e verificação de saúde anti-perda.",
     defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 15000, namePrefix: "IA_OPT", status: "ACTIVE" },
     color: "from-blue-600 to-indigo-600",
     creativeCount: 3,

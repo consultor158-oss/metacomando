@@ -39,6 +39,10 @@ import {
   Plus,
   Image as ImageIcon,
   Video,
+  ShieldCheck,
+  CheckCircle2,
+  ThumbsUp,
+  Check,
 } from "lucide-react";
 import {
   getAccountInsights,
@@ -1330,7 +1334,14 @@ function Escalas({ camps, campConv }: { camps: any[]; campConv: any[] }) {
         </div>
       )}
 
-      {active && <ScaleModal strategy={active} onClose={() => setActive(null)} />}
+      {active && (
+        <ScaleModal
+          strategy={active}
+          onClose={() => setActive(null)}
+          camps={camps}
+          campConv={campConv}
+        />
+      )}
       {duplicateOpen && (
         <DuplicateCampaignModal
           camps={camps}
@@ -1609,15 +1620,40 @@ const SCALE_PLAYBOOKS: Record<string, { audience: string; creatives: string; pos
   },
 };
 
-function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: () => void }) {
+function ScaleModal({
+  strategy,
+  onClose,
+  camps,
+  campConv,
+}: {
+  strategy: ScaleStrategy;
+  onClose: () => void;
+  camps: any[];
+  campConv: any[];
+}) {
   const playbook = SCALE_PLAYBOOKS[strategy.id] ?? SCALE_PLAYBOOKS.abo;
   const [step, setStep] = useState(1);
   const totalSteps = 5;
+  const recommendations = useMemo(
+    () => (strategy.id === "ia_opt" ? generateRecommendations(campConv, camps) : []),
+    [campConv, camps, strategy.id],
+  );
+  const bestRec = recommendations.find((r) => r.severity === "opportunity" && r.action === "INCREASE_BUDGET");
 
   const [name, setName] = useState(`${strategy.defaults.namePrefix} - ${new Date().toLocaleDateString("pt-BR")}`);
   const [budget, setBudget] = useState(strategy.defaults.dailyBudgetCents / 100);
   const [objective, setObjective] = useState(strategy.defaults.objective);
   const [status, setStatus] = useState<"ACTIVE" | "PAUSED">(strategy.defaults.status);
+
+  // Auto-fill logic for IA Otimizada
+  useEffect(() => {
+    if (strategy.id === "ia_opt" && bestRec) {
+      if (bestRec.suggestedDailyBudgetCents) {
+        setBudget(bestRec.suggestedDailyBudgetCents / 100);
+      }
+      setName(`ESCALA IA: ${bestRec.campaignName}`);
+    }
+  }, [strategy.id, bestRec]);
 
   // Alocação de criativos por slot (conforme a estratégia pede)
   const creativeCount = strategy.creativeCount || 3;
@@ -1668,8 +1704,20 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
   const qc = useQueryClient();
 
   const create = useMutation({
-    mutationFn: () =>
-      createCampaign({
+    mutationFn: async () => {
+      if (strategy.id === "ia_opt" && bestRec) {
+        const res = await duplicateCampaign({
+          data: {
+            sourceCampaignId: bestRec.campaignId,
+            newName: name,
+            dailyBudgetCents: Math.round(budget * 100),
+            status,
+          },
+        });
+        if (!res.ok) return res;
+        return { ok: true as const, data: res.data, strategy: strategy.id };
+      }
+      return createCampaign({
         data: {
           name,
           objective,
@@ -1677,17 +1725,38 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
           dailyBudgetCents: Math.round(budget * 100),
           strategy: strategy.id,
         },
-      }),
+      });
+    },
     onSuccess: (res) => {
       if (res.ok) {
-        toast.success(`Campanha "${name}" criada!`);
+        toast.success(`✅ Campanha "${name}" enviada via API com sucesso!`);
         qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
-        setStep(5); // vai para o passo final (playbook pós-launch)
+        setStep(5);
       } else {
-        toast.error(res.error || "Falha ao subir");
+        toast.error(res.error || "Erro ao processar escala via API");
       }
     },
   });
+
+  const healthData = useMemo(() => {
+    if (!bestRec) return null;
+    const conv = campConv.find((c) => c.campaign_id === bestRec.campaignId);
+    if (!conv) return null;
+
+    const roasScore = Math.min(100, (conv.roas / 2) * 100);
+    const ctrScore = Math.min(100, (conv.ctr / 1) * 100);
+    const cvrScore = Math.min(100, (conv.cvr_click_to_purchase / 2) * 100);
+
+    const overall = roasScore * 0.5 + ctrScore * 0.3 + cvrScore * 0.2;
+
+    return {
+      overall: Math.round(overall),
+      roas: conv.roas,
+      ctr: conv.ctr,
+      cvr: conv.cvr_click_to_purchase,
+      isHealthy: overall > 70,
+    };
+  }, [bestRec, campConv]);
 
   const stepLabels = ["Entender", "Configurar", "Checklist", "Revisar & Subir", "Pós-launch"];
 
@@ -1940,26 +2009,112 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
         )}
 
 
-        {/* STEP 4 — Revisar & Subir */}
-        {step === 4 && (
-          <div className="space-y-3">
-            <div className="rounded-lg border border-border bg-background p-4">
-              <p className="text-[10px] font-semibold uppercase text-muted-foreground">Resumo</p>
-              <div className="mt-2 space-y-1 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">Nome</span><span className="font-medium">{name}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Estratégia</span><span className="font-medium">{strategy.name}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Objetivo</span><span className="font-medium">{objective}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Orçamento/dia</span><span className="font-medium">R$ {budget.toFixed(2)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className="font-medium">{status}</span></div>
+        {step === 4 && strategy.id === "ia_opt" && !bestRec && (
+          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-6 text-center">
+            <AlertTriangle className="h-8 w-8 text-amber-500 mx-auto mb-3" />
+            <h4 className="text-base font-bold text-amber-200">Nenhum vencedor absoluto ainda</h4>
+            <p className="mt-2 text-sm text-amber-200/80">
+              A IA ainda não identificou uma campanha com ROAS e volume suficientes para uma escala segura de "IA Otimizada". 
+              Continue rodando seus testes ou use as estratégias ABO/CBO manuais.
+            </p>
+            <button 
+              onClick={() => setStep(1)}
+              className="mt-4 text-xs font-bold underline hover:text-amber-100"
+            >
+              Escolher outra estratégia
+            </button>
+          </div>
+        )}
+
+        {/* STEP 4 — Revisar & Subir (Com Winner) */}
+        {step === 4 && (strategy.id !== "ia_opt" || bestRec) && (
+          <div className="space-y-4">
+            {strategy.id === "ia_opt" && bestRec && healthData && (
+              <div className="space-y-4">
+                <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 to-card p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-bold flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-primary" />
+                      Verificação de Saúde da Escala
+                    </h4>
+                    <div className={`px-2 py-1 rounded-full text-[10px] font-bold ${healthData.isHealthy ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                      {healthData.isHealthy ? 'PROBABILIDADE ALTA DE VENDAS' : 'PROBABILIDADE MÉDIA'}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-background/50 p-2 rounded-lg border border-border">
+                      <p className="text-[10px] text-muted-foreground uppercase">Score Geral</p>
+                      <p className={`text-xl font-bold ${healthData.overall > 80 ? 'text-emerald-400' : 'text-primary'}`}>{healthData.overall}%</p>
+                    </div>
+                    <div className="bg-background/50 p-2 rounded-lg border border-border">
+                      <p className="text-[10px] text-muted-foreground uppercase">ROAS Atual</p>
+                      <p className="text-xl font-bold">{healthData.roas.toFixed(2)}x</p>
+                    </div>
+                    <div className="bg-background/50 p-2 rounded-lg border border-border">
+                      <p className="text-[10px] text-muted-foreground uppercase">CTR</p>
+                      <p className="text-xl font-bold">{healthData.ctr.toFixed(2)}%</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                      <span>Campanha vencedora identificada: <strong>{bestRec.campaignName}</strong></span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                      <span>Público validado com ROI {healthData.roas.toFixed(2)}x</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                      <span>Criativos com CTR saudável ({healthData.ctr.toFixed(2)}%)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border border-border bg-muted/20 p-4">
+                  <p className="text-[10px] font-semibold uppercase text-muted-foreground mb-2">Preview da Escala Automática</p>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Ação IA:</span>
+                      <span className="font-bold text-primary flex items-center gap-1">
+                        <TrendingUp className="h-3 w-3" /> Escalar Winner
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Novo Budget sugerido:</span>
+                      <span className="font-bold text-foreground">R$ {budget.toFixed(2)}/dia</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Método:</span>
+                      <span className="font-medium text-foreground">Duplicação com Otimização API</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {strategy.id !== "ia_opt" && (
+              <div className="rounded-lg border border-border bg-background p-4">
+                <p className="text-[10px] font-semibold uppercase text-muted-foreground">Resumo</p>
+                <div className="mt-2 space-y-1 text-sm">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Nome</span><span className="font-medium">{name}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Estratégia</span><span className="font-medium">{strategy.name}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Objetivo</span><span className="font-medium">{objective}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Orçamento/dia</span><span className="font-medium">R$ {budget.toFixed(2)}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Status</span><span className="font-medium">{status}</span></div>
+                </div>
+              </div>
+            )}
+            
             <button
               onClick={() => create.mutate()}
-              disabled={create.isPending}
+              disabled={create.isPending || (strategy.id === "ia_opt" && !bestRec)}
               className={`inline-flex w-full items-center justify-center gap-2 rounded-md bg-gradient-to-r ${strategy.color} px-4 py-3 text-sm font-bold text-white shadow-lg hover:opacity-90 disabled:opacity-50`}
             >
               {create.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-              {create.isPending ? "Subindo via API…" : "🚀 SUBIR via API"}
+              {create.isPending ? "Processando via API…" : strategy.id === "ia_opt" ? "🚀 EXECUTAR ESCALA IA" : "🚀 SUBIR via API"}
             </button>
             <p className="text-center text-[11px] text-muted-foreground">Após subir, te mostro o playbook pós-launch.</p>
           </div>
