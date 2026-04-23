@@ -566,26 +566,40 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="budget">Orçamento Diário (R$)</Label>
+              <Label htmlFor="budget_type">Tipo Orçamento</Label>
+              <Select value={budgetType} onValueChange={(v: any) => setBudgetType(v)} disabled>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">Diário</SelectItem>
+                  <SelectItem value="lifetime">Vitalício</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="budget">Valor do Orçamento (R$)</Label>
               <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="bid_strategy">Estratégia de Lance</Label>
+              <Select value={bidStrategy} onValueChange={setBidStrategy}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="LOWEST_COST_WITHOUT_CAP">Menor Custo</SelectItem>
+                  <SelectItem value="LOWEST_COST_WITH_BID_CAP">Limite Lance</SelectItem>
+                  <SelectItem value="COST_CAP">Limite Custo</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="grid gap-2">
             <Label>Objetivo (Inalterável)</Label>
-            <Input value={campaign.objective} disabled className="bg-muted" />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="bid_strategy">Estratégia de Lance</Label>
-            <Select value={bidStrategy} onValueChange={setBidStrategy}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a estratégia" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="LOWEST_COST_WITHOUT_CAP">Menor Custo (S/ Limite)</SelectItem>
-                <SelectItem value="LOWEST_COST_WITH_BID_CAP">Menor Custo (C/ Limite)</SelectItem>
-                <SelectItem value="COST_CAP">Limite de Custo</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input value={campaign.objective} disabled className="bg-muted text-xs h-8" />
           </div>
         </div>
         <DialogFooter>
