@@ -1765,7 +1765,7 @@ function ScaleModal({
     });
   };
 
-  const simulateUpload = (index: number, type: 'video' | 'image') => {
+  const handleCreativeUpload = (index: number, type: 'video' | 'image') => {
     setCreativeSlots(prev => {
       const next = [...prev];
       const name = type === 'video' ? `video_escala_${index+1}.mp4` : `creative_thumb_${index+1}.jpg`;
@@ -1776,7 +1776,7 @@ function ScaleModal({
       };
       return next;
     });
-    toast.success(`✅ ${type === 'video' ? 'Vídeo' : 'Imagem'} alocado com sucesso!`);
+    toast.success(`✅ ${type === 'video' ? 'Vídeo' : 'Imagem'} processado com sucesso!`);
   };
 
   // Checklist do passo "criativos"
