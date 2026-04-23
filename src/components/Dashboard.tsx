@@ -4,15 +4,10 @@ import { toast } from "sonner";
 import {
   TrendingUp,
   Zap,
-  Sparkles,
   Image as ImageIcon,
-  Video,
   MessageCircle,
   ShieldCheck,
-  History,
-  Search,
   ChevronRight,
-  Info,
   LayoutDashboard,
   BarChart3,
   Layers,
@@ -21,9 +16,6 @@ import {
   PlayCircle,
   Plus,
   ArrowUpRight,
-  ArrowDownRight,
-  Menu,
-  X,
   RefreshCw,
   Eye,
   MousePointer2,
@@ -33,7 +25,6 @@ import {
 import {
   getAccountInfo,
   getAccountCreatives,
-  getGeoInsights,
   getAccountInsights,
   getCampaigns,
   getConversionFunnel,
@@ -189,7 +180,7 @@ export function Dashboard() {
           </header>
 
           <main className="flex-1 p-6 overflow-y-auto">
-            {view === "overview" && <OverviewTab stats={stats} funnel={funnel.data?.data} />}
+            {view === "overview" && <OverviewTab stats={stats} funnel={funnel.data?.ok ? funnel.data.data : null} />}
             {view === "campaigns" && <CampaignsTab campaigns={campaigns.data?.data || []} refresh={() => campaigns.refetch()} />}
             {view === "scales" && <ScalesTab />}
             {view === "creatives" && <CreativesTab creatives={creatives.data?.data || []} />}
