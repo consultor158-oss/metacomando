@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -26,9 +26,7 @@ import {
   ZapOff,
   AlertTriangle,
   CheckCircle2,
-  Clock,
-  ExternalLink,
-  ChevronDown
+  Clock
 } from "lucide-react";
 import {
   getAccountInfo,
@@ -767,7 +765,7 @@ function DryRunModal({ isOpen, onClose, data }: { isOpen: boolean, onClose: () =
     try {
       const res = await createFullScale({
         data: {
-          name: `[IA ULTRA] ${data.strategy.namePrefix || data.strategy.name} - ${new Date().toLocaleDateString()}`,
+          name: `[IA ULTRA] ${data.strategy.defaults.namePrefix || data.strategy.name} - ${new Date().toLocaleDateString()}`,
           objective: data.strategy.defaults.objective,
           dailyBudgetCents: data.strategy.defaults.dailyBudgetCents,
           strategy: data.strategy.id,
@@ -833,7 +831,7 @@ function DryRunModal({ isOpen, onClose, data }: { isOpen: boolean, onClose: () =
               <Zap className="h-3 w-3" /> Ações Planejadas
             </h4>
             <div className="space-y-2">
-              <ActionItem icon={<CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} text={`Criar 1 Campanha: "[IA ULTRA] ${strategy.namePrefix || strategy.name}..."`} />
+              <ActionItem icon={<CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} text={`Criar 1 Campanha: "[IA ULTRA] ${strategy.defaults.namePrefix || strategy.name}..."`} />
               <ActionItem icon={<CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} text={`Criar ${adsetCount} Conjuntos de Anúncios (AdSets)`} />
               <ActionItem icon={<CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} text={`Vincular ${creatives?.length || strategy.creativeCount || 1} Criativos em cada AdSet`} />
               <ActionItem icon={<Clock className="h-4 w-4 text-blue-400" />} text={`Status Inicial: ${strategy.defaults.status === "ACTIVE" ? "ATIVO (Publicar Imediatamente)" : "PAUSADO (Rascunho)"}`} />
