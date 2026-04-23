@@ -1219,6 +1219,18 @@ function CreativeUpload() {
             {gen.isPending ? "Gerando…" : "Gerar copy com IA"}
           </button>
         </div>
+        <button
+          onClick={() => {
+            if (confirm(`Tem certeza que deseja excluir permanentemente a campanha "${c.name}"?`)) {
+              deleteMut.mutate();
+            }
+          }}
+          disabled={deleteMut.isPending}
+          className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-destructive/20 bg-destructive/5 text-destructive hover:bg-destructive/10 disabled:opacity-50"
+          title="Excluir campanha"
+        >
+          {deleteMut.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+        </button>
       </div>
 
       {generated && (
