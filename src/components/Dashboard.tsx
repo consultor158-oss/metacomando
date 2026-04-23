@@ -94,6 +94,9 @@ import {
 } from "../lib/auditLog";
 import { formatBRL, formatNumber, formatPct } from "../lib/format";
 
+import { WhatsAppModal } from "./WhatsAppModal";
+import { getWhatsAppConfig, generateWhatsAppLink } from "../lib/whatsapp";
+
 type Tab = "overview" | "analise" | "controle" | "escalas" | "ia" | "automacao";
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
