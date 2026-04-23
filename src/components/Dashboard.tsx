@@ -1704,8 +1704,18 @@ function ScaleModal({
   const qc = useQueryClient();
 
   const create = useMutation({
-    mutationFn: () =>
-      createCampaign({
+    mutationFn: () => {
+      if (strategy.id === "ia_opt" && bestRec) {
+        return duplicateCampaign({
+          data: {
+            sourceCampaignId: bestRec.campaignId,
+            newName: name,
+            dailyBudgetCents: Math.round(budget * 100),
+            status,
+          },
+        });
+      }
+      return createCampaign({
         data: {
           name,
           objective,
@@ -1713,17 +1723,38 @@ function ScaleModal({
           dailyBudgetCents: Math.round(budget * 100),
           strategy: strategy.id,
         },
-      }),
+      });
+    },
     onSuccess: (res) => {
       if (res.ok) {
-        toast.success(`Campanha "${name}" criada!`);
+        toast.success(`Campanha "${name}" criada com sucesso via API!`);
         qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
-        setStep(5); // vai para o passo final (playbook pós-launch)
+        setStep(5);
       } else {
-        toast.error(res.error || "Falha ao subir");
+        toast.error(res.error || "Erro ao subir campanha");
       }
     },
   });
+
+  const healthData = useMemo(() => {
+    if (!bestRec) return null;
+    const conv = campConv.find((c) => c.campaign_id === bestRec.campaignId);
+    if (!conv) return null;
+
+    const roasScore = Math.min(100, (conv.roas / 2) * 100);
+    const ctrScore = Math.min(100, (conv.ctr / 1) * 100);
+    const cvrScore = Math.min(100, (conv.cvr_click_to_purchase / 2) * 100);
+
+    const overall = roasScore * 0.5 + ctrScore * 0.3 + cvrScore * 0.2;
+
+    return {
+      overall: Math.round(overall),
+      roas: conv.roas,
+      ctr: conv.ctr,
+      cvr: conv.cvr_click_to_purchase,
+      isHealthy: overall > 70,
+    };
+  }, [bestRec, campConv]);
 
   const stepLabels = ["Entender", "Configurar", "Checklist", "Revisar & Subir", "Pós-launch"];
 
