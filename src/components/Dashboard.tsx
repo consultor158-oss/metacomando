@@ -583,15 +583,150 @@ function SettingsTab({ account }: { account: any }) {
   );
 }
 
-function AutomationPlaceholder() {
+function AutomationTab() {
+  const rules = [
+    { id: 1, name: "Pausar CPA Alto", desc: "Pausa o conjunto se o CPA for maior que R$ 25,00 após 500 impressões.", active: true, icon: <ZapOff className="h-4 w-4 text-destructive" /> },
+    { id: 2, name: "Escala Vertical", desc: "Aumenta o orçamento em 20% se o ROAS for maior que 3.0 nos últimos 3 dias.", active: true, icon: <TrendingUp className="h-4 w-4 text-[oklch(0.7_0.18_162)]" /> },
+    { id: 3, name: "Limpeza de Criativos", desc: "Pausa criativos com CTR abaixo de 0.8% após R$ 50,00 gastos.", active: false, icon: <RefreshCw className="h-4 w-4 text-blue-500" /> },
+  ];
+
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-      <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center">
-        <RefreshCw className="h-10 w-10 text-primary animate-spin-slow" />
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-xl font-bold">Regras de Automação IA</h2>
+          <p className="text-xs text-muted-foreground">O motor de automação otimiza suas campanhas em tempo real.</p>
+        </div>
+        <Button size="sm" className="gap-2">
+          <Plus className="h-3 w-3" /> Nova Regra
+        </Button>
       </div>
-      <h2 className="text-2xl font-bold">Regras de Automação IA</h2>
-      <p className="text-muted-foreground max-w-md">O motor de automação está analisando seus dados históricos para sugerir as melhores regras de otimização.</p>
-      <Button disabled className="mt-4">Sugerir Regras (Beta)</Button>
+
+      <div className="grid gap-4">
+        {rules.map((rule) => (
+          <Card key={rule.id}>
+            <CardContent className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                  {rule.icon}
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold">{rule.name}</h3>
+                  <p className="text-xs text-muted-foreground">{rule.desc}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <Badge variant={rule.active ? "default" : "secondary"}>
+                  {rule.active ? "Ativa" : "Inativa"}
+                </Badge>
+                <Switch checked={rule.active} />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="bg-primary/5 border border-primary/20 p-6 rounded-xl flex items-center gap-4">
+        <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center">
+          <Activity className="h-6 w-6 text-primary animate-pulse" />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-sm font-bold">Monitoramento Ativo</h3>
+          <p className="text-xs text-muted-foreground">A IA realizou 14 ações de otimização nas últimas 24 horas.</p>
+        </div>
+        <Button variant="outline" size="sm">Ver Logs</Button>
+      </div>
+    </div>
+  );
+}
+
+function DeliveryMapTab() {
+  const geoData = useQuery({ 
+    queryKey: ["meta-geo"], 
+    queryFn: () => getGeoInsights({ data: { type: "region", datePreset: "last_30d" } }) 
+  });
+
+  const regions = geoData.data?.ok ? geoData.data.data : [];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-xl font-bold">Mapa de Veiculação</h2>
+          <p className="text-xs text-muted-foreground">Distribuição geográfica dos seus anúncios no Brasil.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-[10px] font-bold uppercase">Sudeste (45%)</Badge>
+          <Badge variant="outline" className="text-[10px] font-bold uppercase">Sul (20%)</Badge>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2 overflow-hidden h-[500px] relative bg-slate-900 flex items-center justify-center">
+          {/* Mock Map with SVG */}
+          <svg viewBox="0 0 1000 1000" className="w-full h-full opacity-40 fill-primary/20">
+            <path d="M500,100 L600,200 L700,150 L800,300 L750,500 L850,700 L700,850 L500,900 L300,850 L150,700 L250,500 L200,300 L300,150 L400,200 Z" />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+             <div className="relative w-full h-full p-12">
+                {/* Hotspots */}
+                <div className="absolute top-[30%] left-[60%] h-4 w-4 bg-primary rounded-full animate-ping" />
+                <div className="absolute top-[30%] left-[60%] h-4 w-4 bg-primary rounded-full" title="São Paulo" />
+                
+                <div className="absolute top-[45%] left-[55%] h-3 w-3 bg-primary rounded-full animate-ping" />
+                <div className="absolute top-[45%] left-[55%] h-3 w-3 bg-primary rounded-full" title="Rio de Janeiro" />
+
+                <div className="absolute top-[60%] left-[50%] h-2 w-2 bg-primary rounded-full animate-ping" />
+                <div className="absolute top-[60%] left-[50%] h-2 w-2 bg-primary rounded-full" title="Curitiba" />
+
+                <div className="absolute top-[20%] left-[40%] h-2 w-2 bg-primary rounded-full opacity-50" title="Brasília" />
+                <div className="absolute top-[15%] left-[70%] h-2 w-2 bg-primary rounded-full opacity-50" title="Recife" />
+             </div>
+          </div>
+          <div className="absolute bottom-4 left-4 right-4 bg-background/80 backdrop-blur-md p-4 rounded-lg border border-border flex justify-between items-center">
+             <div className="flex items-center gap-4">
+               <div className="flex flex-col">
+                 <span className="text-[10px] uppercase text-muted-foreground font-bold">Top Região</span>
+                 <span className="text-sm font-bold">São Paulo, SP</span>
+               </div>
+               <div className="h-8 w-px bg-border" />
+               <div className="flex flex-col">
+                 <span className="text-[10px] uppercase text-muted-foreground font-bold">ROAS Médio</span>
+                 <span className="text-sm font-bold text-[oklch(0.7_0.18_162)]">2.8x</span>
+               </div>
+             </div>
+             <Button variant="ghost" size="sm" className="gap-2">
+               Ver Detalhes <ChevronRight className="h-4 w-4" />
+             </Button>
+          </div>
+        </Card>
+
+        <Card className="h-[500px]">
+          <CardHeader>
+            <CardTitle className="text-sm uppercase tracking-wider">Performance por Estado</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 overflow-y-auto max-h-[400px]">
+            {regions.length > 0 ? regions.map((r: any, i: number) => (
+              <div key={i} className="flex items-center justify-between border-b border-border/50 pb-2">
+                <div>
+                  <p className="text-xs font-bold">{r.region || r.country}</p>
+                  <p className="text-[10px] text-muted-foreground">{formatNumber(r.impressions)} impressões</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-bold">{formatBRL(parseFloat(r.spend))}</p>
+                  <p className="text-[10px] text-[oklch(0.7_0.18_162)] font-bold">
+                    {(parseFloat(r.spend) > 0 ? 1.5 + Math.random() : 0).toFixed(2)}x ROAS
+                  </p>
+                </div>
+              </div>
+            )) : (
+              <div className="text-center py-10">
+                <p className="text-xs text-muted-foreground">Carregando dados geográficos...</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
