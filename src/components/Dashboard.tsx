@@ -1262,6 +1262,13 @@ function Escalas({ camps, campConv }: { camps: any[]; campConv: any[] }) {
   const [active, setActive] = useState<ScaleStrategy | null>(null);
   const [duplicateOpen, setDuplicateOpen] = useState<{ preselected?: string } | null>(null);
 
+  const recommendations = useMemo(
+    () => generateRecommendations(campConv, camps, { roasTarget: 2, cpaTarget: 10 }),
+    [campConv, camps],
+  );
+
+  const opportunities = recommendations.filter((r) => r.severity === "opportunity");
+
   return (
     <div className="space-y-6">
       <div className="rounded-xl border-2 border-primary/40 bg-gradient-to-br from-primary/15 via-chart-4/10 to-card p-5">
@@ -1312,6 +1319,16 @@ function Escalas({ camps, campConv }: { camps: any[]; campConv: any[] }) {
           </button>
         ))}
       </div>
+
+      {opportunities.length > 0 && (
+        <div className="mt-12">
+          <RecommendationsPanel
+            recommendations={opportunities}
+            camps={camps}
+            campConv={campConv}
+          />
+        </div>
+      )}
 
       {active && <ScaleModal strategy={active} onClose={() => setActive(null)} />}
       {duplicateOpen && (
@@ -1582,6 +1599,13 @@ const SCALE_PLAYBOOKS: Record<string, { audience: string; creatives: string; pos
     postLaunch: ["Cheque ROAS e frequência a cada 3-4 dias", "Se ROAS > 2.5x e freq < 3: +20%", "Se freq ≥ 3: refresh criativo antes de escalar"],
     killRule: "ROAS < 2 OU frequência ≥ 4",
     scaleRule: "+20% a cada 3-4 dias condicional a ROAS+freq",
+  },
+  ia_opt: {
+    audience: "Mantenha os públicos que já estão com ROAS > Target.",
+    creatives: "Refresh criativo somente se a frequência subir acima de 3.",
+    postLaunch: ["Aplique as recomendações de 'Oportunidade' da Dashboard", "Acompanhe o impacto estimado no painel de Auditoria", "Mantenha o budget se o ROAS projetado for saudável"],
+    killRule: "ROAS real cair abaixo de 1.5x por 3 dias seguidos",
+    scaleRule: "Seguir a sugestão da IA (+20% a +50% dependendo do ROAS)",
   },
 };
 

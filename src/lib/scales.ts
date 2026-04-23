@@ -104,4 +104,14 @@ export const SCALE_STRATEGIES: ScaleStrategy[] = [
     defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 25000, namePrefix: "ANDRO", status: "ACTIVE" },
     color: "from-violet-500 to-fuchsia-500",
   },
+  {
+    id: "ia_opt",
+    name: "IA Otimizada",
+    emoji: "🔮",
+    shortDesc: "Escala via motor de recomendações IA. +20% em winners reais.",
+    fullDesc:
+      "Deixe nosso algoritmo de IA identificar os vencedores reais (com base em ROAS e CPA) e sugerir o aumento de verba ideal para escalar sem perder a mão.",
+    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 15000, namePrefix: "IA_OPT", status: "ACTIVE" },
+    color: "from-blue-600 to-indigo-600",
+  },
 ];
