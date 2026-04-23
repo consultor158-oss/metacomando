@@ -1262,6 +1262,13 @@ function Escalas({ camps, campConv }: { camps: any[]; campConv: any[] }) {
   const [active, setActive] = useState<ScaleStrategy | null>(null);
   const [duplicateOpen, setDuplicateOpen] = useState<{ preselected?: string } | null>(null);
 
+  const recommendations = useMemo(
+    () => generateRecommendations(campConv, camps, { roasTarget: 2, cpaTarget: 10 }),
+    [campConv, camps],
+  );
+
+  const opportunities = recommendations.filter((r) => r.severity === "opportunity");
+
   return (
     <div className="space-y-6">
       <div className="rounded-xl border-2 border-primary/40 bg-gradient-to-br from-primary/15 via-chart-4/10 to-card p-5">
