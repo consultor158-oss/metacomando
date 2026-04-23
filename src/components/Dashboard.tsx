@@ -122,6 +122,7 @@ export function Dashboard() {
   const [tab, setTab] = useState<Tab>("overview");
   const [datePreset, setDatePreset] = useState("last_7d");
   const [onlyActive, setOnlyActive] = useState(true);
+  const [waModalOpen, setWaModalOpen] = useState(false);
   const qc = useQueryClient();
 
   const stale = STALE_BY_PERIOD[datePreset] ?? 5 * 60_000;
