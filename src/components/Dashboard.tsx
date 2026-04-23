@@ -22,7 +22,6 @@ import {
   DollarSign,
   Target,
   Map as MapIcon,
-  Bell,
   Activity,
   ZapOff
 } from "lucide-react";
