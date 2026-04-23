@@ -184,6 +184,17 @@ export const updateBudget = createServerFn({ method: "POST" })
     }
   });
 
+// ==================== GET PAGES ====================
+export const getPages = createServerFn({ method: "GET" })
+  .handler(async () => {
+    try {
+      const pages = await metaFetch("me/accounts", { fields: "id,name,access_token,category,picture" });
+      return { ok: true as const, data: pages.data ?? [] };
+    } catch (e) {
+      return { ...errorPayload(e), data: [] as any[] };
+    }
+  });
+
 // ==================== CREATE CAMPAIGN (used by scale strategies) ====================
 // ==================== CREATE FULL SCALE (Campaign + AdSet + Ad) ====================
 export const createFullScale = createServerFn({ method: "POST" })
@@ -194,6 +205,8 @@ export const createFullScale = createServerFn({ method: "POST" })
       status?: "ACTIVE" | "PAUSED";
       dailyBudgetCents?: number;
       strategy?: string;
+      pageId?: string;
+      destination?: "WHATSAPP" | "SALES";
       creatives?: Array<{
         primaryText: string;
         headline: string;
