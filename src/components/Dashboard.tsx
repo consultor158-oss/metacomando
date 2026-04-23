@@ -1616,7 +1616,17 @@ const SCALE_PLAYBOOKS: Record<string, { audience: string; creatives: string; pos
   },
 };
 
-function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: () => void }) {
+function ScaleModal({
+  strategy,
+  onClose,
+  camps,
+  campConv,
+}: {
+  strategy: ScaleStrategy;
+  onClose: () => void;
+  camps: any[];
+  campConv: any[];
+}) {
   const playbook = SCALE_PLAYBOOKS[strategy.id] ?? SCALE_PLAYBOOKS.abo;
   const [step, setStep] = useState(1);
   const totalSteps = 5;
