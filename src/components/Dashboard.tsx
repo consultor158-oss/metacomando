@@ -20,7 +20,11 @@ import {
   Eye,
   MousePointer2,
   DollarSign,
-  Target
+  Target,
+  Map as MapIcon,
+  Bell,
+  Activity,
+  ZapOff
 } from "lucide-react";
 import {
   getAccountInfo,
