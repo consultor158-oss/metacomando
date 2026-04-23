@@ -303,7 +303,9 @@ export function Dashboard() {
             campConv={campConv.data?.ok ? campConv.data.data : []}
           />
         )}
+        {tab === "tutorial" && <TutorialTab />}
         {tab === "ia" && <IATab />}
+
         {tab === "automacao" && (
           <Automacao
             camps={camps}
