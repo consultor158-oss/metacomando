@@ -1126,12 +1126,64 @@ function CampaignControlRow({
             </button>
           </div>
         ) : (
-          <button
-            onClick={() => setEditing(true)}
-            className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:bg-accent"
-          >
-            💰 Editar budget
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setEditing(true)}
+              className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium hover:bg-accent"
+            >
+              💰 Editar budget
+            </button>
+            <select
+              className="rounded-md border border-border bg-card px-2 py-1.5 text-xs font-medium hover:bg-accent focus:outline-none"
+              onChange={(e) => {
+                const val = e.target.value;
+                if (!val) return;
+                
+                let newBudget: number;
+                if (val.startsWith("fixed:")) {
+                  newBudget = parseInt(val.split(":")[1]);
+                } else {
+                  const factor = parseFloat(val);
+                  newBudget = Math.round(currentBudget * factor * 100);
+                }
+
+                if (newBudget < 100) {
+                  toast.error("Budget mínimo R$ 1,00");
+                  return;
+                }
+                
+                toast.promise(
+                  updateBudget({
+                    data: { id: c.id, dailyBudgetCents: newBudget, type: "campaign" },
+                  }).then((res: any) => {
+                    if (!res.ok) throw new Error(res.error || "Erro ao escalar");
+                    qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
+                    return res;
+                  }),
+                  {
+                    loading: "Escalando...",
+                    success: `Budget alterado para ${formatBRL(newBudget / 100)}`,
+                    error: (err) => err.message,
+                  }
+                );
+                e.target.value = "";
+              }}
+            >
+              <option value="">🚀 Escala</option>
+              <option value="1.2">+20% (Vertical)</option>
+              <option value="1.5">+50% (Agressiva)</option>
+              <option value="2.0">Dobrar (x2)</option>
+              <option value="0.8">-20% (Reduzir)</option>
+              <option value="0.5">Metade (x0.5)</option>
+              <optgroup label="Presets Estratégia">
+                {SCALE_STRATEGIES.map((s) => (
+                  <option key={s.id} value={`fixed:${s.defaults.dailyBudgetCents}`}>
+                    {s.emoji} {s.name} ({formatBRL(s.defaults.dailyBudgetCents / 100)})
+                  </option>
+                ))}
+              </optgroup>
+            </select>
+          </div>
         )}
 
         {isActive ? (
