@@ -157,8 +157,8 @@ export function Dashboard() {
   });
 
   const acc = account.data?.ok ? account.data.data : null;
-  const insightsRows = insights.data?.ok ? insights.data.data : [];
-  const camps = campaigns.data?.ok ? campaigns.data.data : [];
+  const insightsRows = useMemo(() => (insights.data?.ok ? (insights.data.data as any[]) : []), [insights.data]);
+  const camps = useMemo(() => (campaigns.data?.ok ? (campaigns.data.data as any[]) : []), [campaigns.data]);
 
   // Detect token expired
   const tokenExpired =
@@ -2612,7 +2612,9 @@ function AdsetRow({ adset, onChanged }: { adset: any; onChanged: () => void }) {
                   type="number"
                   placeholder="0"
                   defaultValue={adset.adset_spend_limit?.min_daily_budget ? (adset.adset_spend_limit.min_daily_budget / 100) : ""}
-                  id={`min-${adset.id}`}
+                  onChange={(e) => {
+                    (adset as any)._pendingMin = e.target.value;
+                  }}
                   className="w-20 rounded border border-border bg-background px-2 py-0.5 text-xs"
                 />
               </div>
@@ -2625,7 +2627,9 @@ function AdsetRow({ adset, onChanged }: { adset: any; onChanged: () => void }) {
                   type="number"
                   placeholder="∞"
                   defaultValue={adset.adset_spend_limit?.max_daily_budget ? (adset.adset_spend_limit.max_daily_budget / 100) : ""}
-                  id={`max-${adset.id}`}
+                  onChange={(e) => {
+                    (adset as any)._pendingMax = e.target.value;
+                  }}
                   className="w-20 rounded border border-border bg-background px-2 py-0.5 text-xs"
                 />
               </div>
@@ -2633,8 +2637,8 @@ function AdsetRow({ adset, onChanged }: { adset: any; onChanged: () => void }) {
             <div className="mt-1 flex items-center justify-end gap-2">
               <button
                 onClick={async () => {
-                  const min = parseFloat((document.getElementById(`min-${adset.id}`) as HTMLInputElement).value);
-                  const max = parseFloat((document.getElementById(`max-${adset.id}`) as HTMLInputElement).value);
+                  const min = parseFloat((adset as any)._pendingMin ?? (adset.adset_spend_limit?.min_daily_budget ? (adset.adset_spend_limit.min_daily_budget / 100).toString() : ""));
+                  const max = parseFloat((adset as any)._pendingMax ?? (adset.adset_spend_limit?.max_daily_budget ? (adset.adset_spend_limit.max_daily_budget / 100).toString() : ""));
                   setBusy(true);
                   await Promise.all([
                     saveBudget(),
