@@ -67,7 +67,13 @@ export function Dashboard() {
   const creatives = useQuery({ queryKey: ["meta-creatives"], queryFn: () => getAccountCreatives() });
   const funnel = useQuery({ queryKey: ["meta-funnel"], queryFn: () => getConversionFunnel({ data: { datePreset: "last_30d" } }) });
 
-  const stats = insights.data?.ok ? insights.data.data[0] || {} : {};
+  const accountData = account.data?.ok ? account.data.data : null;
+  const campaignsData = campaigns.data?.ok ? campaigns.data.data : [];
+  const creativesData = creatives.data?.ok ? creatives.data.data : [];
+  const funnelData = funnel.data?.ok ? funnel.data.data : null;
+  const insightsData = insights.data?.ok ? insights.data.data : [];
+
+  const stats = insightsData[0] || {};
 
   return (
     <SidebarProvider>
@@ -167,7 +173,7 @@ export function Dashboard() {
                   {view === "settings" && "Configurações"}
                 </h1>
                 <p className="text-xs text-muted-foreground">
-                  {account.data?.ok ? `Conta: ${account.data.data.name}` : "Carregando conta..."}
+                  {accountData ? `Conta: ${accountData.name}` : "Carregando conta..."}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -180,20 +186,20 @@ export function Dashboard() {
           </header>
 
           <main className="flex-1 p-6 overflow-y-auto">
-            {view === "overview" && <OverviewTab stats={stats} funnel={funnel.data?.ok ? funnel.data.data : null} />}
-            {view === "campaigns" && <CampaignsTab campaigns={campaigns.data?.data || []} refresh={() => campaigns.refetch()} />}
+            {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} />}
+            {view === "campaigns" && <CampaignsTab campaigns={campaignsData} refresh={() => campaigns.refetch()} />}
             {view === "scales" && <ScalesTab />}
-            {view === "creatives" && <CreativesTab creatives={creatives.data?.data || []} />}
+            {view === "creatives" && <CreativesTab creatives={creativesData} />}
             {view === "automation" && <AutomationPlaceholder />}
-            {view === "tutorial" && <TutorialTab creatives={creatives.data?.data || []} />}
-            {view === "settings" && <SettingsTab account={account.data?.data} />}
+            {view === "tutorial" && <TutorialTab creatives={creativesData} />}
+            {view === "settings" && <SettingsTab account={accountData} />}
           </main>
         </SidebarInset>
 
         <WhatsAppModal 
           isOpen={isWAModalOpen} 
           onClose={() => setIsWAModalOpen(false)} 
-          accountId={account.data?.ok ? account.data.data.id : "default"} 
+          accountId={accountData ? accountData.id : "default"} 
         />
       </div>
     </SidebarProvider>
