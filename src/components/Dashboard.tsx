@@ -248,7 +248,7 @@ function WorldMap({ data }: { data: any[] }) {
        <div className="absolute top-4 left-4 z-10">
           <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <div className="h-2 w-2 bg-red-600 rounded-full animate-pulse" />
-            Distribuição Global Ativa
+            Distribuição em Tempo Real
           </h3>
           <p className="text-[10px] text-zinc-500 uppercase font-bold">Monitoramento em Tempo Real</p>
        </div>
@@ -283,12 +283,12 @@ function WorldMap({ data }: { data: any[] }) {
 
        <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md p-3 rounded-lg border border-white/10 flex items-center gap-4">
           <div className="flex flex-col">
-            <span className="text-[9px] text-zinc-400 uppercase font-bold">Alcance Global</span>
-            <span className="text-xs font-bold text-white">142 Países</span>
+            <span className="text-[9px] text-zinc-400 uppercase font-bold">Cobertura</span>
+            <span className="text-xs font-bold text-white">Todos os Estados</span>
           </div>
           <div className="h-6 w-px bg-white/10" />
           <div className="flex flex-col">
-            <span className="text-[9px] text-zinc-400 uppercase font-bold">ROAS Global</span>
+            <span className="text-[9px] text-zinc-400 uppercase font-bold">ROAS Médio</span>
             <span className="text-xs font-bold text-red-500">3.12x</span>
           </div>
        </div>
