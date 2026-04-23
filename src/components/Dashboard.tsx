@@ -57,6 +57,8 @@ import {
   updateAdName,
   updateAdsetStatus,
   updateAdsetBudget,
+  updateAdsetSpendLimit,
+  deleteCampaign,
 } from "../server/meta";
 import {
   loadCustomApis,
