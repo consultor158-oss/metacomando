@@ -85,6 +85,7 @@ import {
 } from "./ui/select";
 import { Label } from "./ui/label";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { Input } from "./ui/input";
 
 type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "tutorial" | "settings";
 
