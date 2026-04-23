@@ -113,217 +113,24 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
   { id: "automacao", label: "Automação", icon: Bell },
 ];
 
-
-// staleTime por período (período curto = atualiza mais)
-const STALE_BY_PERIOD: Record<string, number> = {
-  today: 60_000,           // 1 min
-  yesterday: 10 * 60_000,  // 10 min
-  last_7d: 5 * 60_000,     // 5 min
-  last_14d: 10 * 60_000,
-  last_30d: 15 * 60_000,
-  this_month: 5 * 60_000,
-};
-
-export function Dashboard() {
-  const [tab, setTab] = useState<Tab>("overview");
-  const [datePreset, setDatePreset] = useState("last_7d");
-  const [onlyActive, setOnlyActive] = useState(true);
-  const [waModalOpen, setWaModalOpen] = useState(false);
-  const qc = useQueryClient();
-
-  const stale = STALE_BY_PERIOD[datePreset] ?? 5 * 60_000;
-
-  const account = useQuery({
-    queryKey: ["meta-account"],
-    queryFn: () => getAccountInfo(),
-    staleTime: 30 * 60_000,
-  });
-
-  const insights = useQuery({
-    queryKey: ["meta-insights", datePreset],
-    queryFn: () => getAccountInsights({ data: { datePreset } }),
-    staleTime: stale,
-    refetchInterval: stale * 2,
-  });
-
-  const campaigns = useQuery({
-    queryKey: ["meta-campaigns", datePreset, onlyActive],
-    queryFn: () => getCampaigns({ data: { datePreset, onlyActive } }),
-    staleTime: stale,
-    refetchInterval: stale * 2,
-  });
-
-  const funnel = useQuery({
-    queryKey: ["meta-funnel", datePreset],
-    queryFn: () => getConversionFunnel({ data: { datePreset } }),
-    staleTime: stale,
-  });
-
-  const clickBreakdown = useQuery({
-    queryKey: ["meta-click-breakdown", datePreset],
-    queryFn: () => getClickBreakdown({ data: { datePreset } }),
-    staleTime: stale,
-  });
-
-  const campConv = useQuery({
-    queryKey: ["meta-camp-conv", datePreset, onlyActive],
-    queryFn: () => getCampaignsConversion({ data: { datePreset, onlyActive } }),
-    staleTime: stale,
-  });
-
-  const acc = account.data?.ok ? account.data.data : null;
-  const insightsRows = useMemo(() => (insights.data?.ok ? (insights.data.data as any[]) : []), [insights.data]);
-  const camps = useMemo(() => (campaigns.data?.ok ? (campaigns.data.data as any[]) : []), [campaigns.data]);
-
-  // Detect token expired
-  const tokenExpired =
-    (account.data && !account.data.ok && (account.data as any).is_token_expired) ||
-    (insights.data && !insights.data.ok && (insights.data as any).is_token_expired) ||
-    (campaigns.data && !campaigns.data.ok && (campaigns.data as any).is_token_expired);
-
-  const apiError =
-    (account.data && !account.data.ok && account.data.error) ||
-    (insights.data && !insights.data.ok && insights.data.error) ||
-    (campaigns.data && !campaigns.data.ok && campaigns.data.error) ||
-    null;
-
-  // Aggregate KPIs
-  const totals = useMemo(
-    () =>
-      (insightsRows as any[]).reduce(
-        (acc: any, r: any) => {
-          const purchases =
-            (r.actions ?? []).find((a: any) => a.action_type === "purchase")?.value || "0";
-          const purchaseValue =
-            (r.action_values ?? []).find((a: any) => a.action_type === "purchase")?.value || "0";
-          acc.spend += parseFloat(r.spend || "0");
-          acc.impressions += parseInt(r.impressions || "0");
-          acc.clicks += parseInt(r.clicks || "0");
-          acc.conversions += parseFloat(purchases);
-          acc.revenue += parseFloat(purchaseValue);
-          return acc;
-        },
-        { spend: 0, impressions: 0, clicks: 0, conversions: 0, revenue: 0 },
-      ),
-    [insightsRows],
-  );
-
-  const overallROAS = totals.spend > 0 ? totals.revenue / totals.spend : 0;
-  const overallCPA = totals.conversions > 0 ? totals.spend / totals.conversions : 0;
-  const overallCTR = totals.impressions > 0 ? (totals.clicks / totals.impressions) * 100 : 0;
-
-  const refreshAll = async () => {
-    toast.info("Atualizando dados Meta…");
-    await Promise.all([
-      qc.invalidateQueries({ queryKey: ["meta-account"] }),
-      qc.invalidateQueries({ queryKey: ["meta-insights"] }),
-      qc.invalidateQueries({ queryKey: ["meta-campaigns"] }),
-      qc.invalidateQueries({ queryKey: ["meta-funnel"] }),
-      qc.invalidateQueries({ queryKey: ["meta-click-breakdown"] }),
-      qc.invalidateQueries({ queryKey: ["meta-camp-conv"] }),
-    ]);
-    toast.success("Dados atualizados!");
+function StatusBadge({ status }: { status: string }) {
+  const s = (status || "").toUpperCase();
+  const map: Record<string, string> = {
+    ACTIVE: "bg-emerald-500/10 text-emerald-500",
+    PAUSED: "bg-amber-500/10 text-amber-500",
+    APPROVED: "bg-emerald-500/10 text-emerald-500",
+    PENDING: "bg-blue-500/10 text-blue-500",
+    REJECTED: "bg-destructive/10 text-destructive",
   };
-
-  const anyLoading =
-    account.isFetching ||
-    insights.isFetching ||
-    campaigns.isFetching ||
-    funnel.isFetching ||
-    clickBreakdown.isFetching ||
-    campConv.isFetching;
-
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Header
-        acc={acc}
-        datePreset={datePreset}
-        onDatePreset={setDatePreset}
-        onlyActive={onlyActive}
-        onOnlyActive={setOnlyActive}
-        onRefresh={refreshAll}
-        onWhatsAppClick={() => setWaModalOpen(true)}
-        loading={anyLoading}
-      />
-
-      <WhatsAppModal 
-        isOpen={waModalOpen} 
-        onClose={() => setWaModalOpen(false)} 
-        accountId={acc?.id || "global"} 
-      />
-
-      {tokenExpired && <TokenExpiredBanner msg={apiError || ""} />}
-      {!tokenExpired && apiError && <ApiErrorBanner msg={apiError} onRefresh={refreshAll} />}
-
-      <Tabs current={tab} onChange={setTab} />
-
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {tab === "overview" && (
-          <Overview
-            totals={totals}
-            roas={overallROAS}
-            cpa={overallCPA}
-            ctr={overallCTR}
-            insightsRows={insightsRows}
-            camps={camps}
-            loadingInsights={insights.isFetching}
-            loadingCampaigns={campaigns.isFetching}
-            onRefreshInsights={() => qc.invalidateQueries({ queryKey: ["meta-insights", datePreset] })}
-            onRefreshCampaigns={() => qc.invalidateQueries({ queryKey: ["meta-campaigns"] })}
-          />
-        )}
-        {tab === "analise" && (
-          <Analise
-            camps={camps}
-            totals={totals}
-            loading={campaigns.isFetching}
-            funnel={funnel.data?.ok ? funnel.data.data : null}
-            funnelLoading={funnel.isFetching}
-            breakdown={clickBreakdown.data?.ok ? clickBreakdown.data.data : []}
-            breakdownLoading={clickBreakdown.isFetching}
-            campConv={campConv.data?.ok ? campConv.data.data : []}
-            campConvLoading={campConv.isFetching}
-            onRefresh={() => {
-              qc.invalidateQueries({ queryKey: ["meta-funnel"] });
-              qc.invalidateQueries({ queryKey: ["meta-click-breakdown"] });
-              qc.invalidateQueries({ queryKey: ["meta-camp-conv"] });
-            }}
-          />
-        )}
-        {tab === "controle" && (
-          <Controle
-            camps={camps}
-            loading={campaigns.isFetching}
-            onRefresh={() => qc.invalidateQueries({ queryKey: ["meta-campaigns"] })}
-          />
-        )}
-        {tab === "escalas" && (
-          <Escalas
-            camps={camps}
-            campConv={campConv.data?.ok ? campConv.data.data : []}
-          />
-        )}
-        {tab === "tutorial" && <TutorialTab />}
-        {tab === "ia" && <IATab />}
-
-        {tab === "automacao" && (
-          <Automacao
-            camps={camps}
-            campConv={campConv.data?.ok ? campConv.data.data : []}
-            roas={overallROAS}
-          />
-        )}
-      </main>
-
-      <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
-        Meta Ads Dashboard • Graph API v21.0 • cache por período • período atual: {datePreset}
-      </footer>
-    </div>
+    <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${map[s] || "bg-muted text-muted-foreground"}`}>
+      {s}
+    </span>
   );
 }
 
-// ============== HEADER ==============
-function Header({ acc, datePreset, onDatePreset, onlyActive, onOnlyActive, onRefresh, onWhatsAppClick, loading }: any) {
+// ... rest of the file
+
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-lg">
       <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
