@@ -1138,28 +1138,34 @@ function CampaignControlRow({
               onChange={(e) => {
                 const val = e.target.value;
                 if (!val) return;
-                const factor = parseFloat(val);
-                if (!isNaN(factor)) {
-                  const newBudget = Math.round(currentBudget * factor * 100);
-                  if (newBudget < 100) {
-                    toast.error("Budget mínimo R$ 1,00");
-                    return;
-                  }
-                  toast.promise(
-                    updateBudget({
-                      data: { id: c.id, dailyBudgetCents: newBudget, type: "campaign" },
-                    }).then((res: any) => {
-                      if (!res.ok) throw new Error(res.error || "Erro ao escalar");
-                      qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
-                      return res;
-                    }),
-                    {
-                      loading: "Escalando...",
-                      success: `Budget alterado para ${formatBRL(newBudget / 100)}`,
-                      error: (err) => err.message,
-                    }
-                  );
+                
+                let newBudget: number;
+                if (val.startsWith("fixed:")) {
+                  newBudget = parseInt(val.split(":")[1]);
+                } else {
+                  const factor = parseFloat(val);
+                  newBudget = Math.round(currentBudget * factor * 100);
                 }
+
+                if (newBudget < 100) {
+                  toast.error("Budget mínimo R$ 1,00");
+                  return;
+                }
+                
+                toast.promise(
+                  updateBudget({
+                    data: { id: c.id, dailyBudgetCents: newBudget, type: "campaign" },
+                  }).then((res: any) => {
+                    if (!res.ok) throw new Error(res.error || "Erro ao escalar");
+                    qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
+                    return res;
+                  }),
+                  {
+                    loading: "Escalando...",
+                    success: `Budget alterado para ${formatBRL(newBudget / 100)}`,
+                    error: (err) => err.message,
+                  }
+                );
                 e.target.value = "";
               }}
             >
@@ -1171,7 +1177,7 @@ function CampaignControlRow({
               <option value="0.5">Metade (x0.5)</option>
               <optgroup label="Presets Estratégia">
                 {SCALE_STRATEGIES.map((s) => (
-                  <option key={s.id} value={String(s.defaults.dailyBudgetCents / (currentBudget * 100))}>
+                  <option key={s.id} value={`fixed:${s.defaults.dailyBudgetCents}`}>
                     {s.emoji} {s.name} ({formatBRL(s.defaults.dailyBudgetCents / 100)})
                   </option>
                 ))}
