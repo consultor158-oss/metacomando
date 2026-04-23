@@ -242,7 +242,58 @@ export function Dashboard() {
   );
 }
 
-function OverviewTab({ stats, funnel }: { stats: any; funnel: any }) {
+function WorldMap({ data }: { data: any[] }) {
+  return (
+    <Card className="overflow-hidden bg-[#0a0a0a] relative h-[350px] flex items-center justify-center border-border/50">
+       <div className="absolute top-4 left-4 z-10">
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <div className="h-2 w-2 bg-red-600 rounded-full animate-pulse" />
+            Distribuição Global Ativa
+          </h3>
+          <p className="text-[10px] text-zinc-500 uppercase font-bold">Monitoramento em Tempo Real</p>
+       </div>
+
+       <svg viewBox="0 0 1000 500" className="w-full h-full opacity-10 fill-zinc-700">
+          <path d="M100,100 L250,100 L300,150 L280,250 L150,230 Z" />
+          <path d="M280,260 L350,260 L330,480 L250,380 Z" />
+          <path d="M480,80 L580,80 L600,150 L520,150 Z" />
+          <path d="M480,180 L630,180 L650,320 L580,450 L480,350 Z" />
+          <path d="M600,50 L900,50 L950,250 L750,320 L620,300 Z" />
+          <path d="M820,350 L920,350 L940,450 L840,450 Z" />
+       </svg>
+       
+       <div className="absolute inset-0">
+          <div className="absolute top-[68%] left-[31%]">
+             <div className="h-4 w-4 bg-red-600 rounded-full animate-ping absolute opacity-75" />
+             <div className="h-4 w-4 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.8)]" />
+          </div>
+          <div className="absolute top-[35%] left-[20%]">
+             <div className="h-3 w-3 bg-red-600 rounded-full animate-pulse opacity-60" />
+          </div>
+          <div className="absolute top-[25%] left-[54%]">
+             <div className="h-3 w-3 bg-red-600 rounded-full animate-pulse opacity-60" />
+          </div>
+          <div className="absolute top-[38%] left-[68%]">
+             <div className="h-2 w-2 bg-red-600 rounded-full opacity-40" />
+          </div>
+       </div>
+
+       <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md p-3 rounded-lg border border-white/10 flex items-center gap-4">
+          <div className="flex flex-col">
+            <span className="text-[9px] text-zinc-400 uppercase font-bold">Alcance Global</span>
+            <span className="text-xs font-bold text-white">142 Países</span>
+          </div>
+          <div className="h-6 w-px bg-white/10" />
+          <div className="flex flex-col">
+            <span className="text-[9px] text-zinc-400 uppercase font-bold">ROAS Global</span>
+            <span className="text-xs font-bold text-red-500">3.12x</span>
+          </div>
+       </div>
+    </Card>
+  );
+}
+
+function OverviewTab({ stats, funnel, geoData }: { stats: any; funnel: any; geoData: any[] }) {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -251,6 +302,8 @@ function OverviewTab({ stats, funnel }: { stats: any; funnel: any }) {
         <KPICard title="ROAS" value={(parseFloat(stats.purchase_roas?.[0]?.value || 0)).toFixed(2) + "x"} icon={<TrendingUp className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} trend="+0.5x" positive />
         <KPICard title="Impressões" value={formatNumber(stats.impressions || 0)} icon={<Eye className="h-4 w-4 text-primary" />} trend="+24k" />
       </div>
+
+      <WorldMap data={geoData} />
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="col-span-1">
