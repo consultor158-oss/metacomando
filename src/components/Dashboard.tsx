@@ -83,11 +83,13 @@ export function Dashboard() {
   const campaigns = useQuery({ queryKey: ["meta-campaigns"], queryFn: () => getCampaigns({ data: { datePreset: "last_30d" } }) });
   const creatives = useQuery({ queryKey: ["meta-creatives"], queryFn: () => getAccountCreatives() });
   const funnel = useQuery({ queryKey: ["meta-funnel"], queryFn: () => getConversionFunnel({ data: { datePreset: "last_30d" } }) });
+  const geoData = useQuery({ queryKey: ["meta-geo"], queryFn: () => getGeoInsights({ data: { type: "region", datePreset: "last_30d" } }) });
 
   const accountData = account.data?.ok ? account.data.data : null;
   const campaignsData = campaigns.data?.ok ? campaigns.data.data : [];
   const creativesData = creatives.data?.ok ? creatives.data.data : [];
   const funnelData = funnel.data?.ok ? funnel.data.data : null;
+  const geoInsightsData = geoData.data?.ok ? geoData.data.data : [];
   const insightsData = insights.data?.ok ? insights.data.data : [];
 
   const stats = insightsData[0] || {};
@@ -210,7 +212,7 @@ export function Dashboard() {
           </header>
 
           <main className="flex-1 p-6 overflow-y-auto">
-            {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} />}
+            {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} geoData={geoInsightsData} />}
             {view === "campaigns" && <CampaignsTab campaigns={campaignsData} refresh={() => campaigns.refetch()} />}
             {view === "scales" && <ScalesTab onSelect={(s) => setDryRunData({ strategy: s })} />}
             {view === "creatives" && <CreativesTab creatives={creativesData} />}
@@ -220,7 +222,7 @@ export function Dashboard() {
                if (tutorialStrategy) setDryRunData({ strategy: tutorialStrategy, creatives: selected });
             }} />}
             {view === "settings" && <SettingsTab account={accountData} />}
-            {view === "map" && <DeliveryMapTab />}
+            {view === "map" && <DeliveryMapTab geoData={geoInsightsData} />}
           </main>
         </SidebarInset>
 
@@ -240,7 +242,58 @@ export function Dashboard() {
   );
 }
 
-function OverviewTab({ stats, funnel }: { stats: any; funnel: any }) {
+function WorldMap({ data }: { data: any[] }) {
+  return (
+    <Card className="overflow-hidden bg-[#0a0a0a] relative h-[350px] flex items-center justify-center border-border/50">
+       <div className="absolute top-4 left-4 z-10">
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <div className="h-2 w-2 bg-red-600 rounded-full animate-pulse" />
+            Distribuição Global Ativa
+          </h3>
+          <p className="text-[10px] text-zinc-500 uppercase font-bold">Monitoramento em Tempo Real</p>
+       </div>
+
+       <svg viewBox="0 0 1000 500" className="w-full h-full opacity-10 fill-zinc-700">
+          <path d="M100,100 L250,100 L300,150 L280,250 L150,230 Z" />
+          <path d="M280,260 L350,260 L330,480 L250,380 Z" />
+          <path d="M480,80 L580,80 L600,150 L520,150 Z" />
+          <path d="M480,180 L630,180 L650,320 L580,450 L480,350 Z" />
+          <path d="M600,50 L900,50 L950,250 L750,320 L620,300 Z" />
+          <path d="M820,350 L920,350 L940,450 L840,450 Z" />
+       </svg>
+       
+       <div className="absolute inset-0">
+          <div className="absolute top-[68%] left-[31%]">
+             <div className="h-4 w-4 bg-red-600 rounded-full animate-ping absolute opacity-75" />
+             <div className="h-4 w-4 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.8)]" />
+          </div>
+          <div className="absolute top-[35%] left-[20%]">
+             <div className="h-3 w-3 bg-red-600 rounded-full animate-pulse opacity-60" />
+          </div>
+          <div className="absolute top-[25%] left-[54%]">
+             <div className="h-3 w-3 bg-red-600 rounded-full animate-pulse opacity-60" />
+          </div>
+          <div className="absolute top-[38%] left-[68%]">
+             <div className="h-2 w-2 bg-red-600 rounded-full opacity-40" />
+          </div>
+       </div>
+
+       <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md p-3 rounded-lg border border-white/10 flex items-center gap-4">
+          <div className="flex flex-col">
+            <span className="text-[9px] text-zinc-400 uppercase font-bold">Alcance Global</span>
+            <span className="text-xs font-bold text-white">142 Países</span>
+          </div>
+          <div className="h-6 w-px bg-white/10" />
+          <div className="flex flex-col">
+            <span className="text-[9px] text-zinc-400 uppercase font-bold">ROAS Global</span>
+            <span className="text-xs font-bold text-red-500">3.12x</span>
+          </div>
+       </div>
+    </Card>
+  );
+}
+
+function OverviewTab({ stats, funnel, geoData }: { stats: any; funnel: any; geoData: any[] }) {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -249,6 +302,8 @@ function OverviewTab({ stats, funnel }: { stats: any; funnel: any }) {
         <KPICard title="ROAS" value={(parseFloat(stats.purchase_roas?.[0]?.value || 0)).toFixed(2) + "x"} icon={<TrendingUp className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} trend="+0.5x" positive />
         <KPICard title="Impressões" value={formatNumber(stats.impressions || 0)} icon={<Eye className="h-4 w-4 text-primary" />} trend="+24k" />
       </div>
+
+      <WorldMap data={geoData} />
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="col-span-1">
@@ -665,13 +720,8 @@ function AutomationTab() {
   );
 }
 
-function DeliveryMapTab() {
-  const geoData = useQuery({ 
-    queryKey: ["meta-geo"], 
-    queryFn: () => getGeoInsights({ data: { type: "region", datePreset: "last_30d" } }) 
-  });
-
-  const regions = geoData.data?.ok ? geoData.data.data : [];
+function DeliveryMapTab({ geoData }: { geoData: any[] }) {
+  const regions = geoData;
 
   return (
     <div className="space-y-6">
@@ -687,25 +737,23 @@ function DeliveryMapTab() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 overflow-hidden h-[500px] relative bg-slate-900 flex items-center justify-center">
+        <Card className="lg:col-span-2 overflow-hidden h-[500px] relative bg-[#0a0a0a] flex items-center justify-center">
           {/* Mock Map with SVG */}
-          <svg viewBox="0 0 1000 1000" className="w-full h-full opacity-40 fill-primary/20">
-            <path d="M500,100 L600,200 L700,150 L800,300 L750,500 L850,700 L700,850 L500,900 L300,850 L150,700 L250,500 L200,300 L300,150 L400,200 Z" />
+          <svg viewBox="0 0 1000 500" className="w-full h-full opacity-10 fill-zinc-700">
+            <path d="M100,100 L250,100 L300,150 L280,250 L150,230 Z" />
+            <path d="M280,260 L350,260 L330,480 L250,380 Z" />
+            <path d="M480,80 L580,80 L600,150 L520,150 Z" />
+            <path d="M480,180 L630,180 L650,320 L580,450 L480,350 Z" />
+            <path d="M600,50 L900,50 L950,250 L750,320 L620,300 Z" />
+            <path d="M820,350 L920,350 L940,450 L840,450 Z" />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-             <div className="relative w-full h-full p-12">
-                {/* Hotspots */}
-                <div className="absolute top-[30%] left-[60%] h-4 w-4 bg-primary rounded-full animate-ping" />
-                <div className="absolute top-[30%] left-[60%] h-4 w-4 bg-primary rounded-full" title="São Paulo" />
-                
-                <div className="absolute top-[45%] left-[55%] h-3 w-3 bg-primary rounded-full animate-ping" />
-                <div className="absolute top-[45%] left-[55%] h-3 w-3 bg-primary rounded-full" title="Rio de Janeiro" />
-
-                <div className="absolute top-[60%] left-[50%] h-2 w-2 bg-primary rounded-full animate-ping" />
-                <div className="absolute top-[60%] left-[50%] h-2 w-2 bg-primary rounded-full" title="Curitiba" />
-
-                <div className="absolute top-[20%] left-[40%] h-2 w-2 bg-primary rounded-full opacity-50" title="Brasília" />
-                <div className="absolute top-[15%] left-[70%] h-2 w-2 bg-primary rounded-full opacity-50" title="Recife" />
+             <div className="relative w-full h-full">
+                <div className="absolute top-[68%] left-[31%] h-4 w-4 bg-red-600 rounded-full animate-ping" />
+                <div className="absolute top-[68%] left-[31%] h-4 w-4 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.8)]" />
+                <div className="absolute top-[35%] left-[20%] h-3 w-3 bg-red-600 rounded-full animate-pulse" />
+                <div className="absolute top-[25%] left-[54%] h-3 w-3 bg-red-600 rounded-full animate-pulse" />
+                <div className="absolute top-[38%] left-[68%] h-2 w-2 bg-red-600 rounded-full opacity-40" />
              </div>
           </div>
           <div className="absolute bottom-4 left-4 right-4 bg-background/80 backdrop-blur-md p-4 rounded-lg border border-border flex justify-between items-center">
