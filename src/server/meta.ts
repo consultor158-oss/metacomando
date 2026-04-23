@@ -466,6 +466,75 @@ export const getClickBreakdown = createServerFn({ method: "GET" })
       const res = await metaFetch(`${actId}/insights`, {
         date_preset: datePreset,
         level: "account",
+        fields: "spend,impressions,clicks,actions,action_values",
+        breakdowns: breakdown,
+      });
+      return { ok: true as const, data: res.data ?? [] };
+    } catch (e) {
+      return { ...errorPayload(e), data: [] as any[] };
+    }
+  });
+
+// ==================== GEOGRAPHIC BREAKDOWN ====================
+export const getGeoInsights = createServerFn({ method: "GET" })
+  .inputValidator((d: { datePreset?: string; type: "region" | "country" | "city" }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const { actId } = getCreds();
+      const datePreset = data.datePreset || "last_30d";
+      const res = await metaFetch(`${actId}/insights`, {
+        date_preset: datePreset,
+        level: "account",
+        fields: "spend,impressions,clicks,actions,action_values",
+        breakdowns: data.type,
+      });
+      return { ok: true as const, data: res.data ?? [] };
+    } catch (e) {
+      return { ...errorPayload(e), data: [] as any[] };
+    }
+  });
+
+// ==================== GET AD ACCOUNT CREATIVES ====================
+export const getAccountCreatives = createServerFn({ method: "GET" })
+  .handler(async () => {
+    try {
+      const { actId } = getCreds();
+      const res = await metaFetch(`${actId}/adcreatives`, {
+        fields: "id,name,image_url,thumbnail_url,object_story_spec,object_type,status",
+        limit: "100",
+      });
+      return { ok: true as const, data: res.data ?? [] };
+    } catch (e) {
+      return { ...errorPayload(e), data: [] as any[] };
+    }
+  });
+
+// ==================== UPLOAD IMAGE ====================
+export const uploadImage = createServerFn({ method: "POST" })
+  .inputValidator((d: { bytes: string; filename: string }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const { actId, token } = getCreds();
+      const body = new FormData();
+      body.append("bytes", data.bytes);
+      body.append("filename", data.filename);
+      body.append("access_token", token);
+
+      const res = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${actId}/adimages`, {
+        method: "POST",
+        body,
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error?.message || "Upload falhou");
+      return { ok: true as const, data: json };
+    } catch (e) {
+      return errorPayload(e);
+    }
+  });
+
+      const res = await metaFetch(`${actId}/insights`, {
+        date_preset: datePreset,
+        level: "account",
         breakdowns: breakdown,
         fields:
           "spend,impressions,clicks,inline_link_clicks,ctr,cpc,actions,action_values",
