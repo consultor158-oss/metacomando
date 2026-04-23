@@ -57,6 +57,8 @@ import {
   updateAdName,
   updateAdsetStatus,
   updateAdsetBudget,
+  updateAdsetSpendLimit,
+  deleteCampaign,
 } from "../server/meta";
 import {
   loadCustomApis,
@@ -556,18 +558,18 @@ function Overview({
       </div>
 
       <div className="rounded-xl border border-border bg-card p-5">
-        <SectionHeader title="Performance Diária" subtitle="Gasto vs Receita / ROAS / CPA" loading={loadingInsights} onRefresh={onRefreshInsights} />
-        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <div>
-            <ResponsiveContainer width="100%" height={250}>
+        <SectionHeader title="Performance Diária" subtitle="Gasto vs Receita nos últimos dias" loading={loadingInsights} onRefresh={onRefreshInsights} />
+        <div className="mt-4 grid gap-6 lg:grid-cols-2">
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="gradGasto" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="oklch(0.65 0.22 265)" stopOpacity={0.6} />
+                    <stop offset="5%" stopColor="oklch(0.65 0.22 265)" stopOpacity={0.3} />
                     <stop offset="95%" stopColor="oklch(0.65 0.22 265)" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="gradReceita" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="oklch(0.7 0.18 162)" stopOpacity={0.6} />
+                    <stop offset="5%" stopColor="oklch(0.7 0.18 162)" stopOpacity={0.3} />
                     <stop offset="95%" stopColor="oklch(0.7 0.18 162)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
@@ -604,6 +606,7 @@ function Overview({
     </div>
   );
 }
+
 
 function CampaignsTable({ camps, loading, onRefresh }: { camps: any[]; loading: boolean; onRefresh: () => void }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -1042,7 +1045,7 @@ function CampaignControlRow({
       updateBudget({
         data: { id: c.id, dailyBudgetCents: Math.round(budgetInput * 100), type: "campaign" },
       }),
-    onSuccess: (res) => {
+    onSuccess: (res: any) => {
       if (res.ok) {
         toast.success(`Orçamento atualizado: ${formatBRL(budgetInput)}/dia`);
         qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
@@ -1052,6 +1055,18 @@ function CampaignControlRow({
       }
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: () => deleteCampaign({ data: { campaignId: c.id } }),
+    onSuccess: (res: any) => {
+      if (res.ok) {
+        toast.success("Campanha excluída!");
+        qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
+      } else {
+        toast.error(res.error || "Erro ao excluir");
+      }
+    },
   });
 
   const [showDetails, setShowDetails] = useState(false);
@@ -1132,6 +1147,19 @@ function CampaignControlRow({
             <Play className="h-3 w-3" /> Ativar
           </button>
         )}
+
+        <button
+          onClick={() => {
+            if (confirm(`Tem certeza que deseja excluir permanentemente a campanha "${c.name}"?`)) {
+              deleteMut.mutate();
+            }
+          }}
+          disabled={deleteMut.isPending}
+          className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-destructive/20 bg-destructive/5 text-destructive hover:bg-destructive/10 disabled:opacity-50"
+          title="Excluir campanha"
+        >
+          {deleteMut.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+        </button>
       </div>
       {showDetails && (
         <CampaignDetailsModal campaignId={c.id} onClose={() => setShowDetails(false)} />
@@ -1139,6 +1167,7 @@ function CampaignControlRow({
     </div>
   );
 }
+
 
 function CreativeUpload() {
   const [files, setFiles] = useState<File[]>([]);
@@ -1566,6 +1595,19 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
   const [objective, setObjective] = useState(strategy.defaults.objective);
   const [status, setStatus] = useState<"ACTIVE" | "PAUSED">(strategy.defaults.status);
 
+  // Upload simulado de criativos para o checklist
+  const [uploadedCreatives, setUploadedCreatives] = useState<{
+    file: boolean;
+    primaryText: boolean;
+    headline: boolean;
+    cta: boolean;
+  }>({
+    file: false,
+    primaryText: false,
+    headline: false,
+    cta: false,
+  });
+
   // Checklist do passo "criativos"
   const [chk, setChk] = useState<Record<string, boolean>>({
     publico: false,
@@ -1573,7 +1615,23 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
     pixel: false,
     orcamento: false,
   });
+
+  // Efeito para marcar o checklist de criativos automaticamente
+  useEffect(() => {
+    const isReady = uploadedCreatives.file && 
+                    uploadedCreatives.primaryText && 
+                    uploadedCreatives.headline && 
+                    uploadedCreatives.cta;
+    if (isReady && !chk.criativo) {
+      setChk(c => ({ ...c, criativo: true }));
+      toast.success("✅ Criativos prontos no checklist!");
+    }
+  }, [uploadedCreatives, chk.criativo]);
+
+  const [applyBestTargeting, setApplyBestTargeting] = useState(true);
+
   const allChecked = Object.values(chk).every(Boolean);
+
 
   const qc = useQueryClient();
 
@@ -1726,33 +1784,97 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
 
         {/* STEP 3 — Checklist (público / criativo / pixel) */}
         {step === 3 && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <p className="text-xs text-muted-foreground">Marque quando estiver pronto. Tudo precisa estar ✓ pra subir com chance real de bater meta.</p>
 
-            <ChecklistItem
-              checked={chk.publico}
-              onToggle={() => setChk((c) => ({ ...c, publico: !c.publico }))}
-              title="Público definido"
-              hint={playbook.audience}
-            />
-            <ChecklistItem
-              checked={chk.criativo}
-              onToggle={() => setChk((c) => ({ ...c, criativo: !c.criativo }))}
-              title="Criativos prontos"
-              hint={playbook.creatives}
-            />
-            <ChecklistItem
-              checked={chk.pixel}
-              onToggle={() => setChk((c) => ({ ...c, pixel: !c.pixel }))}
-              title="Pixel/CAPI funcionando"
-              hint="Confirme eventos de Purchase/Lead chegando no Events Manager nas últimas 24h."
-            />
-            <ChecklistItem
-              checked={chk.orcamento}
-              onToggle={() => setChk((c) => ({ ...c, orcamento: !c.orcamento }))}
-              title="Orçamento de teste reservado"
-              hint={`Reserve pelo menos 7x o orçamento diário (R$ ${(budget * 7).toFixed(2)}) pra ter dado estatístico.`}
-            />
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+              <h4 className="mb-3 flex items-center gap-2 text-sm font-bold">
+                <Upload className="h-4 w-4" /> Alocação de Criativos
+              </h4>
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <button 
+                    onClick={() => setUploadedCreatives(u => ({ ...u, file: !u.file }))}
+                    className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${uploadedCreatives.file ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+                  >
+                    <div className={`flex h-4 w-4 items-center justify-center rounded-full border ${uploadedCreatives.file ? "bg-primary text-white" : "border-border"}`}>
+                      {uploadedCreatives.file ? "✓" : ""}
+                    </div>
+                    <p className="truncate text-xs font-bold">Imagem/Vídeo</p>
+                  </button>
+                  <button 
+                    onClick={() => setUploadedCreatives(u => ({ ...u, primaryText: !u.primaryText }))}
+                    className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${uploadedCreatives.primaryText ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+                  >
+                    <div className={`flex h-4 w-4 items-center justify-center rounded-full border ${uploadedCreatives.primaryText ? "bg-primary text-white" : "border-border"}`}>
+                      {uploadedCreatives.primaryText ? "✓" : ""}
+                    </div>
+                    <p className="truncate text-xs font-bold">Texto Principal</p>
+                  </button>
+                  <button 
+                    onClick={() => setUploadedCreatives(u => ({ ...u, headline: !u.headline }))}
+                    className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${uploadedCreatives.headline ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+                  >
+                    <div className={`flex h-4 w-4 items-center justify-center rounded-full border ${uploadedCreatives.headline ? "bg-primary text-white" : "border-border"}`}>
+                      {uploadedCreatives.headline ? "✓" : ""}
+                    </div>
+                    <p className="truncate text-xs font-bold">Headline</p>
+                  </button>
+                  <button 
+                    onClick={() => setUploadedCreatives(u => ({ ...u, cta: !u.cta }))}
+                    className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${uploadedCreatives.cta ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+                  >
+                    <div className={`flex h-4 w-4 items-center justify-center rounded-full border ${uploadedCreatives.cta ? "bg-primary text-white" : "border-border"}`}>
+                      {uploadedCreatives.cta ? "✓" : ""}
+                    </div>
+                    <p className="truncate text-xs font-bold">CTA</p>
+                  </button>
+                </div>
+                <p className="text-[10px] text-muted-foreground">💡 O checklist de criativo marcará automaticamente quando você selecionar os 4 acima.</p>
+              </div>
+            </div>
+            
+            <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={applyBestTargeting} 
+                  onChange={e => setApplyBestTargeting(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                <span className="text-xs font-bold">Otimizar Público (Retail/E-commerce)</span>
+              </label>
+              <p className="mt-1 text-[10px] text-muted-foreground ml-6">
+                Inclui "Compradores Envolvidos" e interesses em "Online Shopping" para maximizar ROAS.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <ChecklistItem
+                checked={chk.publico}
+                onToggle={() => setChk((c) => ({ ...c, publico: !c.publico }))}
+                title="Público definido"
+                hint={playbook.audience}
+              />
+              <ChecklistItem
+                checked={chk.criativo}
+                onToggle={() => setChk((c) => ({ ...c, criativo: !c.criativo }))}
+                title="Criativos prontos"
+                hint={playbook.creatives}
+              />
+              <ChecklistItem
+                checked={chk.pixel}
+                onToggle={() => setChk((c) => ({ ...c, pixel: !c.pixel }))}
+                title="Pixel/CAPI funcionando"
+                hint="Confirme eventos de Purchase/Lead chegando no Events Manager nas últimas 24h."
+              />
+              <ChecklistItem
+                checked={chk.orcamento}
+                onToggle={() => setChk((c) => ({ ...c, orcamento: !c.orcamento }))}
+                title="Orçamento de teste reservado"
+                hint={`Reserve pelo menos 7x o orçamento diário (R$ ${(budget * 7).toFixed(2)}) pra ter dado estatístico.`}
+              />
+            </div>
 
             {!allChecked && (
               <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-200">
@@ -1761,6 +1883,7 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
             )}
           </div>
         )}
+
 
         {/* STEP 4 — Revisar & Subir */}
         {step === 4 && (
@@ -2314,17 +2437,7 @@ function CampaignDetailsModal({ campaignId, onClose }: { campaignId: string; onC
               </Section>
 
               {/* Ads + Creatives */}
-              <Section title={`Anúncios e criativos (${data.ads.length})`}>
-                {data.ads.length === 0 ? (
-                  <Empty text="Nenhum anúncio" />
-                ) : (
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {data.ads.map((ad: any) => (
-                      <CreativeCard key={ad.id} ad={ad} onChanged={() => details.refetch()} />
-                    ))}
-                  </div>
-                )}
-              </Section>
+              <AdSection ads={data.ads} onChanged={() => details.refetch()} />
             </>
           )}
         </div>
@@ -2332,6 +2445,53 @@ function CampaignDetailsModal({ campaignId, onClose }: { campaignId: string; onC
     </div>
   );
 }
+
+function AdSection({ ads, onChanged }: { ads: any[]; onChanged: () => void }) {
+  const [page, setPage] = useState(1);
+  const pageSize = 6;
+  const totalPages = Math.ceil(ads.length / pageSize);
+  const start = (page - 1) * pageSize;
+  const currentAds = ads.slice(start, start + pageSize);
+
+  return (
+    <Section title={`Anúncios e criativos (${ads.length})`}>
+      {ads.length === 0 ? (
+        <Empty text="Nenhum anúncio" />
+      ) : (
+        <div className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {currentAds.map((ad: any) => (
+              <CreativeCard key={ad.id} ad={ad} onChanged={onChanged} />
+            ))}
+          </div>
+          
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 border-t border-border pt-4">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="rounded border border-border bg-card px-3 py-1 text-xs hover:bg-accent disabled:opacity-50"
+              >
+                Anterior
+              </button>
+              <span className="text-xs text-muted-foreground">
+                Página {page} de {totalPages}
+              </span>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="rounded border border-border bg-card px-3 py-1 text-xs hover:bg-accent disabled:opacity-50"
+              >
+                Próxima
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </Section>
+  );
+}
+
 
 function Mini({ label, value, highlight }: { label: string; value: string; highlight?: "good" | "warn" | "bad" }) {
   const tone =
@@ -2413,40 +2573,98 @@ function AdsetRow({ adset, onChanged }: { adset: any; onChanged: () => void }) {
         {adset.optimization_goal && <span>Otimização: {adset.optimization_goal}</span>}
         {adset.bid_amount && <span>• Bid: {formatBRL(parseInt(adset.bid_amount) / 100)}</span>}
         {!editing ? (
-          <span className="flex items-center gap-2">
-            • Budget:{" "}
-            {adset.daily_budget ? `${formatBRL(parseInt(adset.daily_budget) / 100)}/dia` : "—"}
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="flex items-center gap-2">
+              • Budget:{" "}
+              {adset.daily_budget ? `${formatBRL(parseInt(adset.daily_budget) / 100)}/dia` : "—"}
+            </span>
+            {adset.adset_spend_limit && (
+              <span className="flex items-center gap-2">
+                • Limite: Min {formatBRL(adset.adset_spend_limit.min_daily_budget / 100)} / Max {adset.adset_spend_limit.max_daily_budget ? formatBRL(adset.adset_spend_limit.max_daily_budget / 100) : "∞"}
+              </span>
+            )}
             <button
               onClick={() => setEditing(true)}
               className="rounded border border-border bg-card px-2 py-0.5 text-[10px] hover:bg-accent"
             >
-              Editar
+              Editar orç./limite
             </button>
-          </span>
+          </div>
         ) : (
-          <span className="flex items-center gap-1">
-            <span>R$</span>
-            <input
-              type="number"
-              value={budget}
-              onChange={(e) => setBudget(e.target.value)}
-              className="w-20 rounded border border-border bg-background px-2 py-0.5 text-xs"
-            />
-            <button
-              onClick={saveBudget}
-              disabled={busy}
-              className="rounded bg-primary px-2 py-0.5 text-[10px] text-primary-foreground hover:opacity-90 disabled:opacity-50"
-            >
-              Salvar
-            </button>
-            <button
-              onClick={() => setEditing(false)}
-              className="rounded border border-border bg-card px-2 py-0.5 text-[10px] hover:bg-accent"
-            >
-              Cancelar
-            </button>
-          </span>
+          <div className="flex flex-col gap-2 rounded border border-border bg-background p-2">
+            <div className="flex items-center gap-2">
+              <span className="w-20 text-[10px] font-bold uppercase">Budget dia</span>
+              <div className="flex items-center gap-1">
+                <span>R$</span>
+                <input
+                  type="number"
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                  className="w-20 rounded border border-border bg-background px-2 py-0.5 text-xs"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-20 text-[10px] font-bold uppercase">Mínimo dia</span>
+              <div className="flex items-center gap-1">
+                <span>R$</span>
+                <input
+                  type="number"
+                  placeholder="0"
+                  defaultValue={adset.adset_spend_limit?.min_daily_budget ? (adset.adset_spend_limit.min_daily_budget / 100) : ""}
+                  id={`min-${adset.id}`}
+                  className="w-20 rounded border border-border bg-background px-2 py-0.5 text-xs"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-20 text-[10px] font-bold uppercase">Máximo dia</span>
+              <div className="flex items-center gap-1">
+                <span>R$</span>
+                <input
+                  type="number"
+                  placeholder="∞"
+                  defaultValue={adset.adset_spend_limit?.max_daily_budget ? (adset.adset_spend_limit.max_daily_budget / 100) : ""}
+                  id={`max-${adset.id}`}
+                  className="w-20 rounded border border-border bg-background px-2 py-0.5 text-xs"
+                />
+              </div>
+            </div>
+            <div className="mt-1 flex items-center justify-end gap-2">
+              <button
+                onClick={async () => {
+                  const min = parseFloat((document.getElementById(`min-${adset.id}`) as HTMLInputElement).value);
+                  const max = parseFloat((document.getElementById(`max-${adset.id}`) as HTMLInputElement).value);
+                  setBusy(true);
+                  await Promise.all([
+                    saveBudget(),
+                    updateAdsetSpendLimit({ 
+                      data: { 
+                        adsetId: adset.id, 
+                        minDailyBRL: isNaN(min) ? undefined : min, 
+                        maxDailyBRL: isNaN(max) ? undefined : max 
+                      } 
+                    })
+                  ]);
+                  setBusy(false);
+                  setEditing(false);
+                  onChanged();
+                }}
+                disabled={busy}
+                className="rounded bg-primary px-3 py-1 text-[10px] text-primary-foreground hover:opacity-90 disabled:opacity-50"
+              >
+                Salvar tudo
+              </button>
+              <button
+                onClick={() => setEditing(false)}
+                className="rounded border border-border bg-card px-3 py-1 text-[10px] hover:bg-accent"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
         )}
+
       </div>
     </div>
   );
