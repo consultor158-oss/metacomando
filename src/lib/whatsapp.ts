@@ -1,26 +1,54 @@
 
+export type WhatsAppTrigger = {
+  metric: "ROAS" | "CPA" | "CTR" | "CVR";
+  operator: ">" | "<";
+  value: number;
+  enabled: boolean;
+};
+
 export type WhatsAppConfig = {
   number: string;
   quickMessages: string[];
   enableUtms: boolean;
+  triggers?: WhatsAppTrigger[];
+  alertSummaryEnabled?: boolean;
 };
 
 const KEY_PREFIX = "metacomando.whatsapp.v1.";
 
 export function getWhatsAppConfig(accountId: string): WhatsAppConfig {
   if (typeof window === "undefined") {
-    return { number: "", quickMessages: [], enableUtms: true };
+    return { number: "", quickMessages: [], enableUtms: true, triggers: [], alertSummaryEnabled: true };
   }
   const raw = localStorage.getItem(KEY_PREFIX + accountId);
   if (!raw) {
     // Fallback to legacy global number
     const globalNum = localStorage.getItem("whatsapp_number") || "";
-    return { number: globalNum, quickMessages: [], enableUtms: true };
+    return { 
+      number: globalNum, 
+      quickMessages: [], 
+      enableUtms: true, 
+      triggers: [
+        { metric: "ROAS", operator: "<", value: 2.0, enabled: true },
+        { metric: "CPA", operator: ">", value: 50, enabled: true }
+      ],
+      alertSummaryEnabled: true
+    };
   }
   try {
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (!parsed.triggers) {
+      parsed.triggers = [
+        { metric: "ROAS", operator: "<", value: 2.0, enabled: true },
+        { metric: "CPA", operator: ">", value: 50, enabled: true }
+      ];
+    }
+    if (parsed.alertSummaryEnabled === undefined) {
+      parsed.alertSummaryEnabled = true;
+    }
+    return parsed;
   } catch {
-    return { number: "", quickMessages: [], enableUtms: true };
+    return { number: "", quickMessages: [], enableUtms: true, triggers: [], alertSummaryEnabled: true };
   }
 }
 
