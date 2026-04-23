@@ -255,6 +255,8 @@ function WorldMap({ data }: { data: any[] }) {
 
        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-overlay" />
        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
+       <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0%,rgba(220,38,38,0.05)_50%,transparent_100%)] animate-[spin_8s_linear_infinite] pointer-events-none" />
+
 
        
        <div className="absolute inset-0">
