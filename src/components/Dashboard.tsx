@@ -24,7 +24,11 @@ import {
   Activity,
   ZapOff,
   CheckCircle2,
-  Clock
+  Clock,
+  Edit2,
+  Copy,
+  Trash2,
+  AlertCircle
 } from "lucide-react";
 import {
   getAccountInfo,
