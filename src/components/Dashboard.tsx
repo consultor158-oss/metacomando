@@ -1704,9 +1704,9 @@ function ScaleModal({
   const qc = useQueryClient();
 
   const create = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       if (strategy.id === "ia_opt" && bestRec) {
-        return duplicateCampaign({
+        const res = await duplicateCampaign({
           data: {
             sourceCampaignId: bestRec.campaignId,
             newName: name,
@@ -1714,6 +1714,8 @@ function ScaleModal({
             status,
           },
         });
+        if (!res.ok) return res;
+        return { ok: true as const, data: res.data, strategy: strategy.id };
       }
       return createCampaign({
         data: {
@@ -1727,11 +1729,11 @@ function ScaleModal({
     },
     onSuccess: (res) => {
       if (res.ok) {
-        toast.success(`Campanha "${name}" criada com sucesso via API!`);
+        toast.success(`✅ Campanha "${name}" enviada via API com sucesso!`);
         qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
         setStep(5);
       } else {
-        toast.error(res.error || "Erro ao subir campanha");
+        toast.error(res.error || "Erro ao processar escala via API");
       }
     },
   });
