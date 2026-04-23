@@ -447,7 +447,21 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
                   <div className="text-[10px] text-muted-foreground uppercase">{c.objective}</div>
                 </TableCell>
                 <TableCell>
-                  {c.daily_budget ? formatBRL(parseInt(c.daily_budget) / 100) : "N/A"}
+                  <div className="text-sm">
+                    {c.daily_budget ? (
+                      <div className="flex flex-col">
+                        <span>{formatBRL(parseInt(c.daily_budget) / 100)}</span>
+                        <span className="text-[9px] text-muted-foreground uppercase">Diário</span>
+                      </div>
+                    ) : c.lifetime_budget ? (
+                      <div className="flex flex-col">
+                        <span>{formatBRL(parseInt(c.lifetime_budget) / 100)}</span>
+                        <span className="text-[9px] text-muted-foreground uppercase">Vitalício</span>
+                      </div>
+                    ) : (
+                      "N/A"
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell>{formatBRL(c.spend)}</TableCell>
                 <TableCell className={`font-bold ${c.roas >= 2.5 ? 'text-[oklch(0.7_0.18_162)]' : 'text-blue-500'}`}>
