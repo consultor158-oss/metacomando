@@ -1058,7 +1058,7 @@ function CampaignControlRow({
 
   const deleteMut = useMutation({
     mutationFn: () => deleteCampaign({ data: { campaignId: c.id } }),
-    onSuccess: (res) => {
+    onSuccess: (res: any) => {
       if (res.ok) {
         toast.success("Campanha excluída!");
         qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
