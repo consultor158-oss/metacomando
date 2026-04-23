@@ -72,7 +72,7 @@ export function Dashboard() {
       <WhatsAppModal 
         isOpen={isWAModalOpen} 
         onClose={() => setIsWAModalOpen(false)} 
-        accountId={account.data?.id || "default"} 
+        accountId={account.data?.ok ? account.data.data.id : "default"} 
       />
     </div>
   );
