@@ -182,6 +182,7 @@ export function Dashboard() {
                   {view === "automation" && "Automação"}
                   {view === "tutorial" && "Tutorial Guiado"}
                   {view === "settings" && "Configurações"}
+                  {view === "map" && "Mapa de Criativos"}
                 </h1>
                 <p className="text-xs text-muted-foreground">
                   {accountData ? `Conta: ${accountData.name}` : "Carregando conta..."}
