@@ -253,29 +253,29 @@ function WorldMap({ data }: { data: any[] }) {
           <p className="text-[10px] text-zinc-500 uppercase font-bold">Monitoramento em Tempo Real</p>
        </div>
 
-       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-overlay" />
+       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596436889106-be35e843f974?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-30 mix-blend-overlay" />
        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
        <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0%,rgba(220,38,38,0.05)_50%,transparent_100%)] animate-[spin_8s_linear_infinite] pointer-events-none" />
 
 
        
        <div className="absolute inset-0">
-          {/* North America */}
-          <div className="absolute top-[35%] left-[20%]">
+          {/* São Paulo */}
+          <div className="absolute top-[75%] left-[62%]">
              <div className="h-4 w-4 bg-red-600 rounded-full animate-ping absolute opacity-75" />
              <div className="h-3 w-3 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.8)]" />
           </div>
-          {/* Brazil/South America */}
-          <div className="absolute top-[68%] left-[31%]">
+          {/* Nordeste */}
+          <div className="absolute top-[45%] left-[75%]">
              <div className="h-5 w-5 bg-red-600 rounded-full animate-ping absolute opacity-75" />
              <div className="h-4 w-4 bg-red-600 rounded-full shadow-[0_0_20px_rgba(220,38,38,0.9)] border-2 border-white/20" />
           </div>
-          {/* Europe */}
-          <div className="absolute top-[25%] left-[54%]">
+          {/* Brasília */}
+          <div className="absolute top-[55%] left-[55%]">
              <div className="h-3 w-3 bg-red-600 rounded-full animate-pulse opacity-60 shadow-[0_0_10px_rgba(220,38,38,0.5)]" />
           </div>
-          {/* Asia/Japan */}
-          <div className="absolute top-[38%] left-[82%]">
+          {/* Sul */}
+          <div className="absolute top-[85%] left-[55%]">
              <div className="h-2 w-2 bg-red-600 rounded-full opacity-40 shadow-[0_0_8px_rgba(220,38,38,0.4)]" />
           </div>
        </div>
