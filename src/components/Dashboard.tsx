@@ -1960,72 +1960,101 @@ function ScaleModal({
             <p className="text-xs text-muted-foreground">Marque quando estiver pronto. Tudo precisa estar ✓ pra subir com chance real de bater meta.</p>
 
             <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-              <div className="mb-4 flex items-center justify-between">
-                <h4 className="flex items-center gap-2 text-sm font-bold">
-                  <Upload className="h-4 w-4" /> Alocação de Criativos ({creativeCount} slots)
-                </h4>
-                <div className="text-[10px] font-bold uppercase text-muted-foreground">
-                  {creativeSlots.filter(s => s.file && s.primaryText && s.headline && s.cta).length} / {creativeCount} prontos
+              <div className="mb-4 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="flex items-center gap-2 text-sm font-bold">
+                    <Sparkles className="h-4 w-4 text-primary" /> Abas de Criativos ({creativeCount} slots)
+                  </h4>
+                  <div className="text-[10px] font-bold uppercase text-muted-foreground">
+                    {creativeSlots.filter(s => s.status.file && s.status.primaryText && s.status.headline && s.status.cta).length} / {creativeCount} completos
+                  </div>
+                </div>
+                
+                {/* Tabs selection */}
+                <div className="flex gap-1 overflow-x-auto pb-1 no-scrollbar">
+                  {creativeSlots.map((_, idx) => {
+                    const ready = creativeSlots[idx].status.file && creativeSlots[idx].status.primaryText && creativeSlots[idx].status.headline && creativeSlots[idx].status.cta;
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedSlot(idx)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 ${selectedSlot === idx ? 'bg-primary text-white shadow-md' : 'bg-card border border-border text-muted-foreground hover:border-primary/50'} ${ready ? 'ring-2 ring-emerald-500/30' : ''}`}
+                      >
+                        #{idx + 1} {ready ? '✓' : ''}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className="max-h-[300px] space-y-4 overflow-y-auto pr-1">
-                {creativeSlots.map((slot, idx) => (
-                  <div key={idx} className="rounded-lg border border-border bg-card/50 p-3">
-                    <p className="mb-2 text-[10px] font-bold uppercase text-muted-foreground">Criativo #{idx + 1}</p>
-                    <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-4">
+                {creativeSlots[selectedSlot] && (
+                  <div className="rounded-lg border border-border bg-card/80 p-4 shadow-inner space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
                       <button 
-                        onClick={() => toggleCreativeField(idx, "file")}
-                        className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${slot.file ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+                        onClick={() => simulateUpload(selectedSlot, 'image')}
+                        className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 transition-all ${creativeSlots[selectedSlot].file?.type === 'image' ? "border-primary bg-primary/10" : "border-border bg-muted/20 hover:border-primary/30"}`}
                       >
-                        <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${slot.file ? "bg-primary text-white" : "border-border"}`}>
-                          {slot.file ? "✓" : ""}
-                        </div>
-                        {slot.file ? (
-                          <div className="flex items-center gap-1.5 overflow-hidden">
-                            <ImageIcon className="h-3 w-3 shrink-0 text-primary" />
-                            <span className="truncate text-[10px] font-semibold">Alocado</span>
-                          </div>
-                        ) : (
-                          <p className="truncate text-xs font-bold">Mídia</p>
-                        )}
+                        <ImageIcon className={`h-6 w-6 ${creativeSlots[selectedSlot].file?.type === 'image' ? 'text-primary' : 'text-muted-foreground'}`} />
+                        <span className="text-[10px] font-bold uppercase">Subir Imagem</span>
                       </button>
-
                       <button 
-                        onClick={() => toggleCreativeField(idx, "primaryText")}
-                        className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${slot.primaryText ? "border-primary bg-primary/10" : "border-border bg-card"}`}
+                        onClick={() => simulateUpload(selectedSlot, 'video')}
+                        className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-4 transition-all ${creativeSlots[selectedSlot].file?.type === 'video' ? "border-primary bg-primary/10" : "border-border bg-muted/20 hover:border-primary/30"}`}
                       >
-                        <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${slot.primaryText ? "bg-primary text-white" : "border-border"}`}>
-                          {slot.primaryText ? "✓" : ""}
-                        </div>
-                        <p className="truncate text-xs font-bold">Texto</p>
-                      </button>
-
-                      <button 
-                        onClick={() => toggleCreativeField(idx, "headline")}
-                        className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${slot.headline ? "border-primary bg-primary/10" : "border-border bg-card"}`}
-                      >
-                        <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${slot.headline ? "bg-primary text-white" : "border-border"}`}>
-                          {slot.headline ? "✓" : ""}
-                        </div>
-                        <p className="truncate text-xs font-bold">Título</p>
-                      </button>
-
-                      <button 
-                        onClick={() => toggleCreativeField(idx, "cta")}
-                        className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-all ${slot.cta ? "border-primary bg-primary/10" : "border-border bg-card"}`}
-                      >
-                        <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${slot.cta ? "bg-primary text-white" : "border-border"}`}>
-                          {slot.cta ? "✓" : ""}
-                        </div>
-                        <p className="truncate text-xs font-bold">CTA</p>
+                        <Video className={`h-6 w-6 ${creativeSlots[selectedSlot].file?.type === 'video' ? 'text-primary' : 'text-muted-foreground'}`} />
+                        <span className="text-[10px] font-bold uppercase">Subir Vídeo</span>
                       </button>
                     </div>
+
+                    {creativeSlots[selectedSlot].file && (
+                      <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2 text-emerald-400 text-[11px]">
+                        <CheckCircle2 className="h-3 w-3" />
+                        <span className="font-medium truncate">{creativeSlots[selectedSlot].file?.name} alocado</span>
+                      </div>
+                    )}
+
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Texto Principal (Copy)</label>
+                        <textarea 
+                          value={creativeSlots[selectedSlot].primaryText}
+                          onChange={(e) => updateCreativeField(selectedSlot, 'primaryText', e.target.value)}
+                          placeholder="Digite aqui o texto persuasivo do anúncio..."
+                          className="w-full h-16 rounded-lg bg-background border border-border px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none resize-none"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Título</label>
+                          <input 
+                            value={creativeSlots[selectedSlot].headline}
+                            onChange={(e) => updateCreativeField(selectedSlot, 'headline', e.target.value)}
+                            placeholder="Título Chamativo"
+                            className="w-full rounded-lg bg-background border border-border px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">CTA</label>
+                          <select 
+                            value={creativeSlots[selectedSlot].cta}
+                            onChange={(e) => updateCreativeField(selectedSlot, 'cta', e.target.value)}
+                            className="w-full rounded-lg bg-background border border-border px-3 py-2 text-xs focus:ring-1 focus:ring-primary outline-none"
+                          >
+                            <option value="">Selecione...</option>
+                            <option value="LEARN_MORE">Saiba Mais</option>
+                            <option value="SHOP_NOW">Comprar Agora</option>
+                            <option value="SIGN_UP">Cadastrar-se</option>
+                            <option value="GET_OFFER">Obter Oferta</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                ))}
+                )}
               </div>
               <p className="mt-3 text-[10px] text-muted-foreground italic">
-                💡 Este é um tutorial guiado. Para habilitar o checklist de criativos, você deve alocar todos os {creativeCount} criativos solicitados pelo modelo {strategy.name}.
+                💡 Este é um tutorial guiado. Para habilitar o checklist de criativos, você deve preencher todos os {creativeCount} criativos (Abas acima).
               </p>
             </div>
             
