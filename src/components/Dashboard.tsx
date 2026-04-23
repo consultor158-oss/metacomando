@@ -33,12 +33,12 @@ import {
 import { WhatsAppModal } from "./WhatsAppModal";
 import { SCALE_STRATEGIES } from "../lib/scales";
 import { formatBRL, formatNumber, formatPct } from "../lib/format";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
-import { Switch } from "@/components/ui/switch";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "./ui/table";
+import { Switch } from "./ui/switch";
+import { Progress } from "./ui/progress";
 import { 
   SidebarProvider, 
   Sidebar, 
@@ -53,7 +53,7 @@ import {
   SidebarMenuButton,
   SidebarInset,
   SidebarTrigger
-} from "@/components/ui/sidebar";
+} from "./ui/sidebar";
 
 type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "tutorial" | "settings";
 
