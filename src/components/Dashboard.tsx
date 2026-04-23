@@ -1057,7 +1057,7 @@ function CampaignControlRow({
       updateBudget({
         data: { id: c.id, dailyBudgetCents: Math.round(budgetInput * 100), type: "campaign" },
       }),
-    onSuccess: (res) => {
+    onSuccess: (res: any) => {
       if (res.ok) {
         toast.success(`Orçamento atualizado: ${formatBRL(budgetInput)}/dia`);
         qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
@@ -1068,8 +1068,6 @@ function CampaignControlRow({
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
   });
-
-  const [showDetails, setShowDetails] = useState(false);
 
   const deleteMut = useMutation({
     mutationFn: () => deleteCampaign({ data: { campaignId: c.id } }),
@@ -1083,6 +1081,7 @@ function CampaignControlRow({
     },
   });
 
+  const [showDetails, setShowDetails] = useState(false);
 
   return (
     <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1160,6 +1159,19 @@ function CampaignControlRow({
             <Play className="h-3 w-3" /> Ativar
           </button>
         )}
+
+        <button
+          onClick={() => {
+            if (confirm(`Tem certeza que deseja excluir permanentemente a campanha "${c.name}"?`)) {
+              deleteMut.mutate();
+            }
+          }}
+          disabled={deleteMut.isPending}
+          className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-destructive/20 bg-destructive/5 text-destructive hover:bg-destructive/10 disabled:opacity-50"
+          title="Excluir campanha"
+        >
+          {deleteMut.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+        </button>
       </div>
       {showDetails && (
         <CampaignDetailsModal campaignId={c.id} onClose={() => setShowDetails(false)} />
@@ -1167,6 +1179,7 @@ function CampaignControlRow({
     </div>
   );
 }
+
 
 function CreativeUpload() {
   const [files, setFiles] = useState<File[]>([]);
