@@ -85,8 +85,10 @@ export function Dashboard() {
   const creatives = useQuery({ queryKey: ["meta-creatives"], queryFn: () => getAccountCreatives() });
   const funnel = useQuery({ queryKey: ["meta-funnel"], queryFn: () => getConversionFunnel({ data: { datePreset: "last_30d" } }) });
   const geoData = useQuery({ queryKey: ["meta-geo"], queryFn: () => getGeoInsights({ data: { type: "region", datePreset: "last_30d" } }) });
+  const pages = useQuery({ queryKey: ["meta-pages"], queryFn: () => getPages() });
 
   const accountData = account.data?.ok ? account.data.data : null;
+  const pagesData = pages.data?.ok ? pages.data.data : [];
   const campaignsData = campaigns.data?.ok ? campaigns.data.data : [];
   const creativesData = creatives.data?.ok ? creatives.data.data : [];
   const funnelData = funnel.data?.ok ? funnel.data.data : null;
