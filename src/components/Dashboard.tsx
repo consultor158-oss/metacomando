@@ -21,10 +21,8 @@ import {
   MousePointer2,
   DollarSign,
   Target,
-  Map as MapIcon,
   Activity,
   ZapOff,
-  AlertTriangle,
   CheckCircle2,
   Clock
 } from "lucide-react";
@@ -672,48 +670,6 @@ function AutomationTab() {
   );
 }
 
-function DeliveryMapTab({ geoData }: { geoData: any[] }) {
-  const regions = geoData;
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-xl font-bold">Distribuição de Tráfego</h2>
-          <p className="text-xs text-muted-foreground">Monitoramento regional simplificado.</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm uppercase tracking-wider">Performance por Estado</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 overflow-y-auto max-h-[600px]">
-            {regions.length > 0 ? regions.map((r: any, i: number) => (
-              <div key={i} className="flex items-center justify-between border-b border-border/50 pb-2">
-                <div>
-                  <p className="text-xs font-bold">{r.region || r.country}</p>
-                  <p className="text-[10px] text-muted-foreground">{formatNumber(r.impressions)} impressões</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs font-bold">{formatBRL(parseFloat(r.spend))}</p>
-                  <p className="text-[10px] text-[oklch(0.7_0.18_162)] font-bold">
-                    {(parseFloat(r.spend) > 0 ? 1.5 + Math.random() : 0).toFixed(2)}x ROAS
-                  </p>
-                </div>
-              </div>
-            )) : (
-              <div className="text-center py-10">
-                <p className="text-xs text-muted-foreground">Carregando dados geográficos...</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
 
 function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClose: () => void, data: { strategy: ScaleStrategy; creatives?: any[] } | null, pages: any[] }) {
   const [isActivating, setIsActivating] = useState(false);
