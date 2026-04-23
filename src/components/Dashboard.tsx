@@ -489,12 +489,26 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
 function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: any, isOpen: boolean, onClose: () => void, onSave: () => void }) {
   const [name, setName] = useState("");
   const [budget, setBudget] = useState("");
+  const [budgetType, setBudgetType] = useState<"daily" | "lifetime">("daily");
+  const [status, setStatus] = useState<"ACTIVE" | "PAUSED">("PAUSED");
+  const [bidStrategy, setBidStrategy] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (campaign) {
       setName(campaign.name || "");
-      setBudget(campaign.daily_budget ? (parseInt(campaign.daily_budget) / 100).toString() : "");
+      if (campaign.daily_budget) {
+        setBudget((parseInt(campaign.daily_budget) / 100).toString());
+        setBudgetType("daily");
+      } else if (campaign.lifetime_budget) {
+        setBudget((parseInt(campaign.lifetime_budget) / 100).toString());
+        setBudgetType("lifetime");
+      } else {
+        setBudget("");
+        setBudgetType("daily");
+      }
+      setStatus(campaign.status || "PAUSED");
+      setBidStrategy(campaign.bid_strategy || "");
     }
   }, [campaign]);
 
@@ -505,7 +519,11 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
       data: {
         campaignId: campaign.id,
         name,
-        daily_budget: Math.round(parseFloat(budget) * 100)
+        daily_budget: budgetType === "daily" ? Math.round(parseFloat(budget) * 100) : undefined,
+        // Meta API usually doesn't allow switching between daily and lifetime budget on existing campaigns easily,
+        // but we send the update if it matches the current type.
+        status: status,
+        bid_strategy: bidStrategy || undefined
       }
     });
     if (res.ok) {
@@ -513,7 +531,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
       onSave();
       onClose();
     } else {
-      toast.error("Erro ao atualizar campanha");
+      toast.error(res.error || "Erro ao atualizar campanha");
     }
     setSaving(false);
   };
@@ -526,7 +544,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
         <DialogHeader>
           <DialogTitle>Editar Campanha</DialogTitle>
           <DialogDescription>
-            Altere o nome ou o orçamento diário da sua campanha.
+            Configure os detalhes da sua campanha no Meta Ads.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -534,9 +552,54 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
             <Label htmlFor="name">Nome da Campanha</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="status">Status</Label>
+              <Select value={status} onValueChange={(v: any) => setStatus(v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ACTIVE">Ativo</SelectItem>
+                  <SelectItem value="PAUSED">Pausado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="budget_type">Tipo Orçamento</Label>
+              <Select value={budgetType} onValueChange={(v: any) => setBudgetType(v)} disabled>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">Diário</SelectItem>
+                  <SelectItem value="lifetime">Vitalício</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="budget">Valor do Orçamento (R$)</Label>
+              <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="bid_strategy">Estratégia de Lance</Label>
+              <Select value={bidStrategy} onValueChange={setBidStrategy}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="LOWEST_COST_WITHOUT_CAP">Menor Custo</SelectItem>
+                  <SelectItem value="LOWEST_COST_WITH_BID_CAP">Limite Lance</SelectItem>
+                  <SelectItem value="COST_CAP">Limite Custo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <div className="grid gap-2">
-            <Label htmlFor="budget">Orçamento Diário (R$)</Label>
-            <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} />
+            <Label>Objetivo (Inalterável)</Label>
+            <Input value={campaign.objective} disabled className="bg-muted text-xs h-8" />
           </div>
         </div>
         <DialogFooter>
