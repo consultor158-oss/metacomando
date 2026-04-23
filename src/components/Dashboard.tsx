@@ -236,7 +236,14 @@ export function Dashboard() {
         onlyActive={onlyActive}
         onOnlyActive={setOnlyActive}
         onRefresh={refreshAll}
+        onWhatsAppClick={() => setWaModalOpen(true)}
         loading={anyLoading}
+      />
+
+      <WhatsAppModal 
+        isOpen={waModalOpen} 
+        onClose={() => setWaModalOpen(false)} 
+        accountId={acc?.id || "global"} 
       />
 
       {tokenExpired && <TokenExpiredBanner msg={apiError || ""} />}
