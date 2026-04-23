@@ -126,25 +126,115 @@ function EscalasTab() {
       )}
 
       {step === 3 && (
-        <div className="space-y-4 text-center">
-          <h2 className="text-xl font-bold">3. Análise Final & Projeção</h2>
-            <div className="py-8 bg-primary/5 rounded-xl border border-primary/20">
-            <p className="text-sm text-muted-foreground uppercase font-bold">Funil de Conversão & Projeção</p>
-            <div className="flex justify-around mt-4">
-               <div><p className="text-2xl font-bold">1.45%</p><p className="text-[10px] uppercase">CTR</p></div>
-               <div><p className="text-2xl font-bold">2.1%</p><p className="text-[10px] uppercase">CVR</p></div>
-               <div><p className="text-2xl font-bold">42</p><p className="text-[10px] uppercase">Vendas Est.</p></div>
-            </div>
-            <p className="mt-6 text-xs text-muted-foreground">Evidência: Dados baseados em 12 anúncios semelhantes rodados nos últimos 30 dias.</p>
+        <div className="space-y-6">
+          <div className="text-center space-y-2">
+            <h2 className="text-xl font-bold">3. Análise Final & Projeção</h2>
+            <p className="text-xs text-muted-foreground">Relatório gerado pela IA com base em evidências históricas.</p>
           </div>
-          <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg flex items-center justify-between text-emerald-400 text-xs font-bold uppercase">
-             <span>Status Pré-Subida: Aprovado pela IA</span>
-             <ShieldCheck className="h-4 w-4" />
-          </div>
-          <button onClick={() => toast.success("Campanha enviada!")} className="w-full bg-[oklch(0.7_0.18_162)] text-white py-4 rounded-lg font-bold text-lg shadow-lg">🚀 SUBIR CAMPANHA REAL AGORA</button>
 
-          <div className="flex items-center justify-center gap-2 mt-4 text-[oklch(0.7_0.18_162)] font-bold">
-            <MessageCircle className="h-4 w-4" /> Alertas WhatsApp Ativados
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-6 bg-primary/5 rounded-xl border border-primary/20 space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground uppercase font-bold">Funil de Conversão Est.</p>
+                <TrendingUp className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex justify-around">
+                <div className="text-center">
+                  <p className="text-2xl font-bold">1.45%</p>
+                  <p className="text-[10px] uppercase text-muted-foreground">CTR</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold">2.1%</p>
+                  <p className="text-[10px] uppercase text-muted-foreground">CVR</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-[oklch(0.7_0.18_162)]">42</p>
+                  <p className="text-[10px] uppercase text-muted-foreground">Vendas</p>
+                </div>
+              </div>
+              
+              <div className="pt-4 border-t border-primary/10">
+                <div className="flex items-center gap-2 mb-2">
+                  <History className="h-3 w-3 text-primary" />
+                  <span className="text-[10px] font-bold uppercase">Evidências da IA</span>
+                </div>
+                <ul className="space-y-2 text-[10px] text-muted-foreground">
+                  <li className="flex justify-between">
+                    <span>Período Analisado:</span>
+                    <span className="font-bold text-foreground">Últimos 30 dias</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span>Amostra de Dados:</span>
+                    <span className="font-bold text-foreground">12.450 impressões</span>
+                  </li>
+                  <li className="flex justify-between">
+                    <span>Similaridade de Nicho:</span>
+                    <span className="font-bold text-foreground">94% (Moda/Acessórios)</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="p-6 bg-muted/30 rounded-xl border border-border space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground uppercase font-bold">Anúncios Semelhantes</p>
+                <Search className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="space-y-3">
+                {[
+                  { name: "Creative_V1_Final", roas: "3.4x", cpa: "R$ 12,40" },
+                  { name: "Static_Banner_02", roas: "2.8x", cpa: "R$ 15,10" },
+                  { name: "Video_UGC_Test", roas: "4.1x", cpa: "R$ 9,80" }
+                ].map((ad, i) => (
+                  <div key={i} className="flex items-center justify-between p-2 bg-background rounded-lg border border-border/50">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 bg-muted rounded flex items-center justify-center">
+                        <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <div className="text-[10px]">
+                        <p className="font-bold truncate w-24">{ad.name}</p>
+                        <p className="text-muted-foreground">CPA: {ad.cpa}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-bold text-emerald-500">{ad.roas}</p>
+                      <p className="text-[8px] uppercase text-muted-foreground">ROAS</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button className="w-full py-2 text-[10px] font-bold uppercase text-primary flex items-center justify-center gap-1 hover:bg-primary/5 rounded-lg transition-colors">
+                Ver todos os 12 anúncios <ChevronRight className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-[oklch(0.7_0.18_162)]/10 border border-[oklch(0.7_0.18_162)]/20 p-4 rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 bg-[oklch(0.7_0.18_162)]/20 rounded-full flex items-center justify-center text-[oklch(0.7_0.18_162)]">
+                <ShieldCheck className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase text-[oklch(0.7_0.18_162)]">Status de Pré-Escala: APROVADO</p>
+                <p className="text-[10px] text-muted-foreground">A IA identificou alta probabilidade de conversão mantendo o ROAS acima de 2.5x.</p>
+              </div>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => toast.success("Campanha enviada para aprovação final!")} 
+            className="w-full bg-[oklch(0.7_0.18_162)] text-white py-5 rounded-2xl font-black text-xl shadow-xl hover:opacity-90 transition-all flex items-center justify-center gap-3"
+          >
+            🚀 SUBIR CAMPANHA REAL AGORA
+          </button>
+
+          <div className="flex flex-col items-center gap-2 mt-4">
+            <div className="flex items-center gap-2 text-[oklch(0.7_0.18_162)] font-bold text-sm">
+              <MessageCircle className="h-4 w-4" /> Alertas WhatsApp Ativos
+            </div>
+            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+              <Info className="h-3 w-3" /> Você receberá sugestões de escala via WhatsApp se o ROAS for {">"} 3.0x
+            </p>
           </div>
         </div>
       )}
