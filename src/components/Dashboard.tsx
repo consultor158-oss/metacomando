@@ -1583,6 +1583,13 @@ const SCALE_PLAYBOOKS: Record<string, { audience: string; creatives: string; pos
     killRule: "ROAS < 2 OU frequência ≥ 4",
     scaleRule: "+20% a cada 3-4 dias condicional a ROAS+freq",
   },
+  ia_opt: {
+    audience: "Mantenha os públicos que já estão com ROAS > Target.",
+    creatives: "Refresh criativo somente se a frequência subir acima de 3.",
+    postLaunch: ["Aplique as recomendações de 'Oportunidade' da Dashboard", "Acompanhe o impacto estimado no painel de Auditoria", "Mantenha o budget se o ROAS projetado for saudável"],
+    killRule: "ROAS real cair abaixo de 1.5x por 3 dias seguidos",
+    scaleRule: "Seguir a sugestão da IA (+20% a +50% dependendo do ROAS)",
+  },
 };
 
 function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: () => void }) {
