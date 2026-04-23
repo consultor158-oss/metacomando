@@ -224,10 +224,10 @@ function OverviewTab({ stats, funnel }: { stats: any; funnel: any }) {
           </CardHeader>
           <CardContent className="space-y-4">
              <FunnelStep label="Impressões" count={funnel?.impressions || 0} pct="100%" color="bg-primary/20" />
-             <FunnelStep label="Cliques no Link" count={funnel?.link_clicks || 0} pct={((funnel?.link_clicks / funnel?.impressions) * 100).toFixed(2) + "%"} color="bg-primary/40" />
-             <FunnelStep label="Visualizações da Página" count={funnel?.landing_page_views || 0} pct={((funnel?.landing_page_views / funnel?.link_clicks) * 100 || 0).toFixed(2) + "%"} color="bg-primary/60" />
-             <FunnelStep label="Finalizações de Compra" count={funnel?.initiate_checkout || 0} pct={((funnel?.initiate_checkout / funnel?.landing_page_views) * 100 || 0).toFixed(2) + "%"} color="bg-primary/80" />
-             <FunnelStep label="Vendas (Purchase)" count={funnel?.purchases || 0} pct={((funnel?.purchases / funnel?.initiate_checkout) * 100 || 0).toFixed(2) + "%"} color="bg-[oklch(0.7_0.18_162)]" />
+             <FunnelStep label="Cliques no Link" count={funnel?.link_clicks || 0} pct={(funnel?.impressions > 0 ? (funnel?.link_clicks / funnel?.impressions) * 100 : 0).toFixed(2) + "%"} color="bg-primary/40" />
+             <FunnelStep label="Visualizações da Página" count={funnel?.landing_page_views || 0} pct={(funnel?.link_clicks > 0 ? (funnel?.landing_page_views / funnel?.link_clicks) * 100 : 0).toFixed(2) + "%"} color="bg-primary/60" />
+             <FunnelStep label="Finalizações de Compra" count={funnel?.initiate_checkout || 0} pct={(funnel?.landing_page_views > 0 ? (funnel?.initiate_checkout / funnel?.landing_page_views) * 100 : 0).toFixed(2) + "%"} color="bg-primary/80" />
+             <FunnelStep label="Vendas (Purchase)" count={funnel?.purchases || 0} pct={(funnel?.initiate_checkout > 0 ? (funnel?.purchases / funnel?.initiate_checkout) * 100 : 0).toFixed(2) + "%"} color="bg-[oklch(0.7_0.18_162)]" />
           </CardContent>
         </Card>
 
