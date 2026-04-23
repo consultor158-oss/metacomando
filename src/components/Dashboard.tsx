@@ -742,15 +742,25 @@ function DeliveryMapTab({ geoData }: { geoData: any[] }) {
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-40 mix-blend-overlay" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-[#0a0a0a]/50" />
 
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+             {/* Scanner Radar Effect */}
+             <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0%,rgba(220,38,38,0.1)_50%,transparent_100%)] animate-[spin_4s_linear_infinite]" />
+             
              <div className="relative w-full h-full">
-                <div className="absolute top-[68%] left-[31%] h-4 w-4 bg-red-600 rounded-full animate-ping" />
-                <div className="absolute top-[68%] left-[31%] h-4 w-4 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.8)]" />
-                <div className="absolute top-[35%] left-[20%] h-3 w-3 bg-red-600 rounded-full animate-pulse" />
-                <div className="absolute top-[25%] left-[54%] h-3 w-3 bg-red-600 rounded-full animate-pulse" />
-                <div className="absolute top-[38%] left-[68%] h-2 w-2 bg-red-600 rounded-full opacity-40" />
+                {/* São Paulo / Brazil Main Focus */}
+                <div className="absolute top-[68%] left-[31%]">
+                   <div className="h-10 w-10 bg-red-600/20 rounded-full animate-ping absolute -translate-x-1/2 -translate-y-1/2" />
+                   <div className="h-6 w-6 bg-red-600/40 rounded-full animate-pulse absolute -translate-x-1/2 -translate-y-1/2" />
+                   <div className="h-4 w-4 bg-red-600 rounded-full shadow-[0_0_20px_rgba(220,38,38,1)] border-2 border-white/40 -translate-x-1/2 -translate-y-1/2" />
+                </div>
+                
+                {/* Secondary Points */}
+                <div className="absolute top-[35%] left-[20%] h-3 w-3 bg-red-600/60 rounded-full animate-pulse" />
+                <div className="absolute top-[25%] left-[54%] h-3 w-3 bg-red-600/60 rounded-full animate-pulse" />
+                <div className="absolute top-[38%] left-[68%] h-2 w-2 bg-red-600/40 rounded-full" />
              </div>
           </div>
+
           <div className="absolute bottom-4 left-4 right-4 bg-background/80 backdrop-blur-md p-4 rounded-lg border border-border flex justify-between items-center">
              <div className="flex items-center gap-4">
                <div className="flex flex-col">
