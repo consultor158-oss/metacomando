@@ -2009,8 +2009,25 @@ function ScaleModal({
         )}
 
 
-        {/* STEP 4 — Revisar & Subir */}
-        {step === 4 && (
+        {step === 4 && strategy.id === "ia_opt" && !bestRec && (
+          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-6 text-center">
+            <AlertTriangle className="h-8 w-8 text-amber-500 mx-auto mb-3" />
+            <h4 className="text-base font-bold text-amber-200">Nenhum vencedor absoluto ainda</h4>
+            <p className="mt-2 text-sm text-amber-200/80">
+              A IA ainda não identificou uma campanha com ROAS e volume suficientes para uma escala segura de "IA Otimizada". 
+              Continue rodando seus testes ou use as estratégias ABO/CBO manuais.
+            </p>
+            <button 
+              onClick={() => setStep(1)}
+              className="mt-4 text-xs font-bold underline hover:text-amber-100"
+            >
+              Escolher outra estratégia
+            </button>
+          </div>
+        )}
+
+        {/* STEP 4 — Revisar & Subir (Com Winner) */}
+        {step === 4 && (strategy.id !== "ia_opt" || bestRec) && (
           <div className="space-y-4">
             {strategy.id === "ia_opt" && bestRec && healthData && (
               <div className="space-y-4">
