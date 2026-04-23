@@ -667,13 +667,8 @@ function AutomationTab() {
   );
 }
 
-function DeliveryMapTab() {
-  const geoData = useQuery({ 
-    queryKey: ["meta-geo"], 
-    queryFn: () => getGeoInsights({ data: { type: "region", datePreset: "last_30d" } }) 
-  });
-
-  const regions = geoData.data?.ok ? geoData.data.data : [];
+function DeliveryMapTab({ geoData }: { geoData: any[] }) {
+  const regions = geoData;
 
   return (
     <div className="space-y-6">
