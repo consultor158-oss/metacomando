@@ -1579,6 +1579,19 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
   const [objective, setObjective] = useState(strategy.defaults.objective);
   const [status, setStatus] = useState<"ACTIVE" | "PAUSED">(strategy.defaults.status);
 
+  // Upload simulado de criativos para o checklist
+  const [uploadedCreatives, setUploadedCreatives] = useState<{
+    file: boolean;
+    primaryText: boolean;
+    headline: boolean;
+    cta: boolean;
+  }>({
+    file: false,
+    primaryText: false,
+    headline: false,
+    cta: false,
+  });
+
   // Checklist do passo "criativos"
   const [chk, setChk] = useState<Record<string, boolean>>({
     publico: false,
@@ -1586,7 +1599,21 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
     pixel: false,
     orcamento: false,
   });
+
+  // Efeito para marcar o checklist de criativos automaticamente
+  useEffect(() => {
+    const isReady = uploadedCreatives.file && 
+                    uploadedCreatives.primaryText && 
+                    uploadedCreatives.headline && 
+                    uploadedCreatives.cta;
+    if (isReady && !chk.criativo) {
+      setChk(c => ({ ...c, criativo: true }));
+      toast.success("✅ Criativos prontos no checklist!");
+    }
+  }, [uploadedCreatives, chk.criativo]);
+
   const allChecked = Object.values(chk).every(Boolean);
+
 
   const qc = useQueryClient();
 
@@ -2327,17 +2354,7 @@ function CampaignDetailsModal({ campaignId, onClose }: { campaignId: string; onC
               </Section>
 
               {/* Ads + Creatives */}
-              <Section title={`Anúncios e criativos (${data.ads.length})`}>
-                {data.ads.length === 0 ? (
-                  <Empty text="Nenhum anúncio" />
-                ) : (
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {data.ads.map((ad: any) => (
-                      <CreativeCard key={ad.id} ad={ad} onChanged={() => details.refetch()} />
-                    ))}
-                  </div>
-                )}
-              </Section>
+              <AdSection ads={data.ads} onChanged={() => details.refetch()} />
             </>
           )}
         </div>
@@ -2345,6 +2362,53 @@ function CampaignDetailsModal({ campaignId, onClose }: { campaignId: string; onC
     </div>
   );
 }
+
+function AdSection({ ads, onChanged }: { ads: any[]; onChanged: () => void }) {
+  const [page, setPage] = useState(1);
+  const pageSize = 6;
+  const totalPages = Math.ceil(ads.length / pageSize);
+  const start = (page - 1) * pageSize;
+  const currentAds = ads.slice(start, start + pageSize);
+
+  return (
+    <Section title={`Anúncios e criativos (${ads.length})`}>
+      {ads.length === 0 ? (
+        <Empty text="Nenhum anúncio" />
+      ) : (
+        <div className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {currentAds.map((ad: any) => (
+              <CreativeCard key={ad.id} ad={ad} onChanged={onChanged} />
+            ))}
+          </div>
+          
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 border-t border-border pt-4">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="rounded border border-border bg-card px-3 py-1 text-xs hover:bg-accent disabled:opacity-50"
+              >
+                Anterior
+              </button>
+              <span className="text-xs text-muted-foreground">
+                Página {page} de {totalPages}
+              </span>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="rounded border border-border bg-card px-3 py-1 text-xs hover:bg-accent disabled:opacity-50"
+              >
+                Próxima
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </Section>
+  );
+}
+
 
 function Mini({ label, value, highlight }: { label: string; value: string; highlight?: "good" | "warn" | "bad" }) {
   const tone =
