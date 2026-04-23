@@ -1330,7 +1330,14 @@ function Escalas({ camps, campConv }: { camps: any[]; campConv: any[] }) {
         </div>
       )}
 
-      {active && <ScaleModal strategy={active} onClose={() => setActive(null)} />}
+      {active && (
+        <ScaleModal
+          strategy={active}
+          onClose={() => setActive(null)}
+          camps={camps}
+          campConv={campConv}
+        />
+      )}
       {duplicateOpen && (
         <DuplicateCampaignModal
           camps={camps}
