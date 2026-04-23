@@ -601,6 +601,24 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                 </SelectContent>
               </Select>
             </div>
+            <div className="grid gap-2">
+              <Label htmlFor="special_ad_categories">Categorias Especiais</Label>
+              <Select 
+                value={specialAdCategories[0] || "NONE"} 
+                onValueChange={(v) => setSpecialAdCategories([v])}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="NONE">Nenhuma</SelectItem>
+                  <SelectItem value="HOUSING">Moradia</SelectItem>
+                  <SelectItem value="EMPLOYMENT">Emprego</SelectItem>
+                  <SelectItem value="CREDIT">Crédito</SelectItem>
+                  <SelectItem value="ISSUES_ELECTIONS_POLITICS">Temas Sociais/Políticos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
