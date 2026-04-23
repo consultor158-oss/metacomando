@@ -242,6 +242,7 @@ export function Dashboard() {
           isOpen={!!dryRunData} 
           onClose={() => setDryRunData(null)} 
           data={dryRunData} 
+          pages={pagesData}
         />
       </div>
     </SidebarProvider>
