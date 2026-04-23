@@ -1612,6 +1612,18 @@ function ScaleModal({ strategy, onClose }: { strategy: ScaleStrategy; onClose: (
     }
   }, [uploadedCreatives, chk.criativo]);
 
+  // Efeito para marcar o checklist de criativos automaticamente
+  useEffect(() => {
+    const isReady = uploadedCreatives.file && 
+                    uploadedCreatives.primaryText && 
+                    uploadedCreatives.headline && 
+                    uploadedCreatives.cta;
+    if (isReady && !chk.criativo) {
+      setChk(c => ({ ...c, criativo: true }));
+      toast.success("✅ Criativos prontos no checklist!");
+    }
+  }, [uploadedCreatives, chk.criativo]);
+
   const allChecked = Object.values(chk).every(Boolean);
 
 
