@@ -1056,6 +1056,19 @@ function CampaignControlRow({
 
   const [showDetails, setShowDetails] = useState(false);
 
+  const deleteMut = useMutation({
+    mutationFn: () => deleteCampaign({ data: { campaignId: c.id } }),
+    onSuccess: (res) => {
+      if (res.ok) {
+        toast.success("Campanha excluída!");
+        qc.invalidateQueries({ queryKey: ["meta-campaigns"] });
+      } else {
+        toast.error(res.error || "Erro ao excluir");
+      }
+    },
+  });
+
+
   return (
     <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0 flex-1">
@@ -2413,40 +2426,98 @@ function AdsetRow({ adset, onChanged }: { adset: any; onChanged: () => void }) {
         {adset.optimization_goal && <span>Otimização: {adset.optimization_goal}</span>}
         {adset.bid_amount && <span>• Bid: {formatBRL(parseInt(adset.bid_amount) / 100)}</span>}
         {!editing ? (
-          <span className="flex items-center gap-2">
-            • Budget:{" "}
-            {adset.daily_budget ? `${formatBRL(parseInt(adset.daily_budget) / 100)}/dia` : "—"}
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="flex items-center gap-2">
+              • Budget:{" "}
+              {adset.daily_budget ? `${formatBRL(parseInt(adset.daily_budget) / 100)}/dia` : "—"}
+            </span>
+            {adset.adset_spend_limit && (
+              <span className="flex items-center gap-2">
+                • Limite: Min {formatBRL(adset.adset_spend_limit.min_daily_budget / 100)} / Max {adset.adset_spend_limit.max_daily_budget ? formatBRL(adset.adset_spend_limit.max_daily_budget / 100) : "∞"}
+              </span>
+            )}
             <button
               onClick={() => setEditing(true)}
               className="rounded border border-border bg-card px-2 py-0.5 text-[10px] hover:bg-accent"
             >
-              Editar
+              Editar orç./limite
             </button>
-          </span>
+          </div>
         ) : (
-          <span className="flex items-center gap-1">
-            <span>R$</span>
-            <input
-              type="number"
-              value={budget}
-              onChange={(e) => setBudget(e.target.value)}
-              className="w-20 rounded border border-border bg-background px-2 py-0.5 text-xs"
-            />
-            <button
-              onClick={saveBudget}
-              disabled={busy}
-              className="rounded bg-primary px-2 py-0.5 text-[10px] text-primary-foreground hover:opacity-90 disabled:opacity-50"
-            >
-              Salvar
-            </button>
-            <button
-              onClick={() => setEditing(false)}
-              className="rounded border border-border bg-card px-2 py-0.5 text-[10px] hover:bg-accent"
-            >
-              Cancelar
-            </button>
-          </span>
+          <div className="flex flex-col gap-2 rounded border border-border bg-background p-2">
+            <div className="flex items-center gap-2">
+              <span className="w-20 text-[10px] font-bold uppercase">Budget dia</span>
+              <div className="flex items-center gap-1">
+                <span>R$</span>
+                <input
+                  type="number"
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                  className="w-20 rounded border border-border bg-background px-2 py-0.5 text-xs"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-20 text-[10px] font-bold uppercase">Mínimo dia</span>
+              <div className="flex items-center gap-1">
+                <span>R$</span>
+                <input
+                  type="number"
+                  placeholder="0"
+                  defaultValue={adset.adset_spend_limit?.min_daily_budget ? (adset.adset_spend_limit.min_daily_budget / 100) : ""}
+                  id={`min-${adset.id}`}
+                  className="w-20 rounded border border-border bg-background px-2 py-0.5 text-xs"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-20 text-[10px] font-bold uppercase">Máximo dia</span>
+              <div className="flex items-center gap-1">
+                <span>R$</span>
+                <input
+                  type="number"
+                  placeholder="∞"
+                  defaultValue={adset.adset_spend_limit?.max_daily_budget ? (adset.adset_spend_limit.max_daily_budget / 100) : ""}
+                  id={`max-${adset.id}`}
+                  className="w-20 rounded border border-border bg-background px-2 py-0.5 text-xs"
+                />
+              </div>
+            </div>
+            <div className="mt-1 flex items-center justify-end gap-2">
+              <button
+                onClick={async () => {
+                  const min = parseFloat((document.getElementById(`min-${adset.id}`) as HTMLInputElement).value);
+                  const max = parseFloat((document.getElementById(`max-${adset.id}`) as HTMLInputElement).value);
+                  setBusy(true);
+                  await Promise.all([
+                    saveBudget(),
+                    updateAdsetSpendLimit({ 
+                      data: { 
+                        adsetId: adset.id, 
+                        minDailyBRL: isNaN(min) ? undefined : min, 
+                        maxDailyBRL: isNaN(max) ? undefined : max 
+                      } 
+                    })
+                  ]);
+                  setBusy(false);
+                  setEditing(false);
+                  onChanged();
+                }}
+                disabled={busy}
+                className="rounded bg-primary px-3 py-1 text-[10px] text-primary-foreground hover:opacity-90 disabled:opacity-50"
+              >
+                Salvar tudo
+              </button>
+              <button
+                onClick={() => setEditing(false)}
+                className="rounded border border-border bg-card px-3 py-1 text-[10px] hover:bg-accent"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
         )}
+
       </div>
     </div>
   );
