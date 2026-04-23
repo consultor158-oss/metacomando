@@ -558,18 +558,18 @@ function Overview({
       </div>
 
       <div className="rounded-xl border border-border bg-card p-5">
-        <SectionHeader title="Performance Diária" subtitle="Gasto vs Receita / ROAS / CPA" loading={loadingInsights} onRefresh={onRefreshInsights} />
-        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <div>
-            <ResponsiveContainer width="100%" height={250}>
+        <SectionHeader title="Performance Diária" subtitle="Gasto vs Receita nos últimos dias" loading={loadingInsights} onRefresh={onRefreshInsights} />
+        <div className="mt-4 grid gap-6 lg:grid-cols-2">
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="gradGasto" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="oklch(0.65 0.22 265)" stopOpacity={0.6} />
+                    <stop offset="5%" stopColor="oklch(0.65 0.22 265)" stopOpacity={0.3} />
                     <stop offset="95%" stopColor="oklch(0.65 0.22 265)" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="gradReceita" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="oklch(0.7 0.18 162)" stopOpacity={0.6} />
+                    <stop offset="5%" stopColor="oklch(0.7 0.18 162)" stopOpacity={0.3} />
                     <stop offset="95%" stopColor="oklch(0.7 0.18 162)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
@@ -600,11 +600,13 @@ function Overview({
         {!loadingInsights && chartData.length === 0 && (
           <p className="py-8 text-center text-sm text-muted-foreground">Sem dados no período selecionado</p>
         )}
+      </div>
 
       <CampaignsTable camps={camps} loading={loadingCampaigns} onRefresh={onRefreshCampaigns} />
     </div>
   );
 }
+
 
 function CampaignsTable({ camps, loading, onRefresh }: { camps: any[]; loading: boolean; onRefresh: () => void }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
