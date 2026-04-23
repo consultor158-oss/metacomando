@@ -222,7 +222,7 @@ export function Dashboard() {
                if (tutorialStrategy) setDryRunData({ strategy: tutorialStrategy, creatives: selected });
             }} />}
             {view === "settings" && <SettingsTab account={accountData} />}
-            {view === "map" && <DeliveryMapTab />}
+            {view === "map" && <DeliveryMapTab geoData={geoInsightsData} />}
           </main>
         </SidebarInset>
 
