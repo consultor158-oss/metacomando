@@ -313,7 +313,7 @@ export const createFullScale = createServerFn({ method: "POST" })
         if (!isCBO) {
           adsetBody.daily_budget = String(Math.max(1000, data.dailyBudgetCents || 2000));
           // Explicitly set budget sharing to false for ABO to avoid the required field error
-          adsetBody.is_adset_budget_sharing_enabled = "false";
+          adsetBody.is_adset_budget_sharing_enabled = false;
         }
 
         if (data.destination === "WHATSAPP") {
