@@ -270,33 +270,13 @@ export const createFullScale = createServerFn({ method: "POST" })
       else if (data.strategy === "abo") adsetCount = 3;
 
       const adsets = [];
+      const adsToCreate = data.creatives || [{ 
+        primaryText: "Performance Copy", 
+        headline: "Headline", 
+        cta: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : "SHOP_NOW" 
+      }];
+
       for (let i = 0; i < adsetCount; i++) {
-        const adsetBody: Record<string, string> = {
-          name: `[ULTRA] ${data.name} - Conjunto ${i + 1}`,
-          campaign_id: campaignId,
-          status: data.status || "PAUSED",
-          daily_budget: String(Math.max(100, data.dailyBudgetCents || 2000)),
-          billing_event: "IMPRESSIONS",
-          optimization_goal: data.destination === "WHATSAPP" ? "CONVERSIONS" : "OFFSITE_CONVERSIONS",
-          targeting: JSON.stringify({ geo_locations: { countries: ["BR"] } }),
-          promoted_object: data.destination === "WHATSAPP" 
-            ? JSON.stringify({ page_id: data.pageId }) 
-            : JSON.stringify({ pixel_id: pixelId, custom_event_type: "PURCHASE" }),
-        };
-
-        if (data.destination === "WHATSAPP") {
-           adsetBody.destination_type = JSON.stringify(["WHATSAPP_MESSAGE"]);
-        }
-
-        const adset = await metaPost(`${actId}/adsets`, adsetBody);
-        adsets.push(adset.id);
-
-        // 3. Create Ads
-        const adsData = data.creatives || [{ 
-          primaryText: "Performance Copy", 
-          headline: "Headline", 
-          cta: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : "SHOP_NOW" 
-        }];
         
         for (const [idx, creative] of adsData.entries()) {
            // To create a real ad, we need an image_hash or video_id.
