@@ -337,7 +337,7 @@ export const createFullScale = createServerFn({ method: "POST" })
                adBody.creative = JSON.stringify({ creative_id: creative.id });
              } else {
                const objectStorySpec: any = { page_id: data.pageId };
-               const ctaType = data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : (creative.cta || "SHOP_NOW");
+               const ctaType = data.destination === "WHATSAPP" ? "SEND_MESSAGE" : (creative.cta || "SHOP_NOW");
                const ctaValue: any = {};
                if (data.destination === "WHATSAPP") {
                  ctaValue.app_destination = "WHATSAPP";
