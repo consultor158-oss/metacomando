@@ -2369,6 +2369,9 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
                       <Label htmlFor="dest-sales" className="cursor-pointer font-bold text-xs">Site / Vendas</Label>
               </div>
               
+                </RadioGroup>
+              </div>
+
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">URL de Destino</Label>
                 <Input 
@@ -2377,8 +2380,6 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
                   placeholder={destination === 'WHATSAPP' ? "Ex: wa.me/55..." : "Ex: https://meusite.com"} 
                   className="bg-slate-900 border-slate-800 h-11"
                 />
-              </div>
-                </RadioGroup>
               </div>
             </div>
 
