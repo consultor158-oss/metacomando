@@ -1602,12 +1602,12 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                    <p className="text-xs text-muted-foreground">Escolha os anúncios que já performam bem para escalar com segurança.</p>
                  </div>
                  <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold">
-                   {selectedCreatives.length} DE {creatives.length} SELECIONADOS
+                   {selectedCreatives.length} DE {allCreatives.length} SELECIONADOS
                  </Badge>
                </div>
                
                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                  {creatives.map((c: any) => (
+                  {allCreatives.map((c: any) => (
                     <div 
                       key={c.id} 
                       onClick={() => setSelectedCreatives(p => p.includes(c.id) ? p.filter(i => i !== c.id) : [...p, c.id])} 
@@ -1634,11 +1634,28 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                       )}
                     </div>
                   ))}
-                  <div className="border-4 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-4 cursor-pointer hover:bg-primary/5 hover:border-primary/50 transition-all aspect-[4/5] group">
-                     <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                        <Plus className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors" />
-                     </div>
-                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Hospedar Mídia</p>
+                  
+                  <div 
+                    onClick={() => document.getElementById('media-upload')?.click()}
+                    className="border-4 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-4 cursor-pointer hover:bg-primary/5 hover:border-primary/50 transition-all aspect-[4/5] group"
+                  >
+                     {isUploading ? (
+                       <RefreshCw className="h-8 w-8 text-primary animate-spin" />
+                     ) : (
+                       <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                          <Plus className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                       </div>
+                     )}
+                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">
+                       {isUploading ? "Hospedando..." : "Hospedar Mídia"}
+                     </p>
+                     <input 
+                       id="media-upload"
+                       type="file" 
+                       accept="image/*" 
+                       className="hidden" 
+                       onChange={handleFileUpload}
+                     />
                   </div>
                </div>
             </div>
