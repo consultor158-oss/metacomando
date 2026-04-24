@@ -770,7 +770,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                             </div>
                             <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">
                               <Globe className="h-3 w-3" />
-                              {as.targeting?.geo_locations?.countries?.join(", ") || as.targeting?.geo_locations?.regions?.map((r: any) => r.name).join(", ") || "Brasil"}
+                              {as.targeting?.geo_locations?.countries?.join(", ") || as.targeting?.geo_locations?.regions?.map((r: any) => r.name).join(", ") || "Global"}
                             </div>
                             <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">
                               <Users className="h-3 w-3" />
@@ -930,16 +930,16 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
   const [view, setView] = useState<"folders" | "files">("folders");
   const [editingCreative, setEditingCreative] = useState<any | null>(null);
 
-  const organizedCreatives = creatives.map(c => ({ 
+  const organizedCreatives = creatives.map((c, idx) => ({ 
     ...c, 
-    campaign_name: "CARBON",
-    headline: c.headline || "Ttulo do Anncio",
-    body: c.body || "Texto principal do anncio que aparece no feed.",
+    campaign_name: idx % 2 === 0 ? "CARBON - Campanha Base" : "ESCALA - Ultra Global",
+    headline: c.headline || "Título do Anúncio",
+    body: c.body || "Texto principal do anúncio que aparece no feed.",
     link_url: c.link_url || "https://seulink.com"
   }));
   
-  const campaigns = ["CARBON"];
-  const filteredCreatives = organizedCreatives;
+  const folders = Array.from(new Set(organizedCreatives.map(c => c.campaign_name)));
+  const filteredCreatives = organizedCreatives.filter(c => c.campaign_name === filter);
 
   const handleEdit = (creative: any) => {
     setSelectedCreative(creative);
@@ -956,8 +956,8 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-xl font-bold">Biblioteca Profissional</h2>
-          <p className="text-xs text-muted-foreground">Organizado por campanhas e pastas inteligentes.</p>
+          <h2 className="text-xl font-bold">Biblioteca Estruturada</h2>
+          <p className="text-xs text-muted-foreground">Creatives organizados por subpastas de campanhas e escalas.</p>
         </div>
         <div className="flex items-center gap-2">
           {view === "files" && (
@@ -966,12 +966,12 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
             </Button>
           )}
           <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Filtrar por Pasta" />
+            <SelectTrigger className="w-[250px]">
+              <SelectValue placeholder="Filtrar por Pasta/Campanha" />
             </SelectTrigger>
             <SelectContent>
-              {campaigns.map(c => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
+              {folders.map(f => (
+                <SelectItem key={f} value={f}>{f}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -979,24 +979,43 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
             <Rocket className="h-3 w-3 text-primary" /> Escalar Criativos
           </Button>
           <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90">
-            <Plus className="h-3 w-3" /> Hospedar Mdia
+            <Plus className="h-3 w-3" /> Nova Pasta
           </Button>
         </div>
       </div>
 
       {view === "folders" ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {folders.map(f => (
+            <Card 
+              key={f}
+              className="p-6 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-primary/10 transition-all border-2 border-primary/10 bg-card/50 group relative overflow-hidden"
+              onClick={() => {
+                setFilter(f);
+                setView("files");
+              }}
+            >
+              <div className="absolute top-0 right-0 p-2 opacity-20">
+                <ShieldCheck className="h-4 w-4 text-primary" />
+              </div>
+              <div className="h-20 w-20 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner border border-primary/20">
+                <Folder className="h-10 w-10 text-primary" />
+              </div>
+              <div className="text-center">
+                <p className="font-bold text-sm uppercase tracking-tight text-foreground line-clamp-1">{f}</p>
+                <Badge variant="secondary" className="mt-2 text-[9px] border-primary/20 text-muted-foreground">
+                  {organizedCreatives.filter(c => c.campaign_name === f).length} CRIATIVOS
+                </Badge>
+              </div>
+            </Card>
+          ))}
           <Card 
-            className="p-8 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-primary/10 transition-all border-2 border-primary/20 bg-primary/5 group"
-            onClick={() => setView("files")}
+            className="p-6 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-muted/50 transition-all border-2 border-dashed border-muted-foreground/20 bg-transparent group"
           >
-            <div className="h-20 w-20 bg-primary/20 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
-              <Folder className="h-10 w-10 text-primary" />
+            <div className="h-20 w-20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Plus className="h-10 w-10 text-muted-foreground/40" />
             </div>
-            <div className="text-center">
-              <p className="font-black text-base uppercase tracking-widest text-primary">CARBON</p>
-              <Badge variant="outline" className="mt-1 text-[9px] border-primary/30 text-primary/70">{filteredCreatives.length} CRIATIVOS</Badge>
-            </div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">Adicionar Pasta</p>
           </Card>
         </div>
       ) : (
@@ -1120,10 +1139,11 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
   const [name, setName] = useState("");
   const [budget, setBudget] = useState("50");
   const [selectedCreatives, setSelectedCreatives] = useState<string[]>([]);
-  const [locations, setLocations] = useState("BR");
-  const [state, setState] = useState("");
+  const [region, setRegion] = useState("ALL");
   const [city, setCity] = useState("");
   const [interests, setInterests] = useState("");
+  const [ageRange, setAgeRange] = useState("18-65+");
+  const [gender, setGender] = useState("ALL");
   
   useEffect(() => {
     if (selectedStrategy) {
@@ -1250,28 +1270,26 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                   </Label>
                   <div className="grid gap-4 bg-muted/30 p-6 rounded-2xl border border-border">
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-state" className="text-[10px] font-bold uppercase text-muted-foreground">Estado / Região</Label>
-                      <Select value={state} onValueChange={setState}>
-                        <SelectTrigger id="tut-state" className="h-11">
-                          <SelectValue placeholder="Selecione o Estado" />
+                      <Label htmlFor="tut-region" className="text-[10px] font-bold uppercase text-muted-foreground">Alcance Geográfico</Label>
+                      <Select value={region} onValueChange={setRegion}>
+                        <SelectTrigger id="tut-region" className="h-11">
+                          <SelectValue placeholder="Selecione o Alcance" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="SP">São Paulo</SelectItem>
-                          <SelectItem value="RJ">Rio de Janeiro</SelectItem>
-                          <SelectItem value="MG">Minas Gerais</SelectItem>
-                          <SelectItem value="RS">Rio Grande do Sul</SelectItem>
-                          <SelectItem value="PR">Paraná</SelectItem>
-                          <SelectItem value="SC">Santa Catarina</SelectItem>
-                          <SelectItem value="BA">Bahia</SelectItem>
-                          <SelectItem value="ALL">Todo o Brasil</SelectItem>
+                          <SelectItem value="ALL">Mundo Inteiro (Global)</SelectItem>
+                          <SelectItem value="US">Estados Unidos (USA)</SelectItem>
+                          <SelectItem value="EU">Europa (Principais Países)</SelectItem>
+                          <SelectItem value="LATAM">América Latina</SelectItem>
+                          <SelectItem value="BR">Brasil (Todo o País)</SelectItem>
+                          <SelectItem value="SP">São Paulo (Estado)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-city" className="text-[10px] font-bold uppercase text-muted-foreground">Cidade Específica</Label>
+                      <Label htmlFor="tut-city" className="text-[10px] font-bold uppercase text-muted-foreground">Cidade ou Região Específica</Label>
                       <Input 
                         id="tut-city" 
-                        placeholder="Ex: São Paulo, Campinas..." 
+                        placeholder="Ex: Miami, London, São Paulo..." 
                         value={city} 
                         onChange={(e) => setCity(e.target.value)}
                         className="h-11"
@@ -1282,14 +1300,43 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
 
                 <div className="space-y-6">
                   <Label className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                    <Target className="h-5 w-5" /> Interesses e Comportamento
+                    <Target className="h-5 w-5" /> Público Alvo Detalhado
                   </Label>
                   <div className="grid gap-4 bg-muted/30 p-6 rounded-2xl border border-border">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label className="text-[10px] font-bold uppercase text-muted-foreground">Faixa Etária</Label>
+                        <Select value={ageRange} onValueChange={setAgeRange}>
+                          <SelectTrigger className="h-11">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="18-65+">18 - 65+</SelectItem>
+                            <SelectItem value="18-35">18 - 35</SelectItem>
+                            <SelectItem value="25-45">25 - 45</SelectItem>
+                            <SelectItem value="35-65+">35 - 65+</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label className="text-[10px] font-bold uppercase text-muted-foreground">Gênero</Label>
+                        <Select value={gender} onValueChange={setGender}>
+                          <SelectTrigger className="h-11">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ALL">Todos</SelectItem>
+                            <SelectItem value="MALE">Homens</SelectItem>
+                            <SelectItem value="FEMALE">Mulheres</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-interests" className="text-[10px] font-bold uppercase text-muted-foreground">Palavras-chave (IA filtrará)</Label>
+                      <Label htmlFor="tut-interests" className="text-[10px] font-bold uppercase text-muted-foreground">Interesses (IA filtrará)</Label>
                       <Input 
                         id="tut-interests" 
-                        placeholder="Ex: Marketing Digital, E-commerce, Moda..." 
+                        placeholder="Ex: Luxury Goods, Entrepreneurship, Online Shopping..." 
                         value={interests}
                         onChange={(e) => setInterests(e.target.value)}
                         className="h-11"
@@ -1298,10 +1345,20 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                     <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
                       <div className="flex items-center gap-2 mb-1">
                          <Zap className="h-3 w-3 text-blue-500" />
-                         <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Recomendação IA</p>
+                         <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Recomendação IA para Escala</p>
                       </div>
-                      <p className="text-[10px] text-muted-foreground">
-                        Para a estratégia <b>{selectedStrategy.name}</b>, o motor de IA sugere começar com "Público Aberto" para que o algoritmo do Meta encontre seus clientes mais rapidamente.
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        Para escala global, use <b>Público Aberto (Broad)</b> ou <b>Lookalike 1%</b>. 
+                        O algoritmo da Meta encontra os melhores compradores automaticamente quando o criativo é forte. 
+                      </p>
+                    </div>
+                    <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20">
+                      <div className="flex items-center gap-2 mb-1">
+                         <Users className="h-3 w-3 text-orange-500" />
+                         <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">Escala de Público</p>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        Ao escalar, teste <b>Lookalike de Compradores (LAL)</b> e <b>Públicos de Retenção</b>. 
                       </p>
                     </div>
                   </div>
@@ -1312,7 +1369,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                 <div className="flex items-center gap-3">
                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Configuração do Público:</p>
-                   <p className="text-xs text-slate-100 font-bold">{state === 'ALL' ? 'Brasil Inteiro' : (state || 'Brasil')} {city ? ` ${city}` : ""} {interests ? `+ ${interests.split(',').length} Interesses` : "+ Público Aberto"}</p>
+                   <p className="text-xs text-slate-100 font-bold">{region === 'ALL' ? 'Mundo Inteiro' : (region || 'Global')} {city ? ` ${city}` : ""} {interests ? `+ ${interests.split(',').length} Interesses` : "+ Público Aberto"} • {ageRange} • {gender === 'ALL' ? 'Ambos' : (gender === 'MALE' ? 'Homens' : 'Mulheres')}</p>
                 </div>
               </div>
             </div>
@@ -1407,11 +1464,14 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                   budget: Number(budget) * 100,
                   targeting: { 
                     geo_locations: { 
-                      countries: [locations],
-                      regions: state ? [{ key: state, name: state }] : undefined,
+                      countries: region === 'ALL' ? undefined : [region],
+                      regions: region !== 'ALL' && region !== 'BR' && region !== 'US' && region !== 'EU' && region !== 'LATAM' ? [{ key: region, name: region }] : undefined,
                       cities: city ? [{ key: city, name: city }] : undefined
                     },
-                    interests: interests ? interests.split(",").map(i => i.trim()) : undefined
+                    interests: interests ? interests.split(",").map(i => i.trim()) : undefined,
+                    age_min: ageRange.split("-")[0] ? parseInt(ageRange.split("-")[0]) : undefined,
+                    age_max: ageRange.includes("+") ? undefined : (ageRange.split("-")[1] ? parseInt(ageRange.split("-")[1]) : undefined),
+                    genders: gender === 'ALL' ? undefined : (gender === 'MALE' ? [1] : [2])
                   }
                 });
               }}
@@ -1666,7 +1726,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
                <div className="mt-6 pt-4 border-t border-slate-800">
                   <p className="text-[9px] text-slate-500 uppercase font-bold">Pblico Estimado</p>
                   <p className="text-xs text-slate-300 mt-1">
-                    {data.targeting?.geo_locations?.regions?.[0]?.name || "Todo o Brasil"}  
+                    {data.targeting?.geo_locations?.regions?.[0]?.name || data.targeting?.geo_locations?.countries?.[0] || "Global"}  
                     {data.targeting?.interests ? ` ${data.targeting.interests.length} Interesses` : " Aberto"}
                   </p>
                </div>
