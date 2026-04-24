@@ -927,15 +927,15 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
       {view === "folders" ? (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           <Card 
-            className="p-6 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-primary/5 transition-colors border-dashed bg-primary/5 border-primary/20"
+            className="p-8 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-primary/10 transition-all border-2 border-primary/20 bg-primary/5 group"
             onClick={() => setView("files")}
           >
-            <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center">
-              <Folder className="h-8 w-8 text-primary" />
+            <div className="h-20 w-20 bg-primary/20 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+              <Folder className="h-10 w-10 text-primary" />
             </div>
             <div className="text-center">
-              <p className="font-bold text-sm uppercase">CARBON</p>
-              <p className="text-[10px] text-muted-foreground">{filteredCreatives.length} ITENS</p>
+              <p className="font-black text-base uppercase tracking-widest text-primary">CARBON</p>
+              <Badge variant="outline" className="mt-1 text-[9px] border-primary/30 text-primary/70">{filteredCreatives.length} CRIATIVOS</Badge>
             </div>
           </Card>
         </div>
