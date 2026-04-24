@@ -61,7 +61,9 @@ import {
   updateAdsetStatus,
   updateAdsetBudget,
   updateAdsetName,
-  updateAdName
+  updateAdName,
+  uploadImage,
+  uploadVideo
 } from "../server/meta";
 import { WhatsAppModal } from "./WhatsAppModal";
 import { SCALE_STRATEGIES, ScaleStrategy } from "../lib/scales";
