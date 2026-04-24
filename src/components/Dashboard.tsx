@@ -1555,30 +1555,43 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
   const [localCreatives, setLocalCreatives] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
-    // Simulating upload
-    setTimeout(() => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const newCreative = {
-          id: `new_${Math.random().toString(36).substr(2, 9)}`,
-          name: file.name,
-          image_url: event.target?.result as string,
-          thumbnail_url: event.target?.result as string,
-          body: "Nova mídia hospedada",
-          title: "Headline"
-        };
-        setLocalCreatives(prev => [newCreative, ...prev]);
-        setSelectedCreatives(prev => [...prev, newCreative.id]);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const base64 = event.target?.result as string;
+      try {
+        const isVideo = file.type.startsWith('video/');
+        const res = isVideo 
+          ? await uploadVideo({ data: { bytes: base64, filename: file.name } })
+          : await uploadImage({ data: { bytes: base64, filename: file.name } });
+
+        if (res.ok) {
+          const newCreative = {
+            id: res.data.id,
+            name: file.name,
+            image_url: res.data.url,
+            thumbnail_url: res.data.url,
+            body: "Nova mídia hospedada via API Meta",
+            title: "Headline automática",
+            video_id: isVideo ? res.data.id : undefined
+          };
+          setLocalCreatives(prev => [newCreative, ...prev]);
+          setSelectedCreatives(prev => [...prev, newCreative.id]);
+          toast.success(`${isVideo ? 'Vídeo' : 'Imagem'} hospedado com sucesso na biblioteca Meta!`);
+        } else {
+          toast.error("Erro ao hospedar mídia: " + res.error);
+        }
+      } catch (err: any) {
+        toast.error("Erro na conexão: " + err.message);
+      } finally {
         setIsUploading(false);
-        toast.success("Mídia hospedada com sucesso!");
-      };
-      reader.readAsDataURL(file);
-    }, 1500);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const allCreatives = [...localCreatives, ...creatives];
