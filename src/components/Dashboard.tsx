@@ -32,7 +32,16 @@ import {
   Users,
   Video,
   Folder,
-  Save
+  Save,
+  Search,
+  MessageSquare,
+  Share2,
+  ShoppingCart,
+  Brain,
+  Smartphone,
+  Bell,
+  LineChart,
+  UserPlus
 } from "lucide-react";
 import {
   getAccountInfo,
