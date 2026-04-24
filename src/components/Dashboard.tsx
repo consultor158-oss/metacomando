@@ -470,9 +470,11 @@ function KPICard({ title, value, icon, trend, positive }: { title: string, value
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/50">
             {icon}
           </div>
-          <div className={`flex items-center text-[10px] font-bold ${positive ? 'text-[oklch(0.7_0.18_162)]' : 'text-blue-500'}`}>
-            {trend} {positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowUpRight className="h-3 w-3" />}
-          </div>
+          {trend && (
+            <div className={`flex items-center text-[10px] font-bold ${positive ? 'text-[oklch(0.7_0.18_162)]' : 'text-blue-500'}`}>
+              {trend} {positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowUpRight className="h-3 w-3" />}
+            </div>
+          )}
         </div>
         <div className="mt-4">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{title}</p>
