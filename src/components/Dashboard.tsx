@@ -8,6 +8,7 @@ import {
   MessageCircle,
   ShieldCheck,
   ChevronRight,
+  ChevronLeft,
   LayoutDashboard,
   BarChart3,
   Layers,
@@ -29,7 +30,9 @@ import {
   Trash2,
   Globe,
   Users,
-  Video
+  Video,
+  Folder,
+  Save
 } from "lucide-react";
 import {
   getAccountInfo,
@@ -91,6 +94,7 @@ import {
 import { Label } from "./ui/label";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { ScrollArea } from "./ui/scroll-area";
 
@@ -863,11 +867,30 @@ function ScalesTab({ onSelect }: { onSelect: (s: ScaleStrategy) => void }) {
 function CreativesTab({ creatives }: { creatives: any[] }) {
   const [selectedCreative, setSelectedCreative] = useState<any | null>(null);
   const [filter, setFilter] = useState("CARBON");
+  const [view, setView] = useState<"folders" | "files">("folders");
+  const [editingCreative, setEditingCreative] = useState<any | null>(null);
 
-  const organizedCreatives = creatives.map(c => ({ ...c, campaign_name: "CARBON" }));
+  const organizedCreatives = creatives.map(c => ({ 
+    ...c, 
+    campaign_name: "CARBON",
+    headline: c.headline || "Título do Anúncio",
+    body: c.body || "Texto principal do anúncio que aparece no feed.",
+    link_url: c.link_url || "https://seulink.com"
+  }));
+  
   const campaigns = ["CARBON"];
-
   const filteredCreatives = organizedCreatives;
+
+  const handleEdit = (creative: any) => {
+    setSelectedCreative(creative);
+    setEditingCreative({ ...creative });
+  };
+
+  const handleSave = () => {
+    toast.success("Criativo atualizado com sucesso!");
+    setSelectedCreative(null);
+    setEditingCreative(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -877,6 +900,11 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
           <p className="text-xs text-muted-foreground">Organizado por campanhas e pastas inteligentes.</p>
         </div>
         <div className="flex items-center gap-2">
+          {view === "files" && (
+            <Button size="sm" variant="ghost" onClick={() => setView("folders")} className="gap-2">
+              <ChevronLeft className="h-4 w-4" /> Voltar para Pastas
+            </Button>
+          )}
           <Select value={filter} onValueChange={setFilter}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Filtrar por Pasta" />
@@ -896,49 +924,128 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {filteredCreatives.map((c) => (
-          <Card key={c.id} className="overflow-hidden group cursor-pointer" onClick={() => setSelectedCreative(c)}>
-            <div className="aspect-square relative">
-              <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                 <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full"><Eye className="h-4 w-4" /></Button>
-              </div>
-              {c.video_id && (
-                <div className="absolute top-2 left-2 bg-black/60 p-1 rounded">
-                  <Video className="h-3 w-3 text-white" />
-                </div>
-              )}
+      {view === "folders" ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <Card 
+            className="p-8 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-primary/10 transition-all border-2 border-primary/20 bg-primary/5 group"
+            onClick={() => setView("files")}
+          >
+            <div className="h-20 w-20 bg-primary/20 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
+              <Folder className="h-10 w-10 text-primary" />
             </div>
-            <CardContent className="p-3">
-              <p className="text-[10px] font-bold truncate uppercase">{c.name}</p>
-              <div className="flex justify-between mt-2">
-                <div className="text-[9px] uppercase text-muted-foreground">CTR</div>
-                <div className="text-[9px] font-bold">{((Math.random() * 2) + 1).toFixed(2)}%</div>
-              </div>
-              <div className="text-[8px] text-muted-foreground mt-1 truncate">Pasta: {c.campaign_name || "Geral"}</div>
-            </CardContent>
+            <div className="text-center">
+              <p className="font-black text-base uppercase tracking-widest text-primary">CARBON</p>
+              <Badge variant="outline" className="mt-1 text-[9px] border-primary/30 text-primary/70">{filteredCreatives.length} CRIATIVOS</Badge>
+            </div>
           </Card>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {filteredCreatives.map((c) => (
+            <Card key={c.id} className="overflow-hidden group cursor-pointer" onClick={() => handleEdit(c)}>
+              <div className="aspect-square relative">
+                <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                   <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full"><Edit2 className="h-4 w-4" /></Button>
+                </div>
+                {c.video_id && (
+                  <div className="absolute top-2 left-2 bg-black/60 p-1 rounded">
+                    <Video className="h-3 w-3 text-white" />
+                  </div>
+                )}
+              </div>
+              <CardContent className="p-3">
+                <p className="text-[10px] font-bold truncate uppercase">{c.name}</p>
+                <div className="flex justify-between mt-2">
+                  <div className="text-[9px] uppercase text-muted-foreground">CTR</div>
+                  <div className="text-[9px] font-bold">{((Math.random() * 2) + 1).toFixed(2)}%</div>
+                </div>
+                <div className="text-[8px] text-muted-foreground mt-1 truncate">Pasta: {c.campaign_name || "Geral"}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <Dialog open={!!selectedCreative} onOpenChange={() => setSelectedCreative(null)}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black/95 border-none">
-          {selectedCreative && (
-            <div className="relative aspect-video flex items-center justify-center">
-               <img src={selectedCreative.image_url || selectedCreative.thumbnail_url} className="max-w-full max-h-full object-contain" />
-               <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
-                  <h3 className="text-lg font-bold text-white">{selectedCreative.name}</h3>
-                  <p className="text-sm text-gray-300 line-clamp-2">{selectedCreative.body || "Sem descrição disponível."}</p>
-               </div>
-               <Button 
-                variant="ghost" 
-                size="icon" 
-                className="absolute top-4 right-4 text-white hover:bg-white/20"
-                onClick={() => setSelectedCreative(null)}
-               >
-                 <Trash2 className="h-5 w-5" />
-               </Button>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden bg-background border-primary/20">
+          {editingCreative && (
+            <div className="grid grid-cols-1 md:grid-cols-2 h-[80vh]">
+              {/* Preview Column */}
+              <div className="bg-black flex items-center justify-center p-4">
+                <div className="relative w-full max-w-[350px] aspect-[9/16] bg-zinc-900 rounded-3xl overflow-hidden border-8 border-zinc-800 shadow-2xl">
+                   <img src={editingCreative.image_url || editingCreative.thumbnail_url} className="w-full h-full object-cover" />
+                   <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                      <p className="text-white text-[10px] font-bold mb-1">{editingCreative.headline}</p>
+                      <p className="text-gray-300 text-[8px] line-clamp-2">{editingCreative.body}</p>
+                      <Button size="sm" className="w-full mt-2 h-7 text-[10px] bg-primary">SAIBA MAIS</Button>
+                   </div>
+                </div>
+              </div>
+
+              {/* Editor Column */}
+              <div className="p-6 flex flex-col gap-6 overflow-y-auto">
+                <div>
+                  <h3 className="text-xl font-bold">Editar Criativo</h3>
+                  <p className="text-xs text-muted-foreground">Ajuste as informações para escala.</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase">Nome do Criativo</Label>
+                    <Input 
+                      value={editingCreative.name} 
+                      onChange={(e) => setEditingCreative({...editingCreative, name: e.target.value})}
+                      className="bg-muted/50"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase">Título (Headline)</Label>
+                    <Input 
+                      value={editingCreative.headline} 
+                      onChange={(e) => setEditingCreative({...editingCreative, headline: e.target.value})}
+                      className="bg-muted/50"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase">Texto Principal (Body)</Label>
+                    <Textarea 
+                      value={editingCreative.body} 
+                      onChange={(e) => setEditingCreative({...editingCreative, body: e.target.value})}
+                      className="bg-muted/50 h-32"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase">URL de Destino</Label>
+                    <Input 
+                      value={editingCreative.link_url} 
+                      onChange={(e) => setEditingCreative({...editingCreative, link_url: e.target.value})}
+                      className="bg-muted/50"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase">ID do Criativo</p>
+                      <p className="text-xs font-mono">{editingCreative.id}</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase">Formato</p>
+                      <p className="text-xs font-bold">{editingCreative.video_id ? "VÍDEO" : "IMAGEM"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-auto flex gap-2">
+                  <Button variant="outline" className="flex-1" onClick={() => setSelectedCreative(null)}>Cancelar</Button>
+                  <Button className="flex-1 gap-2" onClick={handleSave}>
+                    <Save className="h-4 w-4" /> Salvar Alterações
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </DialogContent>
