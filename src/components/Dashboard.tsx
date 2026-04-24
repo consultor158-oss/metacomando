@@ -1120,10 +1120,12 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
   const [name, setName] = useState("");
   const [budget, setBudget] = useState("50");
   const [selectedCreatives, setSelectedCreatives] = useState<string[]>([]);
-  const [locations, setLocations] = useState("BR");
-  const [state, setState] = useState("");
+  const [locations, setLocations] = useState("GLOBAL");
+  const [region, setRegion] = useState("ALL");
   const [city, setCity] = useState("");
   const [interests, setInterests] = useState("");
+  const [ageRange, setAgeRange] = useState("18-65+");
+  const [gender, setGender] = useState("ALL");
   
   useEffect(() => {
     if (selectedStrategy) {
