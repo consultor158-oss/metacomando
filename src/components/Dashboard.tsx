@@ -1578,72 +1578,76 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
           </div>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase text-slate-500">Página do Facebook</Label>
-              <Select value={selectedPage} onValueChange={setSelectedPage}>
-                <SelectTrigger className="bg-slate-900 border-slate-800">
-                  <SelectValue placeholder="Selecione a Página" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
-                  {pages.map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <div className="space-y-6 py-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Página do Facebook (Emissor)</Label>
+                <Select value={selectedPage} onValueChange={setSelectedPage}>
+                  <SelectTrigger className="bg-slate-900 border-slate-800 h-11">
+                    <SelectValue placeholder="Selecione a Página" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
+                    {pages.map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Destino do Tráfego</Label>
+                <RadioGroup value={destination} onValueChange={(v: any) => setDestination(v)} className="grid grid-cols-2 gap-4">
+                   <div className={`flex items-center space-x-2 border p-3 rounded-lg cursor-pointer transition-all ${destination === 'WHATSAPP' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('WHATSAPP')}>
+                      <RadioGroupItem value="WHATSAPP" id="dest-wa" className="border-slate-400" />
+                      <Label htmlFor="dest-wa" className="cursor-pointer font-bold text-xs">WhatsApp</Label>
+                   </div>
+                   <div className={`flex items-center space-x-2 border p-3 rounded-lg cursor-pointer transition-all ${destination === 'SALES' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('SALES')}>
+                      <RadioGroupItem value="SALES" id="dest-sales" className="border-slate-400" />
+                      <Label htmlFor="dest-sales" className="cursor-pointer font-bold text-xs">Site / Vendas</Label>
+                   </div>
+                </RadioGroup>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase text-slate-500">Destino do Tráfego</Label>
-              <RadioGroup value={destination} onValueChange={(v: any) => setDestination(v)} className="flex gap-4 mt-2">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="WHATSAPP" id="r1" />
-                  <Label htmlFor="r1" className="text-sm cursor-pointer">WhatsApp</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="SALES" id="r2" />
-                  <Label htmlFor="r2" className="text-sm cursor-pointer">Vendas/Site</Label>
-                </div>
-              </RadioGroup>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800">
-              <p className="text-[10px] uppercase font-bold text-slate-500 mb-1">Estratégia</p>
-              <p className="text-sm font-bold">{strategy.name}</p>
-            </div>
-            <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800">
-              <p className="text-[10px] uppercase font-bold text-slate-500 mb-1">Orçamento Diário Total</p>
-              <p className="text-sm font-bold text-[oklch(0.7_0.18_162)]">{formatBRL(totalBudget)}</p>
-            </div>
+            <Card className="bg-slate-900 border-slate-800 p-4 flex flex-col justify-between">
+               <div>
+                  <p className="text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Resumo da Estratégia</p>
+                  <div className="space-y-3">
+                     <div className="flex justify-between text-xs">
+                        <span className="text-slate-400">Total de Conjuntos:</span>
+                        <span className="font-bold text-slate-100">{adsetCount}</span>
+                     </div>
+                     <div className="flex justify-between text-xs">
+                        <span className="text-slate-400">Investimento Diário:</span>
+                        <span className="font-bold text-primary">{formatBRL(totalBudget)}</span>
+                     </div>
+                     <div className="flex justify-between text-xs">
+                        <span className="text-slate-400">Objetivo:</span>
+                        <span className="font-bold text-slate-100">{destination === 'WHATSAPP' ? 'Engajamento' : 'Vendas'}</span>
+                     </div>
+                  </div>
+               </div>
+               <div className="mt-6 pt-4 border-t border-slate-800">
+                  <p className="text-[9px] text-slate-500 uppercase font-bold">Público Estimado</p>
+                  <p className="text-xs text-slate-300 mt-1">
+                    {data.targeting?.geo_locations?.regions?.[0]?.name || "Todo o Brasil"} • 
+                    {data.targeting?.interests ? ` ${data.targeting.interests.length} Interesses` : " Aberto"}
+                  </p>
+               </div>
+            </Card>
           </div>
 
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase text-slate-500 flex items-center gap-2">
-              <Zap className="h-3 w-3" /> Ações Planejadas
-            </h4>
-            <div className="space-y-2">
-              <ActionItem icon={<CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} text={`Criar 1 Campanha: "[IA ULTRA] ${strategy.defaults.namePrefix || strategy.name}..."`} />
-              <ActionItem icon={<CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} text={`Criar ${adsetCount} Conjuntos de Anúncios (AdSets)`} />
-              <ActionItem icon={<MessageCircle className="h-4 w-4 text-green-400" />} text={`Destino: ${destination === "WHATSAPP" ? "WhatsApp (Conversas)" : "Site (Vendas)"}`} />
-              <ActionItem icon={<Clock className="h-4 w-4 text-blue-400" />} text={`Status Inicial: ${strategy.defaults.status === "ACTIVE" ? "ATIVO" : "PAUSADO"}`} />
-            </div>
-          </div>
-
-          {creatives && creatives.length > 0 && (
-            <div className="space-y-3">
-              <h4 className="text-xs font-bold uppercase text-slate-500">Criativos Selecionados ({creatives.length})</h4>
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                {creatives.map((c, i) => (
-                  <div key={i} className="h-16 w-16 flex-shrink-0 rounded-md overflow-hidden border border-slate-800">
-                    <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover" />
+             <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Criativos Selecionados ({creatives?.length})</Label>
+             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {creatives?.map((c, i) => (
+                  <div key={i} className="h-16 w-16 rounded-lg overflow-hidden border border-slate-800 flex-shrink-0">
+                    <img src={c.image_url || c.thumbnail_url} className="h-full w-full object-cover" />
                   </div>
                 ))}
-              </div>
-            </div>
-          )}
+             </div>
+          </div>
         </div>
 
         <DialogFooter className="gap-2">
