@@ -41,7 +41,8 @@ import {
   Smartphone,
   Bell,
   LineChart,
-  UserPlus
+  UserPlus,
+  Code
 } from "lucide-react";
 import {
   getAccountInfo,
@@ -112,7 +113,7 @@ import { Textarea } from "./ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { ScrollArea } from "./ui/scroll-area";
 
-type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "settings" | "google_ads" | "insta_organic" | "wa_reports" | "wa_alerts" | "client_dash" | "lead_tracking" | "wa_support" | "ai_creatives" | "ai_analysis" | "ecommerce" | "crm";
+type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "settings" | "google_ads" | "insta_organic" | "wa_reports" | "wa_alerts" | "client_dash" | "lead_tracking" | "wa_support" | "ai_creatives" | "ai_analysis" | "ecommerce" | "crm" | "apis";
 
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
@@ -212,6 +213,12 @@ export function Dashboard() {
                     <SidebarMenuButton isActive={view === "scales"} onClick={() => setView("scales")}>
                       <Rocket className="h-4 w-4" />
                       <span>Escalas IA</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "apis"} onClick={() => setView("apis")}>
+                      <Code className="h-4 w-4" />
+                      <span>APÍS</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -349,6 +356,7 @@ export function Dashboard() {
                   {view === "ai_analysis" && "Análise de Performance IA"}
                   {view === "ecommerce" && "Rastrear Ecommerce"}
                   {view === "crm" && "CRM Interno"}
+                  {view === "apis" && "APÍS"}
                   
                 </h1>
                 <p className="text-xs text-muted-foreground">
@@ -413,6 +421,7 @@ export function Dashboard() {
             {view === "ai_analysis" && <AIAnalysisTab />}
             {view === "ecommerce" && <EcommerceTab />}
             {view === "crm" && <CRMTab leads={crmLeads} onAdd={addLead} onMove={moveLead} />}
+            {view === "apis" && <ApisTab />}
           </main>
         </SidebarInset>
 
@@ -2881,6 +2890,66 @@ function CRMPipeColumn({ title, id, leads, color, onAdd, onMove }: { title: stri
           <Plus className="h-3 w-3 mr-1" /> Adicionar Lead
         </Button>
       </div>
+    </div>
+  );
+}
+
+function ApisTab() {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Conexões de APIs</CardTitle>
+          <CardDescription>Gerencie suas conexões externas e chaves de API para operar por dentro da plataforma.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="border-dashed">
+              <CardContent className="pt-6 text-center space-y-4">
+                <div className="flex justify-center">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <Code className="h-6 w-6" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-bold">Nova Integração API</h3>
+                  <p className="text-sm text-muted-foreground">Conecte sua API personalizada para automatizar processos.</p>
+                </div>
+                <Button variant="outline" className="w-full">
+                  <Plus className="h-4 w-4 mr-2" /> Configurar Nova API
+                </Button>
+              </CardContent>
+            </Card>
+
+            <div className="space-y-4">
+              <div className="p-4 border rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded bg-muted flex items-center justify-center">
+                    <Globe className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Webhook Principal</p>
+                    <p className="text-xs text-muted-foreground">https://api.metaultra.com/webhook/...</p>
+                  </div>
+                </div>
+                <Badge>Ativo</Badge>
+              </div>
+              <div className="p-4 border rounded-lg flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded bg-muted flex items-center justify-center">
+                    <Zap className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Integração VSL</p>
+                    <p className="text-xs text-muted-foreground">Conectado via Token</p>
+                  </div>
+                </div>
+                <Badge variant="outline">Pendente</Badge>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
