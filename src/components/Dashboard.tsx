@@ -112,7 +112,7 @@ import { Textarea } from "./ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { ScrollArea } from "./ui/scroll-area";
 
-type View = "overview" | "campaigns" | "scales" | "scale_test" | "creatives" | "automation" | "settings" | "google_ads" | "insta_organic" | "wa_reports" | "wa_alerts" | "client_dash" | "lead_tracking" | "wa_support" | "ai_creatives" | "ai_analysis" | "ecommerce" | "crm" | "teste";
+type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "settings" | "google_ads" | "insta_organic" | "wa_reports" | "wa_alerts" | "client_dash" | "lead_tracking" | "wa_support" | "ai_creatives" | "ai_analysis" | "ecommerce" | "crm";
 
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
@@ -185,7 +185,7 @@ export function Dashboard() {
                   <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "overview"} onClick={() => setView("overview")}>
                       <LayoutDashboard className="h-4 w-4" />
-                      <span>Viso Geral</span>
+                      <span>Visão Geral</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
@@ -203,25 +203,13 @@ export function Dashboard() {
                   <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "insta_organic"} onClick={() => setView("insta_organic")}>
                       <Smartphone className="h-4 w-4" />
-                      <span>Instagram Orgnico</span>
+                      <span>Instagram Orgânico</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "scales"} onClick={() => setView("scales")}>
                       <Rocket className="h-4 w-4" />
                       <span>Escalas IA</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton isActive={view === "scale_test"} onClick={() => setView("scale_test")}>
-                      <Activity className="h-4 w-4" />
-                      <span>Teste de Escala Real</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton isActive={view === "teste"} onClick={() => setView("teste")}>
-                      <Activity className="h-4 w-4" />
-                      <span>TESTE</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -235,7 +223,7 @@ export function Dashboard() {
                   <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "wa_reports"} onClick={() => setView("wa_reports")}>
                       <MessageSquare className="h-4 w-4" />
-                      <span>Relatrios no WhatsApp</span>
+                      <span>Relatórios no WhatsApp</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
@@ -261,7 +249,7 @@ export function Dashboard() {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel>Inteligncia & IA</SidebarGroupLabel>
+              <SidebarGroupLabel>Inteligência & IA</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
@@ -273,7 +261,7 @@ export function Dashboard() {
                   <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "ai_analysis"} onClick={() => setView("ai_analysis")}>
                       <Brain className="h-4 w-4" />
-                      <span>Anlise de Performance</span>
+                      <span>Análise de Performance</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
@@ -285,7 +273,7 @@ export function Dashboard() {
                   <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "automation"} onClick={() => setView("automation")}>
                       <RefreshCw className="h-4 w-4" />
-                      <span>Automao</span>
+                      <span>Automação</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -323,13 +311,13 @@ export function Dashboard() {
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={() => setIsWAModalOpen(true)} className="text-[oklch(0.7_0.18_162)] hover:text-[oklch(0.7_0.18_162)]">
                   <MessageCircle className="h-4 w-4" />
-                  <span>Configuraes WhatsApp</span>
+                  <span>Configurações WhatsApp</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton isActive={view === "settings"} onClick={() => setView("settings")}>
                   <Settings className="h-4 w-4" />
-                  <span>Configuraes do Sistema</span>
+                  <span>Configurações do Sistema</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -342,25 +330,24 @@ export function Dashboard() {
             <div className="flex flex-1 items-center justify-between">
               <div>
                 <h1 className="text-lg font-semibold capitalize">
-                  {view === "overview" && "Viso Geral"}
+                  {view === "overview" && "Visão Geral"}
                   {view === "campaigns" && "Gerenciar Meta Ads"}
                   {view === "google_ads" && "Gerenciar Google Ads"}
-                  {view === "insta_organic" && "Instagram Orgnico"}
+                  {view === "insta_organic" && "Instagram Orgânico"}
                   {view === "scales" && "Escalas de IA"}
-                  {view === "scale_test" && "Teste de Escala Real"}
                   {view === "creatives" && "Biblioteca de Ativos"}
-                  {view === "automation" && "Automao"}
-                  {view === "settings" && "Configuraes do Sistema"}
-                  {view === "wa_reports" && "Relatrios no WhatsApp"}
+                  {view === "automation" && "Automação"}
+                  {view === "settings" && "Configurações do Sistema"}
+                  {view === "wa_reports" && "Relatórios no WhatsApp"}
                   {view === "wa_alerts" && "Alertas de Saldo"}
                   {view === "client_dash" && "Compartilhar com Cliente"}
                   {view === "lead_tracking" && "Rastreamento de Leads"}
                   {view === "wa_support" && "Atendimento WhatsApp"}
-                  {view === "ai_creatives" && "Gerao de Criativos IA"}
-                  {view === "ai_analysis" && "Anlise de Performance IA"}
+                  {view === "ai_creatives" && "Geração de Criativos IA"}
+                  {view === "ai_analysis" && "Análise de Performance IA"}
                   {view === "ecommerce" && "Rastrear Ecommerce"}
                   {view === "crm" && "CRM Interno"}
-                  {view === "teste" && "TESTE"}
+                  
                 </h1>
                 <p className="text-xs text-muted-foreground">
                   {accountData ? (
@@ -376,10 +363,6 @@ export function Dashboard() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                 <Badge variant="outline" className="hidden md:flex gap-1.5 px-2 py-1 text-[10px] font-bold uppercase">
-                   <div className="h-1.5 w-1.5 rounded-full bg-[oklch(0.7_0.18_162)] animate-pulse" />
-                   Motor de IA Ativo
-                 </Badge>
               </div>
             </div>
           </header>
@@ -395,12 +378,12 @@ export function Dashboard() {
                   setDryRunData(data);
                 }} />
                 <div className="border-t pt-10">
-                  <h3 className="text-xl font-bold mb-6">Outras Estratgias de Escala</h3>
+                  <h3 className="text-xl font-bold mb-6">Outras Estratégias de Escala</h3>
                   <ScalesTab onSelect={(s) => setDryRunData({ strategy: s })} />
                 </div>
               </div>
             )}
-            {view === "scale_test" && <ScaleTestTab campaigns={campaignsData} />}
+            
             {view === "creatives" && <CreativesTab creatives={creativesData} />}
             {view === "automation" && <AutomationTab />}
             {view === "settings" && <SettingsTab account={accountData} />}
@@ -413,17 +396,6 @@ export function Dashboard() {
             {view === "ai_analysis" && <AIAnalysisTab />}
             {view === "ecommerce" && <EcommerceTab />}
             {view === "crm" && <CRMTab leads={crmLeads} onAdd={addLead} onMove={moveLead} />}
-            {view === "teste" && (
-              <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
-                <div className="p-8 rounded-2xl bg-primary/10 border border-primary/20 text-center animate-in fade-in zoom-in duration-500">
-                  <Activity className="h-16 w-16 text-primary mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold">Aba de Teste</h2>
-                  <p className="text-muted-foreground max-w-md">
-                    Se você está vendo esta mensagem, significa que a nova aba "TESTE" foi criada e hospedada com sucesso!
-                  </p>
-                </div>
-              </div>
-            )}
           </main>
         </SidebarInset>
 
@@ -457,13 +429,13 @@ function OverviewTab({ stats, funnel }: { stats: any; funnel: any }) {
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="col-span-1">
           <CardHeader>
-            <CardTitle>Funil de Converso (30d)</CardTitle>
-            <CardDescription>Fluxo de usurios desde a impresso at a compra.</CardDescription>
+            <CardTitle>Funil de Conversão (30d)</CardTitle>
+            <CardDescription>Fluxo de usuários desde a impressão até a compra.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
              <FunnelStep label="Impresses" count={funnel?.impressions || 0} pct="100%" color="bg-primary/20" />
              <FunnelStep label="Cliques no Link" count={funnel?.link_clicks || 0} pct={(funnel?.impressions > 0 ? (funnel?.link_clicks / funnel?.impressions) * 100 : 0).toFixed(2) + "%"} color="bg-primary/40" />
-             <FunnelStep label="Visualizaes da Pgina" count={funnel?.landing_page_views || 0} pct={(funnel?.link_clicks > 0 ? (funnel?.landing_page_views / funnel?.link_clicks) * 100 : 0).toFixed(2) + "%"} color="bg-primary/60" />
+             <FunnelStep label="Visualizações da Página" count={funnel?.landing_page_views || 0} pct={(funnel?.link_clicks > 0 ? (funnel?.landing_page_views / funnel?.link_clicks) * 100 : 0).toFixed(2) + "%"} color="bg-primary/60" />
              <FunnelStep label="Finalizaes de Compra" count={funnel?.initiate_checkout || 0} pct={(funnel?.landing_page_views > 0 ? (funnel?.initiate_checkout / funnel?.landing_page_views) * 100 : 0).toFixed(2) + "%"} color="bg-primary/80" />
              <FunnelStep label="Vendas (Purchase)" count={funnel?.purchases || 0} pct={(funnel?.initiate_checkout > 0 ? (funnel?.purchases / funnel?.initiate_checkout) * 100 : 0).toFixed(2) + "%"} color="bg-[oklch(0.7_0.18_162)]" />
           </CardContent>
@@ -475,7 +447,7 @@ function OverviewTab({ stats, funnel }: { stats: any; funnel: any }) {
               <CardTitle>Status da Conta</CardTitle>
               <CardDescription>Sade e performance do pixel e API.</CardDescription>
             </div>
-            <Badge className="bg-[oklch(0.7_0.18_162)]">Saudvel</Badge>
+            <Badge className="bg-[oklch(0.7_0.18_162)]">Saudável</Badge>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
@@ -777,7 +749,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
         <Tabs defaultValue="settings" className="flex-1 flex flex-col overflow-hidden">
           <div className="px-6 border-b">
             <TabsList className="w-full justify-start h-12 bg-transparent gap-6">
-              <TabsTrigger value="settings" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Configuraes</TabsTrigger>
+              <TabsTrigger value="settings" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Configurações</TabsTrigger>
               <TabsTrigger value="adsets" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Conjuntos ({fullCampaignData?.adsets?.length || 0})</TabsTrigger>
               <TabsTrigger value="ads" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Anúncios ({fullCampaignData?.ads?.length || 0})</TabsTrigger>
               <TabsTrigger value="targeting" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Público e Posicionamento</TabsTrigger>
@@ -1173,7 +1145,7 @@ function ScalesTab({ onSelect }: { onSelect: (s: ScaleStrategy) => void }) {
         <div className="absolute top-0 right-0 p-4 opacity-10">
           <Rocket className="h-24 w-24" />
         </div>
-        <h2 className="text-2xl font-bold">Escalas com Inteligncia Artificial</h2>
+        <h2 className="text-2xl font-bold">Escalas com Inteligência Artificial</h2>
         <p className="text-muted-foreground max-w-xl mt-2">Selecione uma estratgia validada para subir campanhas ou duplicar conjuntos vencedores com um clique.</p>
         <div className="flex gap-2 mt-6">
           <Button className="bg-primary shadow-lg shadow-primary/20">Nova Escala Rpida</Button>
@@ -1187,7 +1159,7 @@ function ScalesTab({ onSelect }: { onSelect: (s: ScaleStrategy) => void }) {
             <CardHeader className="p-4 pb-2">
               <div className="flex justify-between items-start">
                 <div className="text-3xl">{s.emoji}</div>
-                <Badge variant="secondary" className="text-[10px] uppercase font-bold">Estratgia</Badge>
+                <Badge variant="secondary" className="text-[10px] uppercase font-bold">Estratégia</Badge>
               </div>
               <CardTitle className="mt-2">{s.name}</CardTitle>
               <CardDescription className="text-xs line-clamp-2 mt-1">{s.shortDesc}</CardDescription>
@@ -1212,156 +1184,6 @@ function ScalesTab({ onSelect }: { onSelect: (s: ScaleStrategy) => void }) {
   );
 }
 
-function ScaleTestTab({ campaigns }: { campaigns: any[] }) {
-  const [testing, setTesting] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [results, setResults] = useState<any>(null);
-
-  const startTest = (campaign?: any) => {
-    setTesting(true);
-    setProgress(0);
-    setResults(null);
-    
-    const interval = setInterval(() => {
-      setProgress(p => {
-        if (p >= 100) {
-          clearInterval(interval);
-          setTesting(false);
-          
-          const roas = campaign ? parseFloat(campaign.purchase_roas?.[0]?.value || "0") : (Math.random() * 2 + 1);
-          const spend = campaign ? parseFloat(campaign.spend || "0") : 1000;
-          
-          setResults({
-            reach: campaign ? Math.floor(campaign.impressions * 1.5) : Math.floor(Math.random() * 1000000),
-            conversions: campaign ? Math.floor(campaign.conversions * 1.3) : Math.floor(Math.random() * 1000),
-            roas: (roas * 0.85).toFixed(2), // Projeção conservadora de queda no ROAS ao escalar
-            score: campaign ? Math.min(100, Math.floor(roas * 20)) : Math.floor(Math.random() * 40 + 60),
-            bottleneck: roas < 1.5 ? "ROAS baixo para escala agressiva" : (spend > 5000 ? "Frequência no limite" : "Fatia de leilão saturada"),
-            recommendation: roas > 2 ? "Aumentar orçamento em 50% imediatamente" : "Otimizar criativos antes de escalar"
-          });
-          return 100;
-        }
-        return p + 5;
-      });
-    }, 100);
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-4 opacity-10">
-          <Activity className="h-24 w-24 text-primary" />
-        </div>
-        <h2 className="text-2xl font-bold text-white">Simulador de Escala Real</h2>
-        <p className="text-slate-400 max-w-xl mt-2">Analise o potencial de escala das suas campanhas atuais antes de investir pesado. Nossa IA projeta o ROAS baseado no comportamento do leilão.</p>
-        <div className="flex gap-2 mt-6">
-          <Button onClick={() => startTest()} disabled={testing} className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
-            {testing ? "Analisando..." : "Iniciar Teste de Estresse"}
-          </Button>
-        </div>
-      </div>
-
-      {testing && (
-        <Card className="p-8 flex flex-col items-center justify-center space-y-4 animate-in fade-in zoom-in duration-300">
-          <Activity className="h-12 w-12 text-primary animate-pulse" />
-          <div className="w-full max-w-md space-y-2">
-            <div className="flex justify-between text-xs font-bold uppercase">
-              <span>Processando dados do Pixel...</span>
-              <span>{progress}%</span>
-            </div>
-            <Progress value={progress} className="h-2" />
-          </div>
-          <p className="text-sm text-muted-foreground italic">Avaliando comportamento do CPM e saturação de criativo...</p>
-        </Card>
-      )}
-
-      {results && !testing && (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <Card className="p-6 border-2 border-primary/20 bg-primary/5">
-            <CardHeader className="p-0 mb-4">
-              <CardTitle className="text-sm font-bold uppercase text-primary">Score de Escala</CardTitle>
-            </CardHeader>
-            <div className="flex items-center gap-4">
-              <div className="text-5xl font-black text-primary">{results.score}</div>
-              <div className="text-xs text-muted-foreground uppercase font-bold">Pontos de Saúde<br/>da Campanha</div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <CardHeader className="p-0 mb-4">
-              <CardTitle className="text-sm font-bold uppercase text-muted-foreground">Projeção de ROAS (Escalado)</CardTitle>
-            </CardHeader>
-            <div className="flex items-center gap-4">
-              <div className="text-4xl font-black">{results.roas}x</div>
-              <Badge className="bg-green-500/20 text-green-500 border-green-500/20">Saudável</Badge>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <CardHeader className="p-0 mb-4">
-              <CardTitle className="text-sm font-bold uppercase text-muted-foreground">Gargalo Identificado</CardTitle>
-            </CardHeader>
-            <div className="flex items-center gap-4">
-              <div className="text-xl font-bold text-orange-500">{results.bottleneck}</div>
-            </div>
-          </Card>
-
-          <Card className="col-span-full p-6 border-l-4 border-l-blue-500 bg-blue-500/5">
-            <div className="flex items-start gap-4">
-              <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                <Brain className="h-6 w-6 text-blue-500" />
-              </div>
-              <div>
-                <h4 className="font-bold text-blue-500 uppercase text-xs tracking-widest mb-1">Recomendação da IA</h4>
-                <p className="text-sm text-slate-600 font-medium">{results.recommendation}</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
-
-      <div className="grid gap-4">
-        <h3 className="text-lg font-bold">Campanhas Disponíveis para Teste</h3>
-        <div className="border rounded-xl overflow-hidden">
-          <Table>
-            <TableHeader className="bg-muted/50">
-              <TableRow>
-                <TableHead>Campanha</TableHead>
-                <TableHead>Status Atual</TableHead>
-                <TableHead>Investimento</TableHead>
-                <TableHead>ROAS Atual</TableHead>
-                <TableHead className="text-right">Ação</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {campaigns.length > 0 ? campaigns.map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell className="font-medium">{c.name}</TableCell>
-                  <TableCell>
-                    <Badge variant={c.status === "ACTIVE" ? "default" : "secondary"} className={c.status === "ACTIVE" ? "bg-[oklch(0.7_0.18_162)]" : ""}>
-                      {c.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{formatBRL(parseFloat(c.spend || 0))}</TableCell>
-                  <TableCell>{(parseFloat(c.purchase_roas?.[0]?.value || 0)).toFixed(2)}x</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={() => startTest(c)} disabled={testing}>
-                      Simular Escala
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              )) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nenhuma campanha encontrada para teste.</TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function CreativesTab({ creatives }: { creatives: any[] }) {
   const [selectedCreative, setSelectedCreative] = useState<any | null>(null);
@@ -2259,7 +2081,7 @@ function SettingsTab({ account }: { account: any }) {
     <div className="space-y-6 max-w-2xl">
        <Card>
          <CardHeader>
-           <CardTitle>Configuraes da Conta</CardTitle>
+           <CardTitle>Configurações da Conta</CardTitle>
            <CardDescription>Gerencie suas credenciais e conexes do Meta Ads.</CardDescription>
          </CardHeader>
          <CardContent className="space-y-4">
@@ -2319,7 +2141,7 @@ function AutomationTab() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold">Regras de Automao IA</h2>
+          <h2 className="text-xl font-bold">Regras de Automação IA</h2>
           <p className="text-xs text-muted-foreground">O motor de automao otimiza suas campanhas em tempo real.</p>
         </div>
         <Button size="sm" className="gap-2">
@@ -2380,7 +2202,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
 
   const handleActivate = async () => {
     if (!data || !selectedPage) {
-      if (!selectedPage) toast.error("Selecione uma Pgina do Facebook");
+      if (!selectedPage) toast.error("Selecione uma Página do Facebook");
       return;
     }
     setIsActivating(true);
@@ -2408,7 +2230,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
       });
 
       if (res.ok) {
-        toast.success(`Estratgia ${data.strategy.name} ativada com sucesso via API!`);
+        toast.success(`Estratégia ${data.strategy.name} ativada com sucesso via API!`);
         onClose();
       } else {
         toast.error("Erro ao ativar escala: " + res.error);
@@ -2449,10 +2271,10 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Pgina do Facebook (Emissor)</Label>
+                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Página do Facebook (Emissor)</Label>
                 <Select value={selectedPage} onValueChange={setSelectedPage}>
                   <SelectTrigger className="bg-slate-900 border-slate-800 h-11">
-                    <SelectValue placeholder="Selecione a Pgina" />
+                    <SelectValue placeholder="Selecione a Página" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
                     {pages.map(p => (
@@ -2490,7 +2312,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
 
             <Card className="bg-slate-900 border-slate-800 p-4 flex flex-col justify-between">
                <div>
-                  <p className="text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Resumo da Estratgia</p>
+                  <p className="text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Resumo da Estratégia</p>
                   <div className="space-y-3">
                      <div className="flex justify-between text-xs">
                         <span className="text-slate-400">Total de Conjuntos:</span>
