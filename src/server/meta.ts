@@ -41,16 +41,15 @@ async function metaFetch(path: string, params: Record<string, string> = {}, init
   return data;
 }
 
-async function metaPost(path: string, body: Record<string, string>) {
+async function metaPost(path: string, body: Record<string, any>) {
   const { token } = getCreds();
   const url = new URL(`${BASE}/${path}`);
-  const form = new URLSearchParams();
-  form.set("access_token", token);
-  for (const [k, v] of Object.entries(body)) form.set(k, v);
+  url.searchParams.set("access_token", token);
+  
   const res = await fetch(url.toString(), {
     method: "POST",
-    headers: { "Content-Type": "application/x-form-urlencoded" },
-    body: form.toString(),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
   const text = await res.text();
   let data: any;
