@@ -1627,6 +1627,13 @@ function TutorialTab({ creatives, scalingCampaign, onStepChange, onComplete }: {
     <div className="space-y-8 max-w-4xl mx-auto">
       <div className="text-center space-y-4">
         <h2 className="text-4xl font-extrabold tracking-tight">Escala Guiada Passo a Passo</h2>
+        {scalingCampaign && scalingCampaign !== "TUDO" && (
+          <div className="flex justify-center">
+            <Badge variant="secondary" className="px-4 py-1 text-xs font-bold bg-primary/10 text-primary border-primary/20">
+              Escalando: {scalingCampaign}
+            </Badge>
+          </div>
+        )}
         <p className="text-muted-foreground text-lg">Siga o guia real extraído dos manuais de alta performance para dominar seus anúncios como um administrador profissional.</p>
         
         <div className="relative mt-12 mb-8 px-10">
