@@ -65,7 +65,8 @@ import {
   updateAdName,
   uploadImage,
   uploadVideo,
-  deleteCreative
+  deleteCreative,
+  testMetaConnection
 } from "../server/meta";
 import { WhatsAppModal } from "./WhatsAppModal";
 import { SCALE_STRATEGIES, ScaleStrategy } from "../lib/scales";
