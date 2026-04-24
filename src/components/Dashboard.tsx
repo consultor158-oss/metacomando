@@ -1561,12 +1561,7 @@ function TutorialTab({ creatives, scalingCampaign, onStepChange, onClearFilter, 
     reader.readAsDataURL(file);
   };
 
-  const allCreatives = [...localCreatives, ...creatives].filter(c => {
-    if (!scalingCampaign || scalingCampaign === "TUDO" || scalingCampaign === "CARBON") return true;
-    if (localCreatives.some(lc => lc.id === c.id)) return true;
-    const campaignName = c.campaign_name || "";
-    return campaignName.includes(scalingCampaign);
-  });
+  const allCreatives = [...localCreatives];
   
   
   useEffect(() => {
