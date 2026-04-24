@@ -2123,7 +2123,7 @@ function TutorialTab({ scalingCampaign, onStepChange, onClearFilter, onComplete 
   );
 }
 
-function SettingsTab({ account }: { account: any }) {
+function SettingsTab({ account, onConnect }: { account: any, onConnect: () => void }) {
   return (
     <div className="space-y-6 max-w-2xl">
        <Card>
