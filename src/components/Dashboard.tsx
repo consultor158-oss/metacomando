@@ -1560,7 +1560,11 @@ function TutorialTab({ creatives, scalingCampaign, onStepChange, onComplete }: {
     reader.readAsDataURL(file);
   };
 
-  const allCreatives = [...localCreatives, ...creatives];
+  const allCreatives = [...localCreatives, ...creatives].filter(c => {
+    if (!scalingCampaign || scalingCampaign === "TUDO" || scalingCampaign === "CARBON") return true;
+    const campaignName = c.campaign_name || (creatives.indexOf(c) % 2 === 0 ? "CARBON - Campanha Base" : "ESCALA - Ultra Global");
+    return campaignName.includes(scalingCampaign);
+  });
   
   
   useEffect(() => {
