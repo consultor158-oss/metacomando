@@ -889,6 +889,9 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
   const [budget, setBudget] = useState("50");
   const [selectedCreatives, setSelectedCreatives] = useState<string[]>([]);
   const [locations, setLocations] = useState("BR");
+  const [state, setState] = useState("");
+  const [city, setCity] = useState("");
+  const [interests, setInterests] = useState("");
   
   useEffect(() => {
     if (selectedStrategy) {
@@ -900,7 +903,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
   const steps = [
     { id: 1, title: "Estratégia", desc: "Como vamos escalar?" },
     { id: 2, title: "Configuração", desc: "Nome e Orçamento" },
-    { id: 3, title: "Público", desc: "Onde vamos anunciar?" },
+    { id: 3, title: "Público", desc: "Região e Interesses" },
     { id: 4, title: "Criativos", desc: "Seus melhores anúncios" }
   ];
 
