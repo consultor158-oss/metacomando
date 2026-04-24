@@ -544,7 +544,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
     const res = await updateCampaign({
       data: {
         campaignId: campaign.id,
-        name,
+        name: name,
         status: status as any,
         daily_budget: budgetType === "daily" ? Math.round(parseFloat(budget) * 100) : undefined,
         lifetime_budget: budgetType === "lifetime" ? Math.round(parseFloat(budget) * 100) : undefined,
