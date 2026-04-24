@@ -2988,3 +2988,100 @@ function Heart({ className }: { className?: string }) {
     </svg>
   );
 }
+
+function MetaConnectDialog({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+  const [token, setToken] = useState("");
+  const [accountId, setAccountId] = useState("");
+  const [isValidating, setIsValidating] = useState(false);
+  const [step, setStep] = useState(1);
+
+  const handleValidate = async () => {
+    if (!token || !accountId) {
+      toast.error("Preencha todos os campos");
+      return;
+    }
+    setIsValidating(true);
+    try {
+      const res = await testMetaConnection({ data: { token, accountId } });
+      if (res.ok) {
+        toast.success(`Conexão validada! Conta: ${res.data.name}`);
+        setStep(2);
+      } else {
+        toast.error("Erro na validação: " + (res.error || "Verifique suas credenciais"));
+      }
+    } catch (e: any) {
+      toast.error("Falha ao conectar: " + e.message);
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md bg-background border-border">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-primary" />
+            Configurar Integração Real
+          </DialogTitle>
+          <DialogDescription>
+            Conecte sua conta do Meta Ads para gerenciar campanhas e escalas.
+          </DialogDescription>
+        </DialogHeader>
+
+        {step === 1 ? (
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Token de Acesso (User Access Token)</Label>
+              <Input 
+                type="password" 
+                placeholder="EAAB..." 
+                value={token} 
+                onChange={(e) => setToken(e.target.value)} 
+                className="bg-muted/50"
+              />
+              <p className="text-[10px] text-muted-foreground">
+                Obtenha no <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Graph API Explorer</a>
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>ID da Conta de Anúncios</Label>
+              <Input 
+                placeholder="Ex: 1234567890 (sem act_)" 
+                value={accountId} 
+                onChange={(e) => setAccountId(e.target.value)} 
+                className="bg-muted/50"
+              />
+            </div>
+            <Button className="w-full" onClick={handleValidate} disabled={isValidating}>
+              {isValidating ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : "Validar e Seguir"}
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4 py-4 text-center">
+            <div className="flex justify-center">
+              <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
+                <CheckCircle2 className="h-8 w-8" />
+              </div>
+            </div>
+            <h3 className="font-bold">Conexão Validada!</h3>
+            <p className="text-sm text-muted-foreground">
+              As credenciais estão corretas. Agora você deve salvá-las nos Segredos do Lovable para persistência:
+            </p>
+            <div className="p-4 bg-muted rounded-lg text-left text-[11px] space-y-2 font-mono border">
+              <p className="text-muted-foreground">// No painel lateral do Lovable:</p>
+              <p>1. Settings &gt; Secrets</p>
+              <p>2. Adicione as chaves:</p>
+              <p className="text-primary font-bold">META_ACCESS_TOKEN</p>
+              <p className="text-primary font-bold">META_AD_ACCOUNT_ID</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>Voltar</Button>
+              <Button className="flex-1" onClick={onClose}>Concluído</Button>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
