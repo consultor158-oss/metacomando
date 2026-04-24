@@ -215,6 +215,12 @@ export function Dashboard() {
                       <span>Escalas IA</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "apis"} onClick={() => setView("apis")}>
+                      <Code className="h-4 w-4" />
+                      <span>APÍS</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
