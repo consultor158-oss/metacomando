@@ -1368,9 +1368,9 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
               {strategy.emoji}
             </div>
             <div>
-              <DialogTitle className="text-xl font-bold">Configuração da Página e Destino</DialogTitle>
+              <DialogTitle className="text-xl font-bold">Revisão Profissional da Escala</DialogTitle>
               <DialogDescription className="text-slate-400">
-                Ajuste os detalhes finais antes de subir para o Facebook.
+                Verifique o destino, a campanha e as características do conjunto de anúncios.
               </DialogDescription>
             </div>
           </div>
