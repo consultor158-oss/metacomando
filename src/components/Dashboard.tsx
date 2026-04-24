@@ -205,7 +205,6 @@ export function Dashboard() {
                   {view === "scales" && "Escalas de IA"}
                   {view === "creatives" && "Biblioteca de Criativos"}
                   {view === "automation" && "Automação"}
-                  {view === "tutorial" && "Tutorial Guiado"}
                   {view === "settings" && "Configurações"}
                 </h1>
                 <p className="text-xs text-muted-foreground">
