@@ -312,9 +312,12 @@ export const createFullScale = createServerFn({ method: "POST" })
 
         if (!isCBO) {
           adsetBody.daily_budget = String(Math.max(1000, data.dailyBudgetCents || 2000));
-          // Explicitly set budget sharing to false for ABO to avoid the required field error
-          adsetBody.is_adset_budget_sharing_enabled = false;
         }
+        
+        // Sempre enviar is_adset_budget_sharing_enabled como false para evitar erros de campo obrigatório no Meta
+        // Nota: Alguns relatos indicam que o Meta pode exigir o valor explicitamente em certas versões da API
+        // Usando o valor booleano false conforme documentação oficial v21.0
+        adsetBody.is_adset_budget_sharing_enabled = false;
 
         if (data.destination === "WHATSAPP") {
           adsetBody.destination_type = "MESSAGING_DIRECT";
@@ -929,7 +932,10 @@ export const updateAdsetName = createServerFn({ method: "POST" })
   .inputValidator((d: { adsetId: string; name: string }) => d)
   .handler(async ({ data }) => {
     try {
-      const r = await metaPost(data.adsetId, { name: data.name });
+      const r = await metaPost(data.adsetId, { 
+        name: data.name,
+        is_adset_budget_sharing_enabled: false 
+      });
       return { ok: true as const, data: r };
     } catch (e) {
       return errorPayload(e);
@@ -940,7 +946,10 @@ export const updateAdsetStatus = createServerFn({ method: "POST" })
   .inputValidator((d: { adsetId: string; status: "ACTIVE" | "PAUSED" }) => d)
   .handler(async ({ data }) => {
     try {
-      const r = await metaPost(data.adsetId, { status: data.status });
+      const r = await metaPost(data.adsetId, { 
+        status: data.status,
+        is_adset_budget_sharing_enabled: false 
+      });
       return { ok: true as const, data: r };
     } catch (e) {
       return errorPayload(e);
