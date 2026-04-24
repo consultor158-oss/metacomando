@@ -286,8 +286,7 @@ export const createFullScale = createServerFn({ method: "POST" })
       for (let i = 0; i < adsetCount; i++) {
         // Clean targeting for Meta API
         const cleanTargeting: any = { 
-          geo_locations: { countries: ["BR"] },
-          publisher_platforms: ["facebook", "instagram", "messenger", "audience_network"]
+          geo_locations: { countries: ["BR"] }
         };
         
         if (data.targeting) {
