@@ -229,7 +229,11 @@ export const createFullScale = createServerFn({ method: "POST" })
       strategy?: string;
       pageId?: string;
       destination?: "WHATSAPP" | "SALES";
+      targeting?: any;
       creatives?: Array<{
+        id?: string;
+        image_url?: string;
+        video_id?: string;
         primaryText: string;
         headline: string;
         cta: string;
@@ -240,7 +244,6 @@ export const createFullScale = createServerFn({ method: "POST" })
     try {
       const { actId } = getCreds();
       
-      // Try to find a pixel if destination is SALES
       let pixelId = "PLACEHOLDER";
       if (data.destination === "SALES") {
         try {
@@ -270,11 +273,7 @@ export const createFullScale = createServerFn({ method: "POST" })
       else if (data.strategy === "abo") adsetCount = 3;
 
       const adsets = [];
-      const adsToCreate = data.creatives || [{ 
-        primaryText: "Performance Copy", 
-        headline: "Headline", 
-        cta: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : "SHOP_NOW" 
-      }];
+      const adsToCreate = data.creatives || [];
 
       for (let i = 0; i < adsetCount; i++) {
         const adsetBody: Record<string, string> = {
@@ -284,7 +283,7 @@ export const createFullScale = createServerFn({ method: "POST" })
           daily_budget: String(Math.max(100, data.dailyBudgetCents || 2000)),
           billing_event: "IMPRESSIONS",
           optimization_goal: data.destination === "WHATSAPP" ? "CONVERSIONS" : "OFFSITE_CONVERSIONS",
-          targeting: JSON.stringify({ geo_locations: { countries: ["BR"] } }),
+          targeting: JSON.stringify(data.targeting || { geo_locations: { countries: ["BR"] } }),
           promoted_object: data.destination === "WHATSAPP" 
             ? JSON.stringify({ page_id: data.pageId }) 
             : JSON.stringify({ pixel_id: pixelId, custom_event_type: "PURCHASE" }),
@@ -299,24 +298,42 @@ export const createFullScale = createServerFn({ method: "POST" })
 
         for (const [idx, creative] of adsToCreate.entries()) {
            try {
+             const objectStorySpec: any = {
+               page_id: data.pageId,
+             };
+
+             if (creative.video_id) {
+               objectStorySpec.video_data = {
+                 video_id: creative.video_id,
+                 image_url: creative.image_url,
+                 title: creative.headline,
+                 message: creative.primaryText,
+                 call_to_action: {
+                   type: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : creative.cta,
+                   value: { link: "https://example.com" }
+                 }
+               };
+             } else {
+               objectStorySpec.link_data = {
+                 message: creative.primaryText,
+                 link: "https://example.com",
+                 caption: creative.headline,
+                 image_hash: creative.id, // Assuming id is image_hash for images if no video_id
+                 picture: creative.image_url,
+                 call_to_action: { 
+                   type: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : creative.cta, 
+                   value: { link: "https://example.com" } 
+                 },
+               };
+             }
+
              const adBody: Record<string, string> = {
                name: `Anúncio ${idx + 1} - ${adset.id}`,
                adset_id: adset.id,
                status: data.status || "PAUSED",
                creative: JSON.stringify({
                  name: `Creative ${idx + 1}`,
-                 object_story_spec: {
-                   page_id: data.pageId,
-                   link_data: {
-                     message: creative.primaryText,
-                     link: data.destination === "WHATSAPP" ? `https://wa.me/` : "https://example.com",
-                     caption: creative.headline,
-                     call_to_action: { 
-                       type: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : creative.cta, 
-                       value: { link: "https://example.com" } 
-                     },
-                   }
-                 }
+                 object_story_spec: objectStorySpec
                })
              };
              await metaPost(`${actId}/ads`, adBody);
