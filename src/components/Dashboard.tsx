@@ -1240,7 +1240,6 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
               </div>
             </div>
           )}
-          )}
 
           {step === 3 && (
             <div className="space-y-6">
