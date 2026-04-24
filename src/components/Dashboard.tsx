@@ -1145,40 +1145,53 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
         <h2 className="text-4xl font-extrabold tracking-tight">Escala Guiada Passo a Passo</h2>
         <p className="text-muted-foreground text-lg">Siga o guia real para dominar seus anúncios como um administrador profissional.</p>
         
-        <div className="flex justify-center gap-4 mt-8">
+        <div className="flex justify-center gap-4 mt-8 bg-muted/20 p-6 rounded-2xl border border-border/50">
           {steps.map(s => (
-            <div key={s.id} className="flex flex-col items-center gap-2">
-              <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold transition-all ${step >= s.id ? 'bg-primary text-primary-foreground scale-110 shadow-lg' : 'bg-muted text-muted-foreground opacity-50'}`}>
+            <div key={s.id} className="flex flex-col items-center gap-3 w-24">
+              <div className={`h-12 w-12 rounded-2xl flex items-center justify-center font-bold transition-all ${step >= s.id ? 'bg-primary text-primary-foreground scale-110 shadow-lg shadow-primary/20 rotate-3' : 'bg-muted text-muted-foreground opacity-50'}`}>
                 {step > s.id ? <CheckCircle2 className="h-6 w-6" /> : s.id}
               </div>
-              <span className={`text-xs font-bold uppercase tracking-wider ${step === s.id ? 'text-primary' : 'text-muted-foreground'}`}>{s.title}</span>
+              <div className="text-center">
+                <span className={`text-[10px] font-black uppercase tracking-widest block ${step === s.id ? 'text-primary' : 'text-muted-foreground'}`}>{s.title}</span>
+                <span className="text-[8px] text-muted-foreground line-clamp-1 hidden md:block">{s.desc}</span>
+              </div>
             </div>
           ))}
         </div>
       </div>
 
-      <Card className="border-2 shadow-xl overflow-hidden">
-        <CardHeader className="bg-muted/30 border-b">
-          <CardTitle className="flex items-center gap-2">
-             <span className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold">{step}</span>
-             {steps[step-1].title}: {steps[step-1].desc}
-          </CardTitle>
+      <Card className="border-2 shadow-2xl overflow-hidden rounded-3xl bg-card/50 backdrop-blur-sm border-primary/10">
+        <CardHeader className="bg-gradient-to-r from-primary/10 via-background to-background border-b p-8">
+          <div className="flex items-center gap-4">
+             <div className="h-14 w-14 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground shadow-xl shadow-primary/20">
+                {step === 1 && <Layers className="h-7 w-7" />}
+                {step === 2 && <Settings className="h-7 w-7" />}
+                {step === 3 && <Target className="h-7 w-7" />}
+                {step === 4 && <ImageIcon className="h-7 w-7" />}
+             </div>
+             <div>
+               <p className="text-xs font-bold text-primary uppercase tracking-widest mb-1">Passo {step} de 4</p>
+               <CardTitle className="text-2xl font-black">{steps[step-1].title}: {steps[step-1].desc}</CardTitle>
+             </div>
+          </div>
         </CardHeader>
-        <CardContent className="p-8">
+        <CardContent className="p-10">
           {step === 1 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {SCALE_STRATEGIES.map(s => (
                 <div 
                   key={s.id} 
                   onClick={() => setSelectedStrategy(s)}
-                  className={`p-4 rounded-xl border-2 transition-all cursor-pointer hover:shadow-md ${selectedStrategy.id === s.id ? 'border-primary bg-primary/5' : 'border-border'}`}
+                  className={`group p-6 rounded-2xl border-2 transition-all cursor-pointer hover:shadow-xl ${selectedStrategy.id === s.id ? 'border-primary bg-primary/5 shadow-lg' : 'border-border hover:border-primary/50'}`}
                 >
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-2xl">{s.emoji}</span>
-                    <h3 className="font-bold">{s.name}</h3>
-                    {selectedStrategy.id === s.id && <Badge className="ml-auto">Selecionado</Badge>}
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="text-4xl group-hover:scale-125 transition-transform">{s.emoji}</div>
+                    <div>
+                      <h3 className="font-bold text-lg">{s.name}</h3>
+                      {selectedStrategy.id === s.id && <Badge className="bg-primary text-primary-foreground text-[10px]">RECOMENDADO</Badge>}
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">{s.shortDesc}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{s.shortDesc}</p>
                 </div>
               ))}
             </div>
