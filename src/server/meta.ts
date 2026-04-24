@@ -277,10 +277,27 @@ export const createFullScale = createServerFn({ method: "POST" })
       }];
 
       for (let i = 0; i < adsetCount; i++) {
-        
-        for (const [idx, creative] of adsData.entries()) {
-           // To create a real ad, we need an image_hash or video_id.
-           // Since we might not have it, we'll try to use a default or skip if it fails.
+        const adsetBody: Record<string, string> = {
+          name: `[ULTRA] ${data.name} - Conjunto ${i + 1}`,
+          campaign_id: campaignId,
+          status: data.status || "PAUSED",
+          daily_budget: String(Math.max(100, data.dailyBudgetCents || 2000)),
+          billing_event: "IMPRESSIONS",
+          optimization_goal: data.destination === "WHATSAPP" ? "CONVERSIONS" : "OFFSITE_CONVERSIONS",
+          targeting: JSON.stringify({ geo_locations: { countries: ["BR"] } }),
+          promoted_object: data.destination === "WHATSAPP" 
+            ? JSON.stringify({ page_id: data.pageId }) 
+            : JSON.stringify({ pixel_id: pixelId, custom_event_type: "PURCHASE" }),
+        };
+
+        if (data.destination === "WHATSAPP") {
+           adsetBody.destination_type = JSON.stringify(["WHATSAPP_MESSAGE"]);
+        }
+
+        const adset = await metaPost(`${actId}/adsets`, adsetBody);
+        adsets.push(adset.id);
+
+        for (const [idx, creative] of adsToCreate.entries()) {
            try {
              const adBody: Record<string, string> = {
                name: `Anúncio ${idx + 1} - ${adset.id}`,
@@ -298,8 +315,6 @@ export const createFullScale = createServerFn({ method: "POST" })
                        type: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : creative.cta, 
                        value: { link: "https://example.com" } 
                      },
-                     // image_hash is required for image ads. 
-                     // In a real scenario, the user selects a creative that already has a hash.
                    }
                  }
                })
@@ -307,7 +322,6 @@ export const createFullScale = createServerFn({ method: "POST" })
              await metaPost(`${actId}/ads`, adBody);
            } catch (adError: any) {
              console.error("Erro ao criar anúncio:", adError.message);
-             // Continue creating other adsets/ads
            }
         }
       }
@@ -316,7 +330,7 @@ export const createFullScale = createServerFn({ method: "POST" })
         ok: true as const, 
         data: campaign, 
         strategy: data.strategy,
-        created: { campaignId, adsetsCount: adsets.length, adsCount: adsets.length * adsData.length }
+        created: { campaignId, adsetsCount: adsets.length, adsCount: adsets.length * adsToCreate.length }
       };
     } catch (e) {
       return errorPayload(e);
