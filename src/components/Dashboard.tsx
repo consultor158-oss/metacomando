@@ -1611,7 +1611,17 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
                     <Textarea 
                       value={editingCreative.body} 
                       onChange={(e) => setEditingCreative({...editingCreative, body: e.target.value})}
-                      className="bg-muted/50 h-32"
+                      className="bg-muted/50 h-24"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase">Descrição (Abaixo do Título)</Label>
+                    <Input 
+                      value={editingCreative.description} 
+                      onChange={(e) => setEditingCreative({...editingCreative, description: e.target.value})}
+                      className="bg-muted/50"
+                      placeholder="Ex: Frete grátis para todo o Brasil"
                     />
                   </div>
 
