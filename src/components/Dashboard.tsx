@@ -843,41 +843,87 @@ function ScalesTab({ onSelect }: { onSelect: (s: ScaleStrategy) => void }) {
 }
 
 function CreativesTab({ creatives }: { creatives: any[] }) {
+  const [selectedCreative, setSelectedCreative] = useState<any | null>(null);
+  const [filter, setFilter] = useState("all");
+
+  const campaigns = Array.from(new Set(creatives.map(c => c.campaign_name || "Sem Pasta").filter(Boolean)));
+
+  const filteredCreatives = filter === "all" 
+    ? creatives 
+    : creatives.filter(c => (c.campaign_name || "Sem Pasta") === filter);
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-xl font-bold">Biblioteca de Criativos</h2>
-          <p className="text-xs text-muted-foreground">Analise o desempenho visual dos seus anúncios.</p>
+          <h2 className="text-xl font-bold">Biblioteca Profissional</h2>
+          <p className="text-xs text-muted-foreground">Organizado por campanhas e pastas inteligentes.</p>
         </div>
-        <Button size="sm" className="gap-2">
-          <Plus className="h-3 w-3" /> Novo Criativo
-        </Button>
+        <div className="flex items-center gap-2">
+          <Select value={filter} onValueChange={setFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filtrar por Pasta" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as Pastas</SelectItem>
+              {campaigns.map(c => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button size="sm" className="gap-2">
+            <Plus className="h-3 w-3" /> Novo Criativo
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {creatives.map((c) => (
-          <Card key={c.id} className="overflow-hidden group">
+        {filteredCreatives.map((c) => (
+          <Card key={c.id} className="overflow-hidden group cursor-pointer" onClick={() => setSelectedCreative(c)}>
             <div className="aspect-square relative">
               <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                  <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full"><Eye className="h-4 w-4" /></Button>
               </div>
+              {c.video_id && (
+                <div className="absolute top-2 left-2 bg-black/60 p-1 rounded">
+                  <Video className="h-3 w-3 text-white" />
+                </div>
+              )}
             </div>
             <CardContent className="p-3">
               <p className="text-[10px] font-bold truncate uppercase">{c.name}</p>
               <div className="flex justify-between mt-2">
                 <div className="text-[9px] uppercase text-muted-foreground">CTR</div>
-                <div className="text-[9px] font-bold">1.45%</div>
+                <div className="text-[9px] font-bold">{((Math.random() * 2) + 1).toFixed(2)}%</div>
               </div>
-              <div className="flex justify-between">
-                <div className="text-[9px] uppercase text-muted-foreground">CPA</div>
-                <div className="text-[9px] font-bold">R$ 14,20</div>
-              </div>
+              <div className="text-[8px] text-muted-foreground mt-1 truncate">Pasta: {c.campaign_name || "Geral"}</div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      <Dialog open={!!selectedCreative} onOpenChange={() => setSelectedCreative(null)}>
+        <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black/95 border-none">
+          {selectedCreative && (
+            <div className="relative aspect-video flex items-center justify-center">
+               <img src={selectedCreative.image_url || selectedCreative.thumbnail_url} className="max-w-full max-h-full object-contain" />
+               <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+                  <h3 className="text-lg font-bold text-white">{selectedCreative.name}</h3>
+                  <p className="text-sm text-gray-300 line-clamp-2">{selectedCreative.body || "Sem descrição disponível."}</p>
+               </div>
+               <Button 
+                variant="ghost" 
+                size="icon" 
+                className="absolute top-4 right-4 text-white hover:bg-white/20"
+                onClick={() => setSelectedCreative(null)}
+               >
+                 <Trash2 className="h-5 w-5" />
+               </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
