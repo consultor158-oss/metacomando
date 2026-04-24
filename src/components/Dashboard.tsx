@@ -181,6 +181,12 @@ export function Dashboard() {
                       <span>Escalas IA</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "scale_test"} onClick={() => setView("scale_test")}>
+                      <Activity className="h-4 w-4" />
+                      <span>Teste de Escala Real</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
