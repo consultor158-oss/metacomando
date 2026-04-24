@@ -1718,7 +1718,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
                <div className="mt-6 pt-4 border-t border-slate-800">
                   <p className="text-[9px] text-slate-500 uppercase font-bold">Pblico Estimado</p>
                   <p className="text-xs text-slate-300 mt-1">
-                    {data.targeting?.geo_locations?.regions?.[0]?.name || "Todo o Brasil"}  
+                    {data.targeting?.geo_locations?.regions?.[0]?.name || data.targeting?.geo_locations?.countries?.[0] || "Global"}  
                     {data.targeting?.interests ? ` ${data.targeting.interests.length} Interesses` : " Aberto"}
                   </p>
                </div>
