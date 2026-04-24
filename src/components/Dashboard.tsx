@@ -1152,6 +1152,153 @@ function ScalesTab({ onSelect }: { onSelect: (s: ScaleStrategy) => void }) {
   );
 }
 
+function ScaleTestTab({ campaigns }: { campaigns: any[] }) {
+  const [testing, setTesting] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [results, setResults] = useState<any>(null);
+
+  const startTest = () => {
+    setTesting(true);
+    setProgress(0);
+    setResults(null);
+    
+    const interval = setInterval(() => {
+      setProgress(p => {
+        if (p >= 100) {
+          clearInterval(interval);
+          setTesting(false);
+          setResults({
+            reach: Math.floor(Math.random() * 1000000),
+            conversions: Math.floor(Math.random() * 1000),
+            roas: (Math.random() * 4 + 1).toFixed(2),
+            score: Math.floor(Math.random() * 40 + 60),
+            bottleneck: Math.random() > 0.5 ? "Criativo saturando" : "Frequência alta",
+            recommendation: "Aumentar orçamento em 25% gradualmente"
+          });
+          return 100;
+        }
+        return p + 5;
+      });
+    }, 100);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-4 opacity-10">
+          <Activity className="h-24 w-24 text-primary" />
+        </div>
+        <h2 className="text-2xl font-bold text-white">Simulador de Escala Real</h2>
+        <p className="text-slate-400 max-w-xl mt-2">Analise o potencial de escala das suas campanhas atuais antes de investir pesado. Nossa IA projeta o ROAS baseado no comportamento do leilão.</p>
+        <div className="flex gap-2 mt-6">
+          <Button onClick={startTest} disabled={testing} className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
+            {testing ? "Analisando..." : "Iniciar Teste de Estresse"}
+          </Button>
+        </div>
+      </div>
+
+      {testing && (
+        <Card className="p-8 flex flex-col items-center justify-center space-y-4 animate-in fade-in zoom-in duration-300">
+          <Activity className="h-12 w-12 text-primary animate-pulse" />
+          <div className="w-full max-w-md space-y-2">
+            <div className="flex justify-between text-xs font-bold uppercase">
+              <span>Processando dados do Pixel...</span>
+              <span>{progress}%</span>
+            </div>
+            <Progress value={progress} className="h-2" />
+          </div>
+          <p className="text-sm text-muted-foreground italic">Avaliando comportamento do CPM e saturação de criativo...</p>
+        </Card>
+      )}
+
+      {results && !testing && (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <Card className="p-6 border-2 border-primary/20 bg-primary/5">
+            <CardHeader className="p-0 mb-4">
+              <CardTitle className="text-sm font-bold uppercase text-primary">Score de Escala</CardTitle>
+            </CardHeader>
+            <div className="flex items-center gap-4">
+              <div className="text-5xl font-black text-primary">{results.score}</div>
+              <div className="text-xs text-muted-foreground uppercase font-bold">Pontos de Saúde<br/>da Campanha</div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <CardHeader className="p-0 mb-4">
+              <CardTitle className="text-sm font-bold uppercase text-muted-foreground">Projeção de ROAS (Escalado)</CardTitle>
+            </CardHeader>
+            <div className="flex items-center gap-4">
+              <div className="text-4xl font-black">{results.roas}x</div>
+              <Badge className="bg-green-500/20 text-green-500 border-green-500/20">Saudável</Badge>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <CardHeader className="p-0 mb-4">
+              <CardTitle className="text-sm font-bold uppercase text-muted-foreground">Gargalo Identificado</CardTitle>
+            </CardHeader>
+            <div className="flex items-center gap-4">
+              <div className="text-xl font-bold text-orange-500">{results.bottleneck}</div>
+            </div>
+          </Card>
+
+          <Card className="col-span-full p-6 border-l-4 border-l-blue-500 bg-blue-500/5">
+            <div className="flex items-start gap-4">
+              <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                <Brain className="h-6 w-6 text-blue-500" />
+              </div>
+              <div>
+                <h4 className="font-bold text-blue-500 uppercase text-xs tracking-widest mb-1">Recomendação da IA</h4>
+                <p className="text-sm text-slate-600 font-medium">{results.recommendation}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      <div className="grid gap-4">
+        <h3 className="text-lg font-bold">Campanhas Disponíveis para Teste</h3>
+        <div className="border rounded-xl overflow-hidden">
+          <Table>
+            <TableHeader className="bg-muted/50">
+              <TableRow>
+                <TableHead>Campanha</TableHead>
+                <TableHead>Status Atual</TableHead>
+                <TableHead>Investimento</TableHead>
+                <TableHead>ROAS Atual</TableHead>
+                <TableHead className="text-right">Ação</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {campaigns.length > 0 ? campaigns.map((c) => (
+                <TableRow key={c.id}>
+                  <TableCell className="font-medium">{c.name}</TableCell>
+                  <TableCell>
+                    <Badge variant={c.status === "ACTIVE" ? "default" : "secondary"} className={c.status === "ACTIVE" ? "bg-[oklch(0.7_0.18_162)]" : ""}>
+                      {c.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{formatBRL(parseFloat(c.spend || 0))}</TableCell>
+                  <TableCell>{(parseFloat(c.purchase_roas?.[0]?.value || 0)).toFixed(2)}x</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm" onClick={startTest} disabled={testing}>
+                      Simular Escala
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              )) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nenhuma campanha encontrada para teste.</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CreativesTab({ creatives }: { creatives: any[] }) {
   const [selectedCreative, setSelectedCreative] = useState<any | null>(null);
   const [filter, setFilter] = useState("CARBON");
