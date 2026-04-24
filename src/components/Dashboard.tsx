@@ -377,7 +377,6 @@ export function Dashboard() {
             {view === "scales" && (
               <div className="space-y-10">
                 <TutorialTab 
-                  creatives={creativesData} 
                   scalingCampaign={scalingCampaign}
                   onStepChange={setTutorialStep}
                   onClearFilter={() => setScalingCampaign(null)}
@@ -1504,7 +1503,7 @@ function CreativesTab({ creatives, onEscalate }: { creatives: any[], onEscalate?
   );
 }
 
-function TutorialTab({ creatives, scalingCampaign, onStepChange, onClearFilter, onComplete }: { creatives: any[], scalingCampaign?: string | null, onStepChange?: (step: number) => void, onClearFilter?: () => void, onComplete: (data: any) => void }) {
+function TutorialTab({ scalingCampaign, onStepChange, onClearFilter, onComplete }: { scalingCampaign?: string | null, onStepChange?: (step: number) => void, onClearFilter?: () => void, onComplete: (data: any) => void }) {
   const [step, setStep] = useState(1);
   
   useEffect(() => {
@@ -1544,7 +1543,8 @@ function TutorialTab({ creatives, scalingCampaign, onStepChange, onClearFilter, 
             thumbnail_url: res.data.url,
             body: "Nova mídia hospedada via API Meta",
             title: "Headline automática",
-            video_id: isVideo ? res.data.id : undefined
+            video_id: isVideo ? res.data.id : undefined,
+            campaign_name: name // Associa ao nome da nova campanha
           };
           setLocalCreatives(prev => [newCreative, ...prev]);
           setSelectedCreatives(prev => [...prev, newCreative.id]);
@@ -1561,12 +1561,7 @@ function TutorialTab({ creatives, scalingCampaign, onStepChange, onClearFilter, 
     reader.readAsDataURL(file);
   };
 
-  const allCreatives = [...localCreatives, ...creatives].filter(c => {
-    if (!scalingCampaign || scalingCampaign === "TUDO" || scalingCampaign === "CARBON") return true;
-    if (localCreatives.some(lc => lc.id === c.id)) return true;
-    const campaignName = c.campaign_name || "";
-    return campaignName.includes(scalingCampaign);
-  });
+  const allCreatives = [...localCreatives];
   
   
   useEffect(() => {
@@ -1914,24 +1909,14 @@ function TutorialTab({ creatives, scalingCampaign, onStepChange, onClearFilter, 
             <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                  <div>
-                   <h3 className="text-xl font-black uppercase">Selecione seus Criativos Winners</h3>
-                   <p className="text-xs text-muted-foreground">Escolha os anúncios que já performam bem para escalar com segurança.</p>
-                 </div>
-                 <div className="flex items-center gap-3">
-                   <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg border">
-                      <Button 
-                        size="sm" 
-                        variant={localCreatives.length > 0 ? "secondary" : "ghost"}
-                        onClick={() => setSelectedCreatives(localCreatives.map(c => c.id))}
-                        className="text-[10px] h-7 uppercase font-bold"
-                      >
-                        Somente Novos ({localCreatives.length})
-                      </Button>
-                   </div>
-                   <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold">
-                     {selectedCreatives.length} DE {allCreatives.length} SELECIONADOS
-                   </Badge>
-                 </div>
+                    <h3 className="text-xl font-black uppercase">Anexe os Criativos da Nova Campanha</h3>
+                    <p className="text-xs text-muted-foreground">Cada campanha deve ter seus próprios criativos exclusivos.</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold">
+                      {selectedCreatives.length} CRIATIVOS ADICIONADOS
+                    </Badge>
+                  </div>
                </div>
 
                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
