@@ -232,7 +232,18 @@ export function Dashboard() {
           <main className="flex-1 p-6 overflow-y-auto">
             {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} />}
             {view === "campaigns" && <CampaignsTab campaigns={campaignsData} refresh={() => campaigns.refetch()} />}
-            {view === "scales" && <ScalesTab onSelect={(s) => setDryRunData({ strategy: s })} />}
+            {view === "scales" && (
+              <div className="space-y-10">
+                <TutorialTab creatives={creativesData} onComplete={(selected) => {
+                  const tutorialStrategy = SCALE_STRATEGIES.find(s => s.id === "ia_opt");
+                  if (tutorialStrategy) setDryRunData({ strategy: tutorialStrategy, creatives: selected });
+                }} />
+                <div className="border-t pt-10">
+                  <h3 className="text-xl font-bold mb-6">Outras Estratégias de Escala</h3>
+                  <ScalesTab onSelect={(s) => setDryRunData({ strategy: s })} />
+                </div>
+              </div>
+            )}
             {view === "creatives" && <CreativesTab creatives={creativesData} />}
             {view === "automation" && <AutomationTab />}
             {view === "tutorial" && <TutorialTab creatives={creativesData} onComplete={(selected) => {
