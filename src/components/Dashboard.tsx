@@ -1198,7 +1198,48 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
           )}
 
           {step === 2 && (
-            <div className="space-y-6">
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="grid gap-6">
+                <div className="grid gap-3">
+                  <Label htmlFor="tut-name" className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Rocket className="h-4 w-4 text-primary" /> Nome Identificador da Campanha
+                  </Label>
+                  <Input id="tut-name" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: [IA] Escala de Verão" className="h-12 text-lg font-bold border-2 focus:border-primary" />
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="grid gap-3">
+                    <Label htmlFor="tut-budget" className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Orçamento Diário (R$)</Label>
+                    <div className="flex flex-col gap-3">
+                      <Input id="tut-budget" type="number" value={budget} onChange={e => setBudget(e.target.value)} className="h-12 text-lg font-bold border-2 text-primary" />
+                      <p className="text-[10px] text-muted-foreground bg-primary/5 p-2 rounded-lg border border-primary/10 italic">
+                        Sugestão Profissional: R$ {selectedStrategy.defaults.dailyBudgetCents/100}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col justify-center">
+                    <div className="flex items-center gap-2 mb-2">
+                       <ShieldCheck className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />
+                       <p className="text-xs font-black uppercase text-slate-100">Configuração de Segurança</p>
+                    </div>
+                    <p className="text-[11px] text-slate-400">A estratégia <b>{selectedStrategy.name}</b> será aplicada automaticamente em nível de Campanha (CBO) para maximizar o ROAS.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-primary/5 border-2 border-primary/20 relative overflow-hidden group">
+                <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform">
+                   <Zap className="h-24 w-24 text-primary" />
+                </div>
+                <p className="text-sm font-black flex items-center gap-2 mb-2"><Zap className="h-4 w-4 text-primary" /> INSIGHT DO MOTOR DE IA</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Para garantir a fase de aprendizado da Meta, recomendamos manter esse orçamento por no mínimo 7 dias sem alterações bruscas. 
+                  O motor de escala cuidará das otimizações automáticas.
+                </p>
+              </div>
+            </div>
+          )}
               <div className="grid gap-2">
                 <Label htmlFor="tut-name">Nome da Campanha</Label>
                 <Input id="tut-name" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: [IA] Escala de Verão" />
