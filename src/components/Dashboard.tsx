@@ -1026,7 +1026,7 @@ function AutomationTab() {
 }
 
 
-function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClose: () => void, data: { strategy: ScaleStrategy; creatives?: any[] } | null, pages: any[] }) {
+function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClose: () => void, data: { strategy: ScaleStrategy; creatives?: any[]; targeting?: any; name?: string; budget?: number } | null, pages: any[] }) {
   const [isActivating, setIsActivating] = useState(false);
   const [selectedPage, setSelectedPage] = useState<string>("");
   const [destination, setDestination] = useState<"WHATSAPP" | "SALES">("WHATSAPP");
