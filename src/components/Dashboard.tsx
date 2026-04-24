@@ -870,44 +870,199 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
   );
 }
 
-function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: (selected: any[]) => void }) {
-  const [selected, setSelected] = useState<string[]>([]);
+function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: (data: any) => void }) {
+  const [step, setStep] = useState(1);
+  const [selectedStrategy, setSelectedStrategy] = useState<ScaleStrategy>(SCALE_STRATEGIES[0]);
+  const [name, setName] = useState("");
+  const [budget, setBudget] = useState("50");
+  const [selectedCreatives, setSelectedCreatives] = useState<string[]>([]);
+  const [locations, setLocations] = useState("BR");
+  
+  useEffect(() => {
+    if (selectedStrategy) {
+      setName(`Campanha ${selectedStrategy.name} - ${new Date().toLocaleDateString()}`);
+      setBudget((selectedStrategy.defaults.dailyBudgetCents / 100).toString());
+    }
+  }, [selectedStrategy]);
+
+  const steps = [
+    { id: 1, title: "Estratégia", desc: "Como vamos escalar?" },
+    { id: 2, title: "Configuração", desc: "Nome e Orçamento" },
+    { id: 3, title: "Público", desc: "Onde vamos anunciar?" },
+    { id: 4, title: "Criativos", desc: "Seus melhores anúncios" }
+  ];
+
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div className="text-center space-y-2 mb-10">
-        <h2 className="text-3xl font-bold">Vincular Criativos</h2>
-        <p className="text-muted-foreground">Siga o passo a passo para configurar sua primeira escala ultra.</p>
+    <div className="space-y-8 max-w-4xl mx-auto">
+      <div className="text-center space-y-4">
+        <h2 className="text-4xl font-extrabold tracking-tight">Escala Guiada Passo a Passo</h2>
+        <p className="text-muted-foreground text-lg">Siga o guia real para dominar seus anúncios como um administrador profissional.</p>
+        
+        <div className="flex justify-center gap-4 mt-8">
+          {steps.map(s => (
+            <div key={s.id} className="flex flex-col items-center gap-2">
+              <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold transition-all ${step >= s.id ? 'bg-primary text-primary-foreground scale-110 shadow-lg' : 'bg-muted text-muted-foreground opacity-50'}`}>
+                {step > s.id ? <CheckCircle2 className="h-6 w-6" /> : s.id}
+              </div>
+              <span className={`text-xs font-bold uppercase tracking-wider ${step === s.id ? 'text-primary' : 'text-muted-foreground'}`}>{s.title}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <Card className="bg-primary/5 border-primary/20 border-dashed">
-        <CardHeader>
-           <CardTitle className="text-lg">Passo 1: Seleção de Criativos Winners</CardTitle>
-           <CardDescription>Escolha os anúncios que já validaram com ROI positivo.</CardDescription>
+      <Card className="border-2 shadow-xl overflow-hidden">
+        <CardHeader className="bg-muted/30 border-b">
+          <CardTitle className="flex items-center gap-2">
+             <span className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold">{step}</span>
+             {steps[step-1].title}: {steps[step-1].desc}
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {creatives.map(c => (
-              <div 
-                key={c.id} 
-                onClick={() => setSelected(p => p.includes(c.id) ? p.filter(i => i !== c.id) : [...p, c.id])} 
-                className={`cursor-pointer rounded-xl border-2 p-2 transition-all hover:shadow-md ${selected.includes(c.id) ? 'border-primary bg-primary/5' : 'border-border'}`}
-              >
-                <div className="aspect-square mb-2 overflow-hidden rounded-lg">
-                  <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover" />
+        <CardContent className="p-8">
+          {step === 1 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {SCALE_STRATEGIES.map(s => (
+                <div 
+                  key={s.id} 
+                  onClick={() => setSelectedStrategy(s)}
+                  className={`p-4 rounded-xl border-2 transition-all cursor-pointer hover:shadow-md ${selectedStrategy.id === s.id ? 'border-primary bg-primary/5' : 'border-border'}`}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-2xl">{s.emoji}</span>
+                    <h3 className="font-bold">{s.name}</h3>
+                    {selectedStrategy.id === s.id && <Badge className="ml-auto">Selecionado</Badge>}
+                  </div>
+                  <p className="text-xs text-muted-foreground">{s.shortDesc}</p>
                 </div>
-                <p className="text-[10px] font-bold truncate uppercase">{c.name}</p>
+              ))}
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-6">
+              <div className="grid gap-2">
+                <Label htmlFor="tut-name">Nome da Campanha</Label>
+                <Input id="tut-name" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: [IA] Escala de Verão" />
               </div>
-            ))}
-          </div>
+              <div className="grid gap-2">
+                <Label htmlFor="tut-budget">Orçamento Diário (R$)</Label>
+                <div className="flex items-center gap-4">
+                  <Input id="tut-budget" type="number" value={budget} onChange={e => setBudget(e.target.value)} className="w-40" />
+                  <span className="text-xs text-muted-foreground">Valor sugerido pela estratégia {selectedStrategy.name}: R$ {selectedStrategy.defaults.dailyBudgetCents/100}</span>
+                </div>
+              </div>
+              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                <p className="text-sm font-bold flex items-center gap-2"><Zap className="h-4 w-4 text-primary" /> Dica do Mentor</p>
+                <p className="text-xs text-muted-foreground mt-1">A estratégia {selectedStrategy.name} funciona melhor com orçamentos acima de R$ {selectedStrategy.defaults.dailyBudgetCents/100} para garantir dados suficientes para a IA.</p>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="space-y-6">
+              <div className="grid gap-2">
+                <Label>Localização (País/Estado)</Label>
+                <div className="flex flex-wrap gap-2">
+                   {["BR", "US", "PT", "ES"].map(c => (
+                     <Badge 
+                      key={c} 
+                      variant={locations.includes(c) ? "default" : "outline"}
+                      className="cursor-pointer py-2 px-4 text-sm"
+                      onClick={() => setLocations(c)}
+                     >
+                       {c === "BR" ? "🇧🇷 Brasil" : c === "US" ? "🇺🇸 EUA" : c === "PT" ? "🇵🇹 Portugal" : "🇪🇸 Espanha"}
+                     </Badge>
+                   ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Para escala ABO, recomendamos focar no Brasil (BR) para validar criativos com menor custo.</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                 <div className="p-4 rounded-lg border border-dashed flex flex-col items-center justify-center text-center gap-2">
+                    <Globe className="h-8 w-8 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-bold">Público Aberto</p>
+                      <p className="text-[10px] text-muted-foreground">Deixe o algoritmo do Meta encontrar seus clientes.</p>
+                    </div>
+                 </div>
+                 <div className="p-4 rounded-lg border border-dashed flex flex-col items-center justify-center text-center gap-2 opacity-50 grayscale cursor-not-allowed">
+                    <Users className="h-8 w-8 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-bold">Interesses (IA Pro)</p>
+                      <p className="text-[10px] text-muted-foreground">Disponível em breve para segmentação ultra-precisa.</p>
+                    </div>
+                 </div>
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="space-y-6">
+               <div className="flex items-center justify-between">
+                 <h3 className="font-bold">Selecione seus Criativos Winners</h3>
+                 <span className="text-xs text-muted-foreground">{selectedCreatives.length} selecionados</span>
+               </div>
+               
+               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {creatives.map(c => (
+                    <div 
+                      key={c.id} 
+                      onClick={() => setSelectedCreatives(p => p.includes(c.id) ? p.filter(i => i !== c.id) : [...p, c.id])} 
+                      className={`relative cursor-pointer rounded-xl border-2 p-2 transition-all hover:shadow-md ${selectedCreatives.includes(c.id) ? 'border-primary bg-primary/5 shadow-inner' : 'border-border'}`}
+                    >
+                      <div className="aspect-square mb-2 overflow-hidden rounded-lg bg-muted">
+                        <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover" />
+                        {c.video_id && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                            <Video className="h-8 w-8 text-white drop-shadow-lg" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-[10px] font-bold truncate uppercase">{c.name}</p>
+                      {selectedCreatives.includes(c.id) && (
+                        <div className="absolute -top-2 -right-2 h-6 w-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center border-2 border-background">
+                          <CheckCircle2 className="h-4 w-4" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  <div className="border-2 border-dashed rounded-xl p-2 flex flex-col items-center justify-center text-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors h-[140px]">
+                     <Plus className="h-8 w-8 text-muted-foreground" />
+                     <p className="text-[10px] font-bold uppercase">Novo Criativo</p>
+                  </div>
+               </div>
+            </div>
+          )}
         </CardContent>
-        <div className="p-6 border-t flex justify-end">
+        <div className="p-6 border-t bg-muted/20 flex justify-between items-center">
           <Button 
-            disabled={selected.length === 0}
-            onClick={() => onComplete(creatives.filter(c => selected.includes(c.id)))}
-            className="gap-2"
+            variant="ghost" 
+            onClick={() => setStep(p => p - 1)} 
+            disabled={step === 1}
           >
-            Vincular {selected.length} Criativos <ChevronRight className="h-4 w-4" />
+            Voltar
           </Button>
+          
+          {step < 4 ? (
+            <Button 
+              onClick={() => setStep(p => p + 1)}
+              className="gap-2"
+            >
+              Continuar <ChevronRight className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button 
+              disabled={selectedCreatives.length === 0}
+              onClick={() => onComplete({
+                strategy: selectedStrategy,
+                creatives: creatives.filter(c => selectedCreatives.includes(c.id)),
+                name,
+                budget: parseFloat(budget) * 100,
+                targeting: { geo_locations: { countries: [locations] } }
+              })}
+              className="gap-2 bg-[oklch(0.7_0.18_162)] hover:bg-[oklch(0.6_0.18_162)] text-slate-950 font-bold"
+            >
+              Finalizar e Revisar Escala <Rocket className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </Card>
     </div>
