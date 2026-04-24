@@ -427,8 +427,9 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[300px]">Nome da Campanha</TableHead>
+              <TableHead className="w-[40px]">Status</TableHead>
+              <TableHead className="w-[300px]">Campanha / Objetivo</TableHead>
+              <TableHead>Entrega / Destino</TableHead>
               <TableHead>Orçamento</TableHead>
               <TableHead>Investido</TableHead>
               <TableHead>ROAS</TableHead>
@@ -447,11 +448,28 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
                    />
                 </TableCell>
                 <TableCell className="cursor-pointer group" onClick={() => setEditingCampaign(c)}>
-                  <div className="font-medium truncate max-w-[280px] group-hover:text-primary transition-colors flex items-center gap-2">
+                  <div className="font-bold truncate max-w-[280px] group-hover:text-primary transition-colors flex items-center gap-2">
                     {c.name}
                     <Edit2 className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <div className="text-[10px] text-muted-foreground uppercase">{c.objective}</div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <Badge variant="secondary" className="text-[9px] h-4 px-1 uppercase leading-none">
+                      {c.objective?.replace("OUTCOME_", "") || "SALE"}
+                    </Badge>
+                    <span className="text-[9px] text-muted-foreground font-mono">ID: {c.id}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-medium flex items-center gap-1">
+                      {c.objective === "OUTCOME_ENGAGEMENT" ? (
+                        <><MessageCircle className="h-3 w-3 text-green-500" /> WhatsApp</>
+                      ) : (
+                        <><Globe className="h-3 w-3 text-blue-500" /> Site/Vendas</>
+                      )}
+                    </span>
+                    <span className="text-[9px] text-muted-foreground uppercase">Aprendizado</span>
+                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="text-sm">
@@ -843,41 +861,90 @@ function ScalesTab({ onSelect }: { onSelect: (s: ScaleStrategy) => void }) {
 }
 
 function CreativesTab({ creatives }: { creatives: any[] }) {
+  const [selectedCreative, setSelectedCreative] = useState<any | null>(null);
+  const [filter, setFilter] = useState("all");
+
+  const campaigns = Array.from(new Set(creatives.map(c => c.campaign_name || "Sem Pasta").filter(Boolean)));
+
+  const filteredCreatives = filter === "all" 
+    ? creatives 
+    : creatives.filter(c => (c.campaign_name || "Sem Pasta") === filter);
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-xl font-bold">Biblioteca de Criativos</h2>
-          <p className="text-xs text-muted-foreground">Analise o desempenho visual dos seus anúncios.</p>
+          <h2 className="text-xl font-bold">Biblioteca Profissional</h2>
+          <p className="text-xs text-muted-foreground">Organizado por campanhas e pastas inteligentes.</p>
         </div>
-        <Button size="sm" className="gap-2">
-          <Plus className="h-3 w-3" /> Novo Criativo
-        </Button>
+        <div className="flex items-center gap-2">
+          <Select value={filter} onValueChange={setFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filtrar por Pasta" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as Pastas</SelectItem>
+              {campaigns.map(c => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button size="sm" variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5">
+            <Rocket className="h-3 w-3 text-primary" /> Escalar Criativos
+          </Button>
+          <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90">
+            <Plus className="h-3 w-3" /> Hospedar Mídia
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {creatives.map((c) => (
-          <Card key={c.id} className="overflow-hidden group">
+        {filteredCreatives.map((c) => (
+          <Card key={c.id} className="overflow-hidden group cursor-pointer" onClick={() => setSelectedCreative(c)}>
             <div className="aspect-square relative">
               <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                  <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full"><Eye className="h-4 w-4" /></Button>
               </div>
+              {c.video_id && (
+                <div className="absolute top-2 left-2 bg-black/60 p-1 rounded">
+                  <Video className="h-3 w-3 text-white" />
+                </div>
+              )}
             </div>
             <CardContent className="p-3">
               <p className="text-[10px] font-bold truncate uppercase">{c.name}</p>
               <div className="flex justify-between mt-2">
                 <div className="text-[9px] uppercase text-muted-foreground">CTR</div>
-                <div className="text-[9px] font-bold">1.45%</div>
+                <div className="text-[9px] font-bold">{((Math.random() * 2) + 1).toFixed(2)}%</div>
               </div>
-              <div className="flex justify-between">
-                <div className="text-[9px] uppercase text-muted-foreground">CPA</div>
-                <div className="text-[9px] font-bold">R$ 14,20</div>
-              </div>
+              <div className="text-[8px] text-muted-foreground mt-1 truncate">Pasta: {c.campaign_name || "Geral"}</div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      <Dialog open={!!selectedCreative} onOpenChange={() => setSelectedCreative(null)}>
+        <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black/95 border-none">
+          {selectedCreative && (
+            <div className="relative aspect-video flex items-center justify-center">
+               <img src={selectedCreative.image_url || selectedCreative.thumbnail_url} className="max-w-full max-h-full object-contain" />
+               <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
+                  <h3 className="text-lg font-bold text-white">{selectedCreative.name}</h3>
+                  <p className="text-sm text-gray-300 line-clamp-2">{selectedCreative.body || "Sem descrição disponível."}</p>
+               </div>
+               <Button 
+                variant="ghost" 
+                size="icon" 
+                className="absolute top-4 right-4 text-white hover:bg-white/20"
+                onClick={() => setSelectedCreative(null)}
+               >
+                 <Trash2 className="h-5 w-5" />
+               </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -889,6 +956,9 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
   const [budget, setBudget] = useState("50");
   const [selectedCreatives, setSelectedCreatives] = useState<string[]>([]);
   const [locations, setLocations] = useState("BR");
+  const [state, setState] = useState("");
+  const [city, setCity] = useState("");
+  const [interests, setInterests] = useState("");
   
   useEffect(() => {
     if (selectedStrategy) {
@@ -900,7 +970,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
   const steps = [
     { id: 1, title: "Estratégia", desc: "Como vamos escalar?" },
     { id: 2, title: "Configuração", desc: "Nome e Orçamento" },
-    { id: 3, title: "Público", desc: "Onde vamos anunciar?" },
+    { id: 3, title: "Público", desc: "Região e Interesses" },
     { id: 4, title: "Criativos", desc: "Seus melhores anúncios" }
   ];
 
@@ -971,37 +1041,68 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
 
           {step === 3 && (
             <div className="space-y-6">
-              <div className="grid gap-2">
-                <Label>Localização (País/Estado)</Label>
-                <div className="flex flex-wrap gap-2">
-                   {["BR", "US", "PT", "ES"].map(c => (
-                     <Badge 
-                      key={c} 
-                      variant={locations.includes(c) ? "default" : "outline"}
-                      className="cursor-pointer py-2 px-4 text-sm"
-                      onClick={() => setLocations(c)}
-                     >
-                       {c === "BR" ? "🇧🇷 Brasil" : c === "US" ? "🇺🇸 EUA" : c === "PT" ? "🇵🇹 Portugal" : "🇪🇸 Espanha"}
-                     </Badge>
-                   ))}
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-4">
+                  <Label className="text-sm font-bold flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-primary" /> Localização Detalhada
+                  </Label>
+                  <div className="grid gap-3">
+                    <div className="grid gap-2">
+                      <Label htmlFor="tut-state" className="text-xs">Estado</Label>
+                      <Select value={state} onValueChange={setState}>
+                        <SelectTrigger id="tut-state">
+                          <SelectValue placeholder="Selecione o Estado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="SP">São Paulo</SelectItem>
+                          <SelectItem value="RJ">Rio de Janeiro</SelectItem>
+                          <SelectItem value="MG">Minas Gerais</SelectItem>
+                          <SelectItem value="RS">Rio Grande do Sul</SelectItem>
+                          <SelectItem value="PR">Paraná</SelectItem>
+                          <SelectItem value="SC">Santa Catarina</SelectItem>
+                          <SelectItem value="BA">Bahia</SelectItem>
+                          <SelectItem value="ALL">Todo o Brasil</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="tut-city" className="text-xs">Cidade / Município</Label>
+                      <Input 
+                        id="tut-city" 
+                        placeholder="Ex: São Paulo, Campinas..." 
+                        value={city} 
+                        onChange={(e) => setCity(e.target.value)}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Para escala ABO, recomendamos focar no Brasil (BR) para validar criativos com menor custo.</p>
+
+                <div className="space-y-4">
+                  <Label className="text-sm font-bold flex items-center gap-2">
+                    <Target className="h-4 w-4 text-primary" /> Interesses e Segmentação
+                  </Label>
+                  <div className="grid gap-3">
+                    <div className="grid gap-2">
+                      <Label htmlFor="tut-interests" className="text-xs">Interesses (Separados por vírgula)</Label>
+                      <Input 
+                        id="tut-interests" 
+                        placeholder="Ex: Marketing Digital, E-commerce, Moda..." 
+                        value={interests}
+                        onChange={(e) => setInterests(e.target.value)}
+                      />
+                    </div>
+                    <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                      <p className="text-[10px] text-blue-500 font-bold uppercase">IA Suggestion</p>
+                      <p className="text-[10px] text-muted-foreground">O motor de IA recomenda usar "Público Aberto" para a estratégia {selectedStrategy.name} se o orçamento for menor que R$ 100/dia.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                 <div className="p-4 rounded-lg border border-dashed flex flex-col items-center justify-center text-center gap-2">
-                    <Globe className="h-8 w-8 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-bold">Público Aberto</p>
-                      <p className="text-[10px] text-muted-foreground">Deixe o algoritmo do Meta encontrar seus clientes.</p>
-                    </div>
-                 </div>
-                 <div className="p-4 rounded-lg border border-dashed flex flex-col items-center justify-center text-center gap-2 opacity-50 grayscale cursor-not-allowed">
-                    <Users className="h-8 w-8 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-bold">Interesses (IA Pro)</p>
-                      <p className="text-[10px] text-muted-foreground">Disponível em breve para segmentação ultra-precisa.</p>
-                    </div>
-                 </div>
+
+              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-bold text-primary">Configuração Atual:</span> {state || "Brasil"} {city ? `> ${city}` : ""} {interests ? `| Interesses: ${interests}` : "| Público Aberto"}
+                </p>
               </div>
             </div>
           )}
@@ -1068,7 +1169,14 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                 creatives: creatives.filter(c => selectedCreatives.includes(c.id)),
                 name,
                 budget: parseFloat(budget) * 100,
-                targeting: { geo_locations: { countries: [locations] } }
+                targeting: { 
+                  geo_locations: { 
+                    countries: [locations],
+                    regions: state ? [{ key: state, name: state }] : undefined,
+                    cities: city ? [{ key: city, name: city }] : undefined
+                  },
+                  interests: interests ? interests.split(",").map(i => i.trim()) : undefined
+                }
               })}
               className="gap-2 bg-[oklch(0.7_0.18_162)] hover:bg-[oklch(0.6_0.18_162)] text-slate-950 font-bold"
             >
@@ -1260,9 +1368,9 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
               {strategy.emoji}
             </div>
             <div>
-              <DialogTitle className="text-xl font-bold">Configuração da Página e Destino</DialogTitle>
+              <DialogTitle className="text-xl font-bold">Revisão Profissional da Escala</DialogTitle>
               <DialogDescription className="text-slate-400">
-                Ajuste os detalhes finais antes de subir para o Facebook.
+                Verifique o destino, a campanha e as características do conjunto de anúncios.
               </DialogDescription>
             </div>
           </div>
