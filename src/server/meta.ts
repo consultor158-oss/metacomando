@@ -61,8 +61,11 @@ async function metaPost(path: string, body: Record<string, string>) {
   }
   if (!res.ok || data?.error) {
     const err = data?.error || {};
-    const e: any = new Error(err.message || `Meta API ${res.status}`);
+    let msg = err.message || `Meta API ${res.status}`;
+    if (err.error_user_title) msg = `${err.error_user_title}: ${err.error_user_msg || msg}`;
+    const e: any = new Error(msg);
     e.code = err.code;
+    e.fbtrace_id = err.fbtrace_id;
     throw e;
   }
   return data;
