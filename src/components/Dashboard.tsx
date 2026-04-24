@@ -2626,17 +2626,32 @@ function WASupportTab() {
 }
 
 function AICreativesTab() {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [results, setResults] = useState<any[]>([]);
+
+  const handleGenerate = () => {
+    setIsGenerating(true);
+    setTimeout(() => {
+      setIsGenerating(false);
+      setResults([
+        { id: 1, type: "copy", content: "Transforme seus anúncios com o poder da Ultra IA. Resultados reais em 24h!" },
+        { id: 2, type: "image", content: "Banner Sugerido: Fundo tecnológico com elementos de alta velocidade." }
+      ]);
+      toast.success("Criativos gerados pela IA!");
+    }, 2500);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Gerao de Criativos com IA</CardTitle>
-          <CardDescription>Crie imagens e copies de alta converso em segundos.</CardDescription>
+          <CardTitle>Geração de Criativos com IA</CardTitle>
+          <CardDescription>Crie imagens e copies de alta conversão em segundos.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label>O que voc est vendendo?</Label>
+              <Label>O que você está vendendo?</Label>
               <Textarea placeholder="Ex: Curso de Marketing Digital para Iniciantes..." />
             </div>
             <div className="space-y-2">
@@ -2653,9 +2668,24 @@ function AICreativesTab() {
               </Select>
             </div>
           </div>
-          <Button className="w-full h-12 text-lg">
-            <Brain className="mr-2 h-5 w-5" /> Gerar Criativos Master
+          <Button className="w-full h-12 text-lg" onClick={handleGenerate} disabled={isGenerating}>
+            {isGenerating ? (
+              <><RefreshCw className="mr-2 h-5 w-5 animate-spin" /> Gerando com IA...</>
+            ) : (
+              <><Brain className="mr-2 h-5 w-5" /> Gerar Criativos Master</>
+            )}
           </Button>
+
+          {results.length > 0 && (
+            <div className="grid gap-4 mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {results.map(res => (
+                <div key={res.id} className="p-4 border rounded-lg bg-muted/30">
+                  <Badge className="mb-2">{res.type.toUpperCase()}</Badge>
+                  <p className="text-sm font-medium italic">{res.content}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
