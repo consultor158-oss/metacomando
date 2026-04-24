@@ -930,16 +930,16 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
   const [view, setView] = useState<"folders" | "files">("folders");
   const [editingCreative, setEditingCreative] = useState<any | null>(null);
 
-  const organizedCreatives = creatives.map(c => ({ 
+  const organizedCreatives = creatives.map((c, idx) => ({ 
     ...c, 
-    campaign_name: "CARBON",
-    headline: c.headline || "Ttulo do Anncio",
-    body: c.body || "Texto principal do anncio que aparece no feed.",
+    campaign_name: idx % 2 === 0 ? "CARBON - Campanha Base" : "ESCALA - Ultra Global",
+    headline: c.headline || "Título do Anúncio",
+    body: c.body || "Texto principal do anúncio que aparece no feed.",
     link_url: c.link_url || "https://seulink.com"
   }));
   
-  const campaigns = ["CARBON"];
-  const filteredCreatives = organizedCreatives;
+  const folders = Array.from(new Set(organizedCreatives.map(c => c.campaign_name)));
+  const filteredCreatives = organizedCreatives.filter(c => c.campaign_name === filter);
 
   const handleEdit = (creative: any) => {
     setSelectedCreative(creative);
@@ -956,8 +956,8 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-xl font-bold">Biblioteca Profissional</h2>
-          <p className="text-xs text-muted-foreground">Organizado por campanhas e pastas inteligentes.</p>
+          <h2 className="text-xl font-bold">Biblioteca Estruturada</h2>
+          <p className="text-xs text-muted-foreground">Creatives organizados por subpastas de campanhas e escalas.</p>
         </div>
         <div className="flex items-center gap-2">
           {view === "files" && (
@@ -966,12 +966,12 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
             </Button>
           )}
           <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Filtrar por Pasta" />
+            <SelectTrigger className="w-[250px]">
+              <SelectValue placeholder="Filtrar por Pasta/Campanha" />
             </SelectTrigger>
             <SelectContent>
-              {campaigns.map(c => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
+              {folders.map(f => (
+                <SelectItem key={f} value={f}>{f}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -979,24 +979,43 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
             <Rocket className="h-3 w-3 text-primary" /> Escalar Criativos
           </Button>
           <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90">
-            <Plus className="h-3 w-3" /> Hospedar Mdia
+            <Plus className="h-3 w-3" /> Nova Pasta
           </Button>
         </div>
       </div>
 
       {view === "folders" ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {folders.map(f => (
+            <Card 
+              key={f}
+              className="p-6 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-primary/10 transition-all border-2 border-primary/10 bg-card/50 group relative overflow-hidden"
+              onClick={() => {
+                setFilter(f);
+                setView("files");
+              }}
+            >
+              <div className="absolute top-0 right-0 p-2 opacity-20">
+                <ShieldCheck className="h-4 w-4 text-primary" />
+              </div>
+              <div className="h-20 w-20 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner border border-primary/20">
+                <Folder className="h-10 w-10 text-primary" />
+              </div>
+              <div className="text-center">
+                <p className="font-bold text-sm uppercase tracking-tight text-foreground line-clamp-1">{f}</p>
+                <Badge variant="secondary" className="mt-2 text-[9px] border-primary/20 text-muted-foreground">
+                  {organizedCreatives.filter(c => c.campaign_name === f).length} CRIATIVOS
+                </Badge>
+              </div>
+            </Card>
+          ))}
           <Card 
-            className="p-8 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-primary/10 transition-all border-2 border-primary/20 bg-primary/5 group"
-            onClick={() => setView("files")}
+            className="p-6 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-muted/50 transition-all border-2 border-dashed border-muted-foreground/20 bg-transparent group"
           >
-            <div className="h-20 w-20 bg-primary/20 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner">
-              <Folder className="h-10 w-10 text-primary" />
+            <div className="h-20 w-20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Plus className="h-10 w-10 text-muted-foreground/40" />
             </div>
-            <div className="text-center">
-              <p className="font-black text-base uppercase tracking-widest text-primary">CARBON</p>
-              <Badge variant="outline" className="mt-1 text-[9px] border-primary/30 text-primary/70">{filteredCreatives.length} CRIATIVOS</Badge>
-            </div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">Adicionar Pasta</p>
           </Card>
         </div>
       ) : (
