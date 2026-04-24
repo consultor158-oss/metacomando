@@ -541,24 +541,13 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
   const handleSave = async () => {
     if (!campaign) return;
     setSaving(true);
+    const res = await updateCampaign({
       data: {
         campaignId: campaign.id,
         name,
         status: status as any,
         dailyBudget: budgetType === "daily" ? Math.round(parseFloat(budget) * 100) : undefined,
         lifetimeBudget: budgetType === "lifetime" ? Math.round(parseFloat(budget) * 100) : undefined,
-      }
-    });
-      data: {
-        campaignId: campaign.id,
-        name,
-        daily_budget: budgetType === "daily" ? Math.round(parseFloat(budget) * 100) : undefined,
-        lifetime_budget: budgetType === "lifetime" ? Math.round(parseFloat(budget) * 100) : undefined,
-        status: status,
-        bid_strategy: bidStrategy || undefined,
-        objective: objective || undefined,
-        buying_type: buyingType || undefined,
-        special_ad_categories: specialAdCategories
       }
     });
     if (res.ok) {
