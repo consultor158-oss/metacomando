@@ -648,7 +648,7 @@ export const uploadImage = createServerFn({ method: "POST" })
   .inputValidator((d: { bytes: string; filename: string }) => d)
   .handler(async ({ data }) => {
     try {
-      const { actId } = getCreds();
+      // const { actId } = getCreds(); // Removed unused actId
       // Em um ambiente real, faríamos o upload multipart aqui.
       // Como estamos em um ambiente de demonstração/dashboard, simulamos o ID que o Meta retornaria.
       // Na vida real, o createFullScale usaria esse ID como image_hash.
