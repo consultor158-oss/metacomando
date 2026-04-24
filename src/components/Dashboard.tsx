@@ -32,7 +32,16 @@ import {
   Users,
   Video,
   Folder,
-  Save
+  Save,
+  Search,
+  MessageSquare,
+  Share2,
+  ShoppingCart,
+  Brain,
+  Smartphone,
+  Bell,
+  LineChart,
+  UserPlus
 } from "lucide-react";
 import {
   getAccountInfo,
@@ -100,7 +109,7 @@ import { Textarea } from "./ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { ScrollArea } from "./ui/scroll-area";
 
-type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "settings";
+type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "settings" | "google_ads" | "insta_organic" | "wa_reports" | "wa_alerts" | "client_dash" | "lead_tracking" | "wa_support" | "ai_creatives" | "ai_analysis" | "ecommerce" | "crm";
 
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
@@ -151,7 +160,19 @@ export function Dashboard() {
                   <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "campaigns"} onClick={() => setView("campaigns")}>
                       <Layers className="h-4 w-4" />
-                      <span>Campanhas</span>
+                      <span>Gerenciar Meta Ads</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "google_ads"} onClick={() => setView("google_ads")}>
+                      <Globe className="h-4 w-4" />
+                      <span>Gerenciar Google Ads</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "insta_organic"} onClick={() => setView("insta_organic")}>
+                      <Smartphone className="h-4 w-4" />
+                      <span>Instagram Orgnico</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
@@ -165,13 +186,57 @@ export function Dashboard() {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel>Ferramentas</SidebarGroupLabel>
+              <SidebarGroupLabel>WhatsApp & Leads</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton isActive={view === "creatives"} onClick={() => setView("creatives")}>
+                    <SidebarMenuButton isActive={view === "wa_reports"} onClick={() => setView("wa_reports")}>
+                      <MessageSquare className="h-4 w-4" />
+                      <span>Relatrios no WhatsApp</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "wa_alerts"} onClick={() => setView("wa_alerts")}>
+                      <Bell className="h-4 w-4" />
+                      <span>Alertas de Saldo</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "lead_tracking"} onClick={() => setView("lead_tracking")}>
+                      <UserPlus className="h-4 w-4" />
+                      <span>Rastreamento de Leads</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "wa_support"} onClick={() => setView("wa_support")}>
+                      <MessageCircle className="h-4 w-4" />
+                      <span>Atendimento WhatsApp</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>Inteligncia & IA</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "ai_creatives"} onClick={() => setView("ai_creatives")}>
                       <ImageIcon className="h-4 w-4" />
-                      <span>Biblioteca de Criativos</span>
+                      <span>Criativos com IA</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "ai_analysis"} onClick={() => setView("ai_analysis")}>
+                      <Brain className="h-4 w-4" />
+                      <span>Anlise de Performance</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "creatives"} onClick={() => setView("creatives")}>
+                      <Folder className="h-4 w-4" />
+                      <span>Biblioteca de Ativos</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
@@ -180,7 +245,32 @@ export function Dashboard() {
                       <span>Automao</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                  {/* Tutorial Guiado movido para dentro de Escalas */}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>Vendas & CRM</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "ecommerce"} onClick={() => setView("ecommerce")}>
+                      <ShoppingCart className="h-4 w-4" />
+                      <span>Rastrear Ecommerce</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "crm"} onClick={() => setView("crm")}>
+                      <Users className="h-4 w-4" />
+                      <span>CRM Interno</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "client_dash"} onClick={() => setView("client_dash")}>
+                      <Share2 className="h-4 w-4" />
+                      <span>Compartilhar com Cliente</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -190,13 +280,13 @@ export function Dashboard() {
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={() => setIsWAModalOpen(true)} className="text-[oklch(0.7_0.18_162)] hover:text-[oklch(0.7_0.18_162)]">
                   <MessageCircle className="h-4 w-4" />
-                  <span>WhatsApp Config</span>
+                  <span>Configuraes WhatsApp</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton isActive={view === "settings"} onClick={() => setView("settings")}>
                   <Settings className="h-4 w-4" />
-                  <span>Configuraes</span>
+                  <span>Configuraes do Sistema</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -210,11 +300,22 @@ export function Dashboard() {
               <div>
                 <h1 className="text-lg font-semibold capitalize">
                   {view === "overview" && "Viso Geral"}
-                  {view === "campaigns" && "Campanhas"}
+                  {view === "campaigns" && "Gerenciar Meta Ads"}
+                  {view === "google_ads" && "Gerenciar Google Ads"}
+                  {view === "insta_organic" && "Instagram Orgnico"}
                   {view === "scales" && "Escalas de IA"}
-                  {view === "creatives" && "Biblioteca de Criativos"}
+                  {view === "creatives" && "Biblioteca de Ativos"}
                   {view === "automation" && "Automao"}
-                  {view === "settings" && "Configuraes"}
+                  {view === "settings" && "Configuraes do Sistema"}
+                  {view === "wa_reports" && "Relatrios no WhatsApp"}
+                  {view === "wa_alerts" && "Alertas de Saldo"}
+                  {view === "client_dash" && "Compartilhar com Cliente"}
+                  {view === "lead_tracking" && "Rastreamento de Leads"}
+                  {view === "wa_support" && "Atendimento WhatsApp"}
+                  {view === "ai_creatives" && "Gerao de Criativos IA"}
+                  {view === "ai_analysis" && "Anlise de Performance IA"}
+                  {view === "ecommerce" && "Rastrear Ecommerce"}
+                  {view === "crm" && "CRM Interno"}
                 </h1>
                 <p className="text-xs text-muted-foreground">
                   {accountData ? `Conta: ${accountData.name}` : "Carregando conta..."}
@@ -232,6 +333,8 @@ export function Dashboard() {
           <main className="flex-1 p-6 overflow-y-auto">
             {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} />}
             {view === "campaigns" && <CampaignsTab campaigns={campaignsData} refresh={() => campaigns.refetch()} />}
+            {view === "google_ads" && <GoogleAdsTab />}
+            {view === "insta_organic" && <InstaOrganicTab />}
             {view === "scales" && (
               <div className="space-y-10">
                 <TutorialTab creatives={creativesData} onComplete={(data) => {
@@ -246,6 +349,15 @@ export function Dashboard() {
             {view === "creatives" && <CreativesTab creatives={creativesData} />}
             {view === "automation" && <AutomationTab />}
             {view === "settings" && <SettingsTab account={accountData} />}
+            {view === "wa_reports" && <WAReportsTab />}
+            {view === "wa_alerts" && <WAAlertsTab />}
+            {view === "client_dash" && <ClientDashTab />}
+            {view === "lead_tracking" && <LeadTrackingTab />}
+            {view === "wa_support" && <WASupportTab />}
+            {view === "ai_creatives" && <AICreativesTab />}
+            {view === "ai_analysis" && <AIAnalysisTab />}
+            {view === "ecommerce" && <EcommerceTab />}
+            {view === "crm" && <CRMTab />}
           </main>
         </SidebarInset>
 
@@ -2069,5 +2181,359 @@ function ActionItem({ icon, text }: { icon: any, text: string }) {
       {icon}
       <span className="text-xs text-slate-300 font-medium">{text}</span>
     </div>
+  );
+}
+
+function GoogleAdsTab() {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Google Ads Hub</CardTitle>
+          <CardDescription>Gerencie suas campanhas de Pesquisa, Youtube e Display.</CardDescription>
+        </CardHeader>
+        <CardContent className="h-[400px] flex flex-col items-center justify-center border-2 border-dashed rounded-lg">
+          <Globe className="h-12 w-12 text-muted-foreground mb-4 animate-pulse" />
+          <h3 className="text-lg font-medium">Conectando ao Google Ads</h3>
+          <p className="text-sm text-muted-foreground mb-4">Estamos preparando o dashboard do Google Ads para sua conta.</p>
+          <Button>Vincular Conta Google</Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function InstaOrganicTab() {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Instagram Orgnico</CardTitle>
+          <CardDescription>Anlise de posts, reels e stories sem investimento pago.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+             <KPICard title="Alcance Orgnico" value="12.4k" icon={<Users className="h-4 w-4" />} trend="+5%" positive />
+             <KPICard title="Engajamento" value="4.2%" icon={<Heart className="h-4 w-4" />} trend="+1.2%" positive />
+             <KPICard title="Novos Seguidores" value="842" icon={<UserPlus className="h-4 w-4" />} trend="+18%" positive />
+          </div>
+          <div className="mt-8 border rounded-lg p-12 flex flex-col items-center justify-center">
+             <Smartphone className="h-12 w-12 text-primary mb-4" />
+             <p className="font-bold">Sincronizando Feed...</p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function WAReportsTab() {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Relatrios Automticos via WhatsApp</CardTitle>
+          <CardDescription>Envie PDFs e resumos de performance direto para seu celular ou do cliente.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div>
+              <p className="font-bold">Relatrio Dirio (Resumo)</p>
+              <p className="text-xs text-muted-foreground">Enviado todos os dias s 08:00</p>
+            </div>
+            <Switch defaultChecked />
+          </div>
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div>
+              <p className="font-bold">Relatrio Semanal Consolidado</p>
+              <p className="text-xs text-muted-foreground">Enviado toda segunda-feira</p>
+            </div>
+            <Switch defaultChecked />
+          </div>
+          <Button className="w-full">
+            <MessageSquare className="mr-2 h-4 w-4" /> Enviar Relatrio Agora
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function WAAlertsTab() {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Alertas de Saldo e Performance</CardTitle>
+          <CardDescription>Receba avisos imediatos se o saldo acabar ou o CPA subir demais.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4">
+             <div className="p-4 border rounded-lg space-y-2">
+               <Label>Alerta de Saldo Baixo</Label>
+               <div className="flex gap-2">
+                 <Input placeholder="R$ 100,00" />
+                 <Button variant="outline">Salvar</Button>
+               </div>
+             </div>
+             <div className="p-4 border rounded-lg space-y-2">
+               <Label>Alerta de CPA Alto</Label>
+               <div className="flex gap-2">
+                 <Input placeholder="R$ 50,00" />
+                 <Button variant="outline">Salvar</Button>
+               </div>
+             </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function ClientDashTab() {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Compartilhar Dashboard</CardTitle>
+          <CardDescription>Crie um link pblico (ou com senha) para seu cliente acompanhar os resultados.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="p-4 bg-muted rounded-lg flex items-center justify-between">
+            <code className="text-xs">https://meta-ultra.app/shared/dashboard/ax92j...</code>
+            <Button size="sm" variant="ghost"><Copy className="h-4 w-4" /></Button>
+          </div>
+          <div className="flex gap-2">
+            <Button className="flex-1"><Share2 className="mr-2 h-4 w-4" /> Gerar Novo Link</Button>
+            <Button variant="outline">Configurar Senha</Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function LeadTrackingTab() {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Rastreamento de Leads WhatsApp</CardTitle>
+          <CardDescription>Identifique de qual campanha cada contato do WhatsApp veio.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Origem</TableHead>
+                <TableHead>Campanha</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Data</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell className="font-medium">WhatsApp</TableCell>
+                <TableCell>Escala Baiana #1</TableCell>
+                <TableCell><Badge variant="outline">Iniciado</Badge></TableCell>
+                <TableCell>Hoje, 14:20</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">WhatsApp</TableCell>
+                <TableCell>Retargeting IA</TableCell>
+                <TableCell><Badge className="bg-green-500">Convertido</Badge></TableCell>
+                <TableCell>Hoje, 12:05</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function WASupportTab() {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Atendimento Integrado</CardTitle>
+          <CardDescription>Responda seus clientes do WhatsApp sem sair do dashboard.</CardDescription>
+        </CardHeader>
+        <CardContent className="h-[500px] flex items-center justify-center border rounded-lg bg-muted/20">
+          <div className="text-center">
+            <MessageCircle className="h-12 w-12 mx-auto text-primary mb-4" />
+            <h3 className="font-bold text-lg">Central de Mensagens</h3>
+            <p className="text-sm text-muted-foreground">Conecte seu celular para abrir o chat multi-agente.</p>
+            <Button className="mt-4">Ativar Central</Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function AICreativesTab() {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Gerao de Criativos com IA</CardTitle>
+          <CardDescription>Crie imagens e copies de alta converso em segundos.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>O que voc est vendendo?</Label>
+              <Textarea placeholder="Ex: Curso de Marketing Digital para Iniciantes..." />
+            </div>
+            <div className="space-y-2">
+              <Label>Estilo Visual</Label>
+              <Select defaultValue="realistic">
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o estilo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="realistic">Realista</SelectItem>
+                  <SelectItem value="3d">3D Render</SelectItem>
+                  <SelectItem value="minimalist">Minimalista</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <Button className="w-full h-12 text-lg">
+            <Brain className="mr-2 h-5 w-5" /> Gerar Criativos Master
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function AIAnalysisTab() {
+  return (
+    <div className="space-y-6">
+      <Card className="border-primary/50 shadow-lg shadow-primary/10">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Brain className="h-6 w-6 text-primary animate-pulse" />
+            <CardTitle>Anlise de Performance IA</CardTitle>
+          </div>
+          <CardDescription>Insights profundos sobre o que est funcionando e o que deve ser pausado.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+             <p className="text-sm font-bold flex items-center gap-2">
+               <Zap className="h-4 w-4 text-primary" /> Sugesto da IA:
+             </p>
+             <p className="text-sm mt-2">
+               "Sua campanha 'Escala Baiana' est com CTR 25% acima da média, mas o checkout rate caiu. Sugiro simplificar a página de destino."
+             </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+             <div className="p-4 border rounded-lg">
+                <p className="text-xs font-bold uppercase text-muted-foreground">Oportunidade de Escala</p>
+                <p className="text-lg font-bold">Adset #4 - ROAS 4.2x</p>
+                <Button size="sm" className="mt-2">Aumentar Oramento</Button>
+             </div>
+             <div className="p-4 border rounded-lg">
+                <p className="text-xs font-bold uppercase text-muted-foreground">Risco de Perda</p>
+                <p className="text-lg font-bold text-destructive">Criativo 'Video_V2' saturando</p>
+                <Button variant="outline" size="sm" className="mt-2 text-destructive">Pausar Agora</Button>
+             </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function EcommerceTab() {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Rastrear Vendas Ecommerce</CardTitle>
+          <CardDescription>Integrao direta com Shopify, WooCommerce e Hotmart.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-4 border rounded-lg text-center hover:border-primary cursor-pointer transition-colors">
+                <ShoppingCart className="h-8 w-8 mx-auto mb-2" />
+                <p className="text-xs font-bold">Shopify</p>
+              </div>
+              <div className="p-4 border rounded-lg text-center hover:border-primary cursor-pointer transition-colors">
+                <Globe className="h-8 w-8 mx-auto mb-2" />
+                <p className="text-xs font-bold">WooCommerce</p>
+              </div>
+              <div className="p-4 border rounded-lg text-center hover:border-primary cursor-pointer transition-colors">
+                <Activity className="h-8 w-8 mx-auto mb-2" />
+                <p className="text-xs font-bold">Hotmart</p>
+              </div>
+              <div className="p-4 border rounded-lg text-center hover:border-primary cursor-pointer transition-colors">
+                <Plus className="h-8 w-8 mx-auto mb-2" />
+                <p className="text-xs font-bold">Outros</p>
+              </div>
+           </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function CRMTab() {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>CRM Interno</CardTitle>
+          <CardDescription>Gesto de pipeline e funil de vendas dos leads gerados.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4 overflow-x-auto pb-4">
+            <CRMPipeColumn title="Novo Lead" count={12} color="bg-blue-500" />
+            <CRMPipeColumn title="Em Atendimento" count={5} color="bg-yellow-500" />
+            <CRMPipeColumn title="Aguardando Pagto" count={3} color="bg-purple-500" />
+            <CRMPipeColumn title="Fechado" count={8} color="bg-green-500" />
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function CRMPipeColumn({ title, count, color }: { title: string, count: number, color: string }) {
+  return (
+    <div className="min-w-[250px] bg-muted/50 rounded-lg p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h4 className="font-bold text-sm">{title}</h4>
+        <Badge variant="secondary">{count}</Badge>
+      </div>
+      <div className={`h-1 w-full ${color} rounded-full`} />
+      <div className="space-y-2">
+        <div className="p-3 bg-background rounded border text-xs shadow-sm">Joo Silva - R$ 250,00</div>
+        <div className="p-3 bg-background rounded border text-xs shadow-sm">Maria Oliveira - R$ 1.200,00</div>
+        <Button variant="ghost" className="w-full text-xs" size="sm">+ Adicionar</Button>
+      </div>
+    </div>
+  );
+}
+
+function Heart({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+    </svg>
   );
 }
