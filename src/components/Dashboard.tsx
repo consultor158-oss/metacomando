@@ -803,7 +803,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
               <TabsContent value="ads" className="mt-0">
                  <div className="space-y-3">
                   {details.isLoading ? (
-                    <div className="text-center py-10 text-muted-foreground">Carregando anncios...</div>
+                    <div className="text-center py-10 text-muted-foreground">Carregando anúncios...</div>
                   ) : fullCampaignData?.ads?.map((ad: any) => (
                     <div key={ad.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-3">
