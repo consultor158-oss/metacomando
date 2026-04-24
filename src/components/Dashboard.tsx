@@ -1251,7 +1251,37 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
   const [city, setCity] = useState("");
   const [interests, setInterests] = useState("");
   const [ageRange, setAgeRange] = useState("18-65+");
-  const [gender, setGender] = useState("ALL");
+  const [localCreatives, setLocalCreatives] = useState<any[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    // Simulating upload
+    setTimeout(() => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const newCreative = {
+          id: `new_${Math.random().toString(36).substr(2, 9)}`,
+          name: file.name,
+          image_url: event.target?.result as string,
+          thumbnail_url: event.target?.result as string,
+          body: "Nova mídia hospedada",
+          title: "Headline"
+        };
+        setLocalCreatives(prev => [newCreative, ...prev]);
+        setSelectedCreatives(prev => [...prev, newCreative.id]);
+        setIsUploading(false);
+        toast.success("Mídia hospedada com sucesso!");
+      };
+      reader.readAsDataURL(file);
+    }, 1500);
+  };
+
+  const allCreatives = [...localCreatives, ...creatives];
+  
   
   useEffect(() => {
     if (selectedStrategy) {
