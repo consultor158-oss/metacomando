@@ -882,7 +882,6 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
               <SelectValue placeholder="Filtrar por Pasta" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas as Pastas</SelectItem>
               {campaigns.map(c => (
                 <SelectItem key={c} value={c}>{c}</SelectItem>
               ))}
