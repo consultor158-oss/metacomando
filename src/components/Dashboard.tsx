@@ -174,12 +174,7 @@ export function Dashboard() {
                       <span>Automação</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton isActive={view === "tutorial"} onClick={() => setView("tutorial")}>
-                      <PlayCircle className="h-4 w-4" />
-                      <span>Tutorial Guiado</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  {/* Tutorial Guiado movido para dentro de Escalas */}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
