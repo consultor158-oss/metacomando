@@ -41,16 +41,15 @@ async function metaFetch(path: string, params: Record<string, string> = {}, init
   return data;
 }
 
-async function metaPost(path: string, body: Record<string, string>) {
+async function metaPost(path: string, body: Record<string, any>) {
   const { token } = getCreds();
   const url = new URL(`${BASE}/${path}`);
-  const form = new URLSearchParams();
-  form.set("access_token", token);
-  for (const [k, v] of Object.entries(body)) form.set(k, v);
+  url.searchParams.set("access_token", token);
+  
   const res = await fetch(url.toString(), {
     method: "POST",
-    headers: { "Content-Type": "application/x-form-urlencoded" },
-    body: form.toString(),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
   const text = await res.text();
   let data: any;
@@ -204,7 +203,7 @@ export const updateBudget = createServerFn({ method: "POST" })
     try {
       const result = await metaPost(data.id, { 
         daily_budget: String(data.dailyBudgetCents),
-        ...(data.type === "adset" ? { is_adset_budget_sharing_enabled: "false" } : {})
+        ...(data.type === "adset" ? { is_adset_budget_sharing_enabled: false } : {})
       });
       return { ok: true as const, data: result };
     } catch (e) {
@@ -268,7 +267,7 @@ export const createFullScale = createServerFn({ method: "POST" })
       }
 
       // 1. Create Campaign
-      const campaignBody: Record<string, string> = {
+      const campaignBody: Record<string, any> = {
         name: data.name,
         objective: data.objective || "OUTCOME_SALES",
         status: data.status || "PAUSED",
@@ -302,7 +301,7 @@ export const createFullScale = createServerFn({ method: "POST" })
            // Note: interests require specific IDs from Meta, we fallback to broad targeting if names are provided as strings
         }
         
-        const adsetBody: Record<string, string> = {
+        const adsetBody: Record<string, any> = {
           name: `[ULTRA] ${data.name} - Conjunto ${i + 1}`,
           campaign_id: campaignId,
           status: data.status || "PAUSED",
@@ -314,7 +313,7 @@ export const createFullScale = createServerFn({ method: "POST" })
         if (!isCBO) {
           adsetBody.daily_budget = String(Math.max(1000, data.dailyBudgetCents || 2000));
           // Explicitly set budget sharing to false for ABO to avoid the required field error
-          adsetBody.is_adset_budget_sharing_enabled = "false";
+          adsetBody.is_adset_budget_sharing_enabled = false;
         }
 
         if (data.destination === "WHATSAPP") {
@@ -332,7 +331,7 @@ export const createFullScale = createServerFn({ method: "POST" })
 
         for (const [idx, creative] of adsToCreate.entries()) {
            try {
-             let adBody: Record<string, string> = {
+             let adBody: Record<string, any> = {
                name: `Anúncio ${idx + 1} - ${adset.id}`,
                adset_id: adset.id,
                status: data.status || "PAUSED",
@@ -416,7 +415,7 @@ export const duplicateCampaign = createServerFn({ method: "POST" })
         data.newName ||
         `${src.name} — cópia ${new Date().toLocaleDateString("pt-BR")} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
 
-      const body: Record<string, string> = {
+      const body: Record<string, any> = {
         name: finalName,
         objective: src.objective || "OUTCOME_SALES",
         buying_type: src.buying_type || "AUCTION",
@@ -649,7 +648,7 @@ export const uploadImage = createServerFn({ method: "POST" })
   .inputValidator((d: { bytes: string; filename: string }) => d)
   .handler(async ({ data }) => {
     try {
-      const { actId } = getCreds();
+      // const { actId } = getCreds(); // Removed unused actId
       // Em um ambiente real, faríamos o upload multipart aqui.
       // Como estamos em um ambiente de demonstração/dashboard, simulamos o ID que o Meta retornaria.
       // Na vida real, o createFullScale usaria esse ID como image_hash.
@@ -756,7 +755,7 @@ export const getCampaignDetails = createServerFn({ method: "GET" })
   .inputValidator((d: { campaignId: string; datePreset?: string }) => d)
   .handler(async ({ data }) => {
     try {
-      const { token } = getCreds();
+      // const { token } = getCreds(); // Removed unused token
       const datePreset = data.datePreset || "last_7d";
       // Campaign with full fields
       const campaign = await metaFetch(data.campaignId, {
@@ -955,7 +954,7 @@ export const updateAdsetBudget = createServerFn({ method: "POST" })
       const cents = Math.max(100, Math.round(data.dailyBudgetBRL * 100)).toString();
       const r = await metaPost(data.adsetId, { 
         daily_budget: cents,
-        is_adset_budget_sharing_enabled: "false" 
+        is_adset_budget_sharing_enabled: false 
       });
       return { ok: true as const, data: r };
     } catch (e) {
