@@ -1197,7 +1197,7 @@ function ScaleTestTab({ campaigns }: { campaigns: any[] }) {
         <h2 className="text-2xl font-bold text-white">Simulador de Escala Real</h2>
         <p className="text-slate-400 max-w-xl mt-2">Analise o potencial de escala das suas campanhas atuais antes de investir pesado. Nossa IA projeta o ROAS baseado no comportamento do leilão.</p>
         <div className="flex gap-2 mt-6">
-          <Button onClick={startTest} disabled={testing} className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
+          <Button onClick={() => startTest()} disabled={testing} className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
             {testing ? "Analisando..." : "Iniciar Teste de Estresse"}
           </Button>
         </div>
