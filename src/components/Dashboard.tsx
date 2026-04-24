@@ -679,7 +679,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                   <div className="grid grid-cols-2 gap-6 pt-4 border-t">
                     <div className="grid gap-2">
                       <Label className="text-[10px] font-bold uppercase text-muted-foreground">Janela de Atribuição</Label>
-                      <Badge variant="outline" className="w-fit">7 dias clique / 1 dia visualização</Badge>
+                      <Badge variant="outline" className="w-fit">7 dias clique e 1 dia visualização</Badge>
                     </div>
                     <div className="grid gap-2">
                       <Label className="text-[10px] font-bold uppercase text-muted-foreground">Categorias Especiais</Label>
@@ -1698,7 +1698,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                        <Rocket className="h-4 w-4" /> Pronto para o Lançamento
                     </p>
                     <p className="text-xs text-muted-foreground leading-relaxed">
-                       Todas as configurações foram revisadas pelo Motor de IA. A campanha será criada via API Meta oficial.
+                       {"Todas as configurações foram revisadas pelo Motor de IA. A campanha será criada via API Meta oficial."}
                     </p>
                   </div>
                 </div>
