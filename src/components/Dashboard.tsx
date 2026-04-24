@@ -433,7 +433,7 @@ export function Dashboard() {
             {view === "ai_analysis" && <AIAnalysisTab />}
             {view === "ecommerce" && <EcommerceTab />}
             {view === "crm" && <CRMTab leads={crmLeads} onAdd={addLead} onMove={moveLead} />}
-            {view === "apis" && <ApisTab />}
+            {view === "apis" && <ApisTab onConnect={() => setIsMetaConnectOpen(true)} />}
           </main>
         </SidebarInset>
 
