@@ -2731,31 +2731,51 @@ function AIAnalysisTab() {
 }
 
 function EcommerceTab() {
+  const [connecting, setConnecting] = useState<string | null>(null);
+  const [connected, setConnected] = useState<string[]>([]);
+
+  const handleConnect = (platform: string) => {
+    setConnecting(platform);
+    setTimeout(() => {
+      setConnecting(null);
+      setConnected(prev => [...prev, platform]);
+      toast.success(`Conectado ao ${platform} com sucesso!`);
+    }, 2000);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Rastrear Vendas Ecommerce</CardTitle>
-          <CardDescription>Integrao direta com Shopify, WooCommerce e Hotmart.</CardDescription>
+          <CardDescription>Integração direta com Shopify, WooCommerce e Hotmart.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-4 border rounded-lg text-center hover:border-primary cursor-pointer transition-colors">
-                <ShoppingCart className="h-8 w-8 mx-auto mb-2" />
-                <p className="text-xs font-bold">Shopify</p>
-              </div>
-              <div className="p-4 border rounded-lg text-center hover:border-primary cursor-pointer transition-colors">
-                <Globe className="h-8 w-8 mx-auto mb-2" />
-                <p className="text-xs font-bold">WooCommerce</p>
-              </div>
-              <div className="p-4 border rounded-lg text-center hover:border-primary cursor-pointer transition-colors">
-                <Activity className="h-8 w-8 mx-auto mb-2" />
-                <p className="text-xs font-bold">Hotmart</p>
-              </div>
-              <div className="p-4 border rounded-lg text-center hover:border-primary cursor-pointer transition-colors">
-                <Plus className="h-8 w-8 mx-auto mb-2" />
-                <p className="text-xs font-bold">Outros</p>
-              </div>
+              {[
+                { name: "Shopify", icon: <ShoppingCart className="h-8 w-8" /> },
+                { name: "WooCommerce", icon: <Globe className="h-8 w-8" /> },
+                { name: "Hotmart", icon: <Activity className="h-8 w-8" /> },
+                { name: "Outros", icon: <Plus className="h-8 w-8" /> }
+              ].map(platform => (
+                <div 
+                  key={platform.name}
+                  onClick={() => !connected.includes(platform.name) && handleConnect(platform.name)}
+                  className={`p-4 border rounded-lg text-center cursor-pointer transition-all ${
+                    connected.includes(platform.name) 
+                      ? "border-green-500 bg-green-500/10" 
+                      : "hover:border-primary bg-muted/20"
+                  } ${connecting === platform.name ? "animate-pulse border-primary" : ""}`}
+                >
+                  <div className="mb-2 flex justify-center text-primary">
+                    {connecting === platform.name ? <RefreshCw className="h-8 w-8 animate-spin" /> : platform.icon}
+                  </div>
+                  <p className="text-xs font-bold">{platform.name}</p>
+                  {connected.includes(platform.name) && (
+                    <Badge variant="secondary" className="mt-2 bg-green-500 text-white border-0">ATIVO</Badge>
+                  )}
+                </div>
+              ))}
            </div>
         </CardContent>
       </Card>
