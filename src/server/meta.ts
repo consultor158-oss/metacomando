@@ -234,6 +234,7 @@ export const createFullScale = createServerFn({ method: "POST" })
       strategy?: string;
       pageId?: string;
       destination?: "WHATSAPP" | "SALES";
+      is_adset_budget_sharing_enabled?: boolean;
       destinationUrl?: string;
       targeting?: any;
       creatives?: Array<{
@@ -317,10 +318,11 @@ export const createFullScale = createServerFn({ method: "POST" })
         // Sempre enviar is_adset_budget_sharing_enabled como false para evitar erros de campo obrigatório no Meta
         // Nota: Alguns relatos indicam que o Meta pode exigir o valor explicitamente em certas versões da API
         // Usando o valor booleano false conforme documentação oficial v21.0
-        adsetBody.is_adset_budget_sharing_enabled = false;
+        // Definido pelo usuário ou padrão false para evitar erros de campo obrigatório no Meta
+        adsetBody.is_adset_budget_sharing_enabled = data.is_adset_budget_sharing_enabled ?? false;
 
         if (data.destination === "WHATSAPP") {
-          adsetBody.destination_type = "MESSAGING_DIRECT";
+          adsetBody.destination_type = "WHATSAPP";
           adsetBody.promoted_object = JSON.stringify({ page_id: data.pageId });
         } else {
           adsetBody.destination_type = "WEBSITE";
@@ -332,7 +334,7 @@ export const createFullScale = createServerFn({ method: "POST" })
         const adset = await metaPost(`${actId}/adsets`, adsetBody);
         adsets.push(adset.id);
 
-        for (const [idx, creative] of adsToCreate.entries()) {
+        const adPromises = adsToCreate.map(async (creative, idx) => {
            try {
              let adBody: Record<string, any> = {
                name: `Anúncio ${idx + 1} - ${adset.id}`,
@@ -353,34 +355,36 @@ export const createFullScale = createServerFn({ method: "POST" })
                }
 
                if (creative.video_id) {
-                objectStorySpec.video_data = {
-                  video_id: creative.video_id,
-                  image_url: creative.image_url,
-                  message: creative.primaryText,
-                  call_to_action: { type: ctaType, value: ctaValue }
-                };
-              } else {
-                const linkData: any = {
-                  message: creative.primaryText,
-                  link: data.destination === "WHATSAPP" ? `https://www.facebook.com/${data.pageId}` : (data.destinationUrl || "https://example.com"),
-                  name: creative.headline,
-                  call_to_action: { type: ctaType, value: ctaValue },
-                };
-                if (creative.image_url && !creative.image_url.startsWith("data:")) {
-                  linkData.picture = creative.image_url;
-                }
-                objectStorySpec.link_data = linkData;
-              }
+                 objectStorySpec.video_data = {
+                   video_id: creative.video_id,
+                   image_url: creative.image_url,
+                   message: creative.primaryText,
+                   call_to_action: { type: ctaType, value: ctaValue }
+                 };
+               } else {
+                 const linkData: any = {
+                   message: creative.primaryText,
+                   link: data.destination === "WHATSAPP" ? `https://www.facebook.com/${data.pageId}` : (data.destinationUrl || "https://example.com"),
+                   name: creative.headline,
+                   call_to_action: { type: ctaType, value: ctaValue },
+                 };
+                 if (creative.image_url && !creative.image_url.startsWith("data:")) {
+                   linkData.picture = creative.image_url;
+                 }
+                 objectStorySpec.link_data = linkData;
+               }
                adBody.creative = JSON.stringify({
                  name: `Creative ${idx + 1} - ${Date.now()}`,
                  object_story_spec: objectStorySpec
                });
              }
-             await metaPost(`${actId}/ads`, adBody);
+             return await metaPost(`${actId}/ads`, adBody);
            } catch (adError: any) {
              console.error("Erro ao criar anúncio:", adError.message);
+             return null;
            }
-        }
+        });
+        await Promise.all(adPromises);
       }
       return { 
         ok: true as const, 

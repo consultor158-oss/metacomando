@@ -2215,6 +2215,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
   const [selectedPage, setSelectedPage] = useState<string>("");
   const [destination, setDestination] = useState<"WHATSAPP" | "SALES">("WHATSAPP");
   const [destinationUrl, setDestinationUrl] = useState<string>("");
+  const [isBudgetSharingEnabled, setIsBudgetSharingEnabled] = useState(false);
 
   useEffect(() => {
     if (pages.length > 0 && !selectedPage) {
@@ -2239,6 +2240,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
           pageId: selectedPage,
           destination: destination,
           destinationUrl: destinationUrl,
+          is_adset_budget_sharing_enabled: isBudgetSharingEnabled,
           targeting: data.targeting,
           creatives: data.creatives?.map(c => ({
             id: c.id,
@@ -2328,6 +2330,18 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
                   onChange={(e) => setDestinationUrl(e.target.value)} 
                   placeholder={destination === 'WHATSAPP' ? "Ex: wa.me/55..." : "Ex: https://meusite.com"} 
                   className="bg-slate-900 border-slate-800 h-11"
+                />
+              </div>
+              
+              <div className="flex items-center justify-between p-3 rounded-lg border border-slate-800 bg-slate-900">
+                <div className="space-y-0.5">
+                  <Label className="text-xs font-bold text-slate-100">CBO/Sharing Budget</Label>
+                  <p className="text-[10px] text-slate-400">Ativar is_adset_budget_sharing_enabled</p>
+                </div>
+                <Switch 
+                  checked={isBudgetSharingEnabled} 
+                  onCheckedChange={setIsBudgetSharingEnabled} 
+                  className="data-[state=checked]:bg-[oklch(0.7_0.18_162)]"
                 />
               </div>
             </div>
