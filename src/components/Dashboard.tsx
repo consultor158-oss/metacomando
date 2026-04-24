@@ -1345,7 +1345,22 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                       {selectedStrategy.id === s.id && <Badge className="bg-primary text-primary-foreground text-[10px]">RECOMENDADO</Badge>}
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{s.shortDesc}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">{s.shortDesc}</p>
+                  
+                  {selectedStrategy.id === s.id && (
+                    <div className="mt-2 p-3 bg-primary/10 rounded-xl border border-primary/20 animate-in fade-in duration-300">
+                      <p className="text-[10px] font-black uppercase text-primary mb-1">Dica de Especialista:</p>
+                      <p className="text-[10px] text-muted-foreground italic">
+                        {s.id === 'baiana' && "Suba em massa. O segredo é o volume de conjuntos para encontrar a fatia certa do leilão."}
+                        {s.id === 'cbo' && "Deixe a IA trabalhar. Não mexa na campanha por pelo menos 72h após o início."}
+                        {s.id === 'abo' && "Controle total. Use para testar públicos específicos com o mesmo criativo vencedor."}
+                        {s.id === '111' && "Ideal para novos pixels ou contas. Valide o criativo antes de escalar a verba."}
+                        {s.id === 'russa' && "Escala conservadora. Aumente 20% a cada 2-3 dias se o ROAS estiver estável."}
+                        {s.id === 'mortal' && "CUIDADO: Alta agressividade. Exige monitoramento de hora em hora."}
+                        {s.id === 'ia_opt' && "Nosso motor analisa o comportamento do pixel em tempo real para otimizar lances."}
+                      </p>
+                    </div>
+                  )}
                 </div>
               ))}
               <div className="mt-8 p-6 rounded-2xl border bg-muted/30">
