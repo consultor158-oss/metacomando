@@ -2148,7 +2148,7 @@ function SettingsTab({ account, onConnect }: { account: any, onConnect: () => vo
          <div className="p-6 border-t flex justify-between items-center">
             <p className="text-xs text-muted-foreground">ltima sincronizao: {new Date().toLocaleTimeString()}</p>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setIsMetaConnectOpen(true)}>Configurar Conexão Real</Button>
+              <Button variant="outline" size="sm" onClick={() => onConnect()}>Configurar Conexão Real</Button>
               <Button variant="destructive" size="sm" onClick={() => toast.error("Função desabilitada para proteção da conta.")}>Desconectar Conta</Button>
             </div>
          </div>
