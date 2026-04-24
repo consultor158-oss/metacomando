@@ -957,7 +957,7 @@ export const updateAdsetBudget = createServerFn({ method: "POST" })
       const cents = Math.max(100, Math.round(data.dailyBudgetBRL * 100)).toString();
       const r = await metaPost(data.adsetId, { 
         daily_budget: cents,
-        is_adset_budget_sharing_enabled: false 
+        is_adset_budget_sharing_enabled: "false" 
       });
       return { ok: true as const, data: r };
     } catch (e) {
