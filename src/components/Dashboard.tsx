@@ -365,10 +365,20 @@ export function Dashboard() {
                   {accountData ? (
                     `Conta: ${accountData.name}`
                   ) : account.data?.ok === false ? (
-                    <span className="text-destructive font-bold flex items-center gap-1">
-                      <ZapOff className="h-3 w-3" />
-                      Meta Ads desconectado: {account.data.error}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-destructive font-bold flex items-center gap-1">
+                        <ZapOff className="h-3 w-3" />
+                        Meta Ads desconectado
+                      </span>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-7 text-[10px] border-destructive text-destructive hover:bg-destructive hover:text-white"
+                        onClick={() => setIsMetaConnectOpen(true)}
+                      >
+                        Resolver Agora
+                      </Button>
+                    </div>
                   ) : (
                     "Carregando conta..."
                   )}
