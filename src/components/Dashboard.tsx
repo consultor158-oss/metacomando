@@ -1563,11 +1563,12 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
                    )}
                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none">
                       <p className="text-white text-[10px] font-bold mb-1">{editingCreative.headline}</p>
+                      {editingCreative.description && (
+                        <p className="text-gray-400 text-[7px] mb-1 line-clamp-1">{editingCreative.description}</p>
+                      )}
                       <p className="text-gray-300 text-[8px] line-clamp-2">{editingCreative.body}</p>
                       <Button size="sm" className="w-full mt-2 h-7 text-[10px] bg-primary">SAIBA MAIS</Button>
                    </div>
-                </div>
-              </div>
 
               {/* Editor Column */}
               <div className="p-6 flex flex-col gap-6 overflow-y-auto">
