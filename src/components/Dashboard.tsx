@@ -2055,11 +2055,23 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                    <h3 className="text-xl font-black uppercase">Selecione seus Criativos Winners</h3>
                    <p className="text-xs text-muted-foreground">Escolha os anúncios que já performam bem para escalar com segurança.</p>
                  </div>
-                 <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold">
-                   {selectedCreatives.length} DE {allCreatives.length} SELECIONADOS
-                 </Badge>
+                 <div className="flex items-center gap-3">
+                   <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg border">
+                      <Button 
+                        size="sm" 
+                        variant={localCreatives.length > 0 ? "secondary" : "ghost"}
+                        onClick={() => setSelectedCreatives(localCreatives.map(c => c.id))}
+                        className="text-[10px] h-7 uppercase font-bold"
+                      >
+                        Somente Novos ({localCreatives.length})
+                      </Button>
+                   </div>
+                   <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold">
+                     {selectedCreatives.length} DE {allCreatives.length} SELECIONADOS
+                   </Badge>
+                 </div>
                </div>
-               
+
                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                   {allCreatives.map((c: any) => (
                     <div 
