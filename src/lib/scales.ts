@@ -125,4 +125,15 @@ export const SCALE_STRATEGIES: ScaleStrategy[] = [
     color: "from-blue-600 to-indigo-600",
     creativeCount: 3,
   },
+  {
+    id: "mortal",
+    name: "Escala Mortal",
+    emoji: "💀",
+    shortDesc: "Escala agressiva máxima; dobra orçamento a cada 12h se ROAS > 3.0.",
+    fullDesc:
+      "A estratégia mais agressiva: dobra o orçamento a cada 12 horas enquanto o ROAS estiver acima de 3.0. Ideal para quem já validou tudo e quer escala exponencial.",
+    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 50000, namePrefix: "MORTAL", status: "ACTIVE" },
+    color: "from-gray-900 to-red-900",
+    creativeCount: 5,
+  },
 ];
