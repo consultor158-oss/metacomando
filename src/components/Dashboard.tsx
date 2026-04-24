@@ -1399,20 +1399,22 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
           ) : (
             <Button 
               disabled={selectedCreatives.length === 0}
-              onClick={() => onComplete({
-                strategy: selectedStrategy,
-                creatives: creatives.filter(c => selectedCreatives.includes(c.id)),
-                name,
-                budget: parseFloat(budget) * 100,
-                targeting: { 
-                  geo_locations: { 
-                    countries: [locations],
-                    regions: state ? [{ key: state, name: state }] : undefined,
-                    cities: city ? [{ key: city, name: city }] : undefined
-                  },
-                  interests: interests ? interests.split(",").map(i => i.trim()) : undefined
-                }
-              })}
+              onClick={() => {
+                onComplete({
+                  strategy: selectedStrategy,
+                  creatives: creatives.filter(c => selectedCreatives.includes(c.id)),
+                  name,
+                  budget: Number(budget) * 100,
+                  targeting: { 
+                    geo_locations: { 
+                      countries: [locations],
+                      regions: state ? [{ key: state, name: state }] : undefined,
+                      cities: city ? [{ key: city, name: city }] : undefined
+                    },
+                    interests: interests ? interests.split(",").map(i => i.trim()) : undefined
+                  }
+                });
+              }}
               className="gap-2 bg-[oklch(0.7_0.18_162)] hover:bg-[oklch(0.6_0.18_162)] text-slate-950 font-bold"
             >
               Finalizar e Revisar Escala <Rocket className="h-4 w-4" />
