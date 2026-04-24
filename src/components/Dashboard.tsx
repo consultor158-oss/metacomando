@@ -237,10 +237,6 @@ export function Dashboard() {
             )}
             {view === "creatives" && <CreativesTab creatives={creativesData} />}
             {view === "automation" && <AutomationTab />}
-            {view === "tutorial" && <TutorialTab creatives={creativesData} onComplete={(selected) => {
-               const tutorialStrategy = SCALE_STRATEGIES.find(s => s.id === "ia_opt");
-               if (tutorialStrategy) setDryRunData({ strategy: tutorialStrategy, creatives: selected });
-            }} />}
             {view === "settings" && <SettingsTab account={accountData} />}
           </main>
         </SidebarInset>
