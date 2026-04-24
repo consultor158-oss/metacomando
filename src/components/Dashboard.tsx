@@ -1368,13 +1368,16 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
   const [filter, setFilter] = useState("CARBON");
   const [view, setView] = useState<"folders" | "files">("folders");
   const [editingCreative, setEditingCreative] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const organizedCreatives = creatives.map((c, idx) => ({ 
     ...c, 
-    campaign_name: idx % 2 === 0 ? "CARBON - Campanha Base" : "ESCALA - Ultra Global",
+    campaign_name: c.campaign_name || (idx % 2 === 0 ? "CARBON - Campanha Base" : "ESCALA - Ultra Global"),
     headline: c.headline || "Título do Anúncio",
     body: c.body || "Texto principal do anúncio que aparece no feed.",
-    link_url: c.link_url || "https://seulink.com"
+    link_url: c.link_url || "https://seulink.com",
+    description: c.description || "Descrição opcional do anúncio"
   }));
   
   const folders = Array.from(new Set(organizedCreatives.map(c => c.campaign_name)));
@@ -1389,6 +1392,56 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
     toast.success("Criativo atualizado com sucesso!");
     setSelectedCreative(null);
     setEditingCreative(null);
+  };
+
+  const handleDelete = async () => {
+    if (!editingCreative) return;
+    if (!confirm("Tem certeza que deseja apagar este criativo?")) return;
+    
+    setIsDeleting(true);
+    try {
+      const res = await deleteCreative({ data: { id: editingCreative.id } });
+      if (res.ok) {
+        toast.success("Criativo removido com sucesso!");
+        setSelectedCreative(null);
+        setEditingCreative(null);
+      } else {
+        toast.error("Erro ao deletar: " + res.error);
+      }
+    } catch (e: any) {
+      toast.error("Erro ao deletar criativo");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const base64 = event.target?.result as string;
+      try {
+        const isVideo = file.type.startsWith('video/');
+        const res = isVideo 
+          ? await uploadVideo({ data: { bytes: base64, filename: file.name } })
+          : await uploadImage({ data: { bytes: base64, filename: file.name } });
+
+        if (res.ok) {
+          toast.success(`${isVideo ? 'Vídeo' : 'Imagem'} hospedado com sucesso!`);
+          // Em um app real, aqui faríamos o refetch dos criativos
+        } else {
+          toast.error("Erro no upload: " + res.error);
+        }
+      } catch (err) {
+        toast.error("Falha ao processar arquivo");
+      } finally {
+        setIsUploading(false);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
