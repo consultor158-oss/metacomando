@@ -277,6 +277,15 @@ export const createFullScale = createServerFn({ method: "POST" })
       const adsToCreate = data.creatives || [];
 
       for (let i = 0; i < adsetCount; i++) {
+        // Clean up targeting to avoid "Invalid parameter" errors
+        const cleanTargeting = { ...data.targeting };
+        if (cleanTargeting.interests) delete cleanTargeting.interests; // Meta requires IDs, not strings
+        
+        // Ensure geo_locations is valid
+        if (!cleanTargeting.geo_locations || (!cleanTargeting.geo_locations.countries && !cleanTargeting.geo_locations.cities && !cleanTargeting.geo_locations.regions)) {
+          cleanTargeting.geo_locations = { countries: ["BR"] };
+        }
+
         const adsetBody: Record<string, string> = {
           name: `[ULTRA] ${data.name} - Conjunto ${i + 1}`,
           campaign_id: campaignId,
@@ -284,7 +293,7 @@ export const createFullScale = createServerFn({ method: "POST" })
           daily_budget: String(Math.max(100, data.dailyBudgetCents || 2000)),
           billing_event: "IMPRESSIONS",
           optimization_goal: data.destination === "WHATSAPP" ? "REPLIES" : "OFFSITE_CONVERSIONS",
-          targeting: JSON.stringify(data.targeting || { geo_locations: { countries: ["BR"] } }),
+          targeting: JSON.stringify(cleanTargeting),
         };
 
         if (data.destination === "WHATSAPP") {
