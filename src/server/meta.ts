@@ -245,6 +245,12 @@ export const createFullScale = createServerFn({ method: "POST" })
     try {
       const { actId } = getCreds();
       
+      // Dynamic import to get strategies
+      const { SCALE_STRATEGIES } = await import("../lib/scales");
+      const strategyDef = SCALE_STRATEGIES.find(s => s.id === data.strategy);
+      const isCBO = strategyDef?.defaults?.isCBO ?? false;
+      const adsetCount = strategyDef?.defaults?.adsetCount ?? 1;
+
       let pixelId = "PLACEHOLDER";
       if (data.destination === "SALES") {
         try {
@@ -262,26 +268,22 @@ export const createFullScale = createServerFn({ method: "POST" })
         status: data.status || "PAUSED",
         special_ad_categories: JSON.stringify([]),
       };
-      if (data.dailyBudgetCents) {
-        campaignBody.daily_budget = String(Math.max(100, data.dailyBudgetCents));
+
+      if (isCBO) {
+        campaignBody.daily_budget = String(Math.max(100, data.dailyBudgetCents || 2000));
+        campaignBody.bid_strategy = "LOWEST_COST_WITHOUT_CAP";
       }
+
       const campaign = await metaPost(`${actId}/campaigns`, campaignBody);
       const campaignId = campaign.id;
-
-      // 2. Determine how many adsets to create
-      let adsetCount = 1;
-      if (data.strategy === "baiana") adsetCount = 50; 
-      else if (data.strategy === "abo") adsetCount = 3;
 
       const adsets = [];
       const adsToCreate = data.creatives || [];
 
       for (let i = 0; i < adsetCount; i++) {
-        // Clean up targeting to avoid "Invalid parameter" errors
         const cleanTargeting = { ...data.targeting };
-        if (cleanTargeting.interests) delete cleanTargeting.interests; // Meta requires IDs, not strings
+        if (cleanTargeting.interests) delete cleanTargeting.interests;
         
-        // Ensure geo_locations is valid
         if (!cleanTargeting.geo_locations || (!cleanTargeting.geo_locations.countries && !cleanTargeting.geo_locations.cities && !cleanTargeting.geo_locations.regions)) {
           cleanTargeting.geo_locations = { countries: ["BR"] };
         }
@@ -290,19 +292,20 @@ export const createFullScale = createServerFn({ method: "POST" })
           name: `[ULTRA] ${data.name} - Conjunto ${i + 1}`,
           campaign_id: campaignId,
           status: data.status || "PAUSED",
-          daily_budget: String(Math.max(100, data.dailyBudgetCents || 2000)),
           billing_event: "IMPRESSIONS",
           optimization_goal: data.destination === "WHATSAPP" ? "REPLIES" : "OFFSITE_CONVERSIONS",
           targeting: JSON.stringify(cleanTargeting),
         };
 
+        if (!isCBO) {
+          adsetBody.daily_budget = String(Math.max(100, data.dailyBudgetCents || 2000));
+        }
+
         if (data.destination === "WHATSAPP") {
           adsetBody.destination_type = "WHATSAPP";
           adsetBody.promoted_object = JSON.stringify({ page_id: data.pageId });
         } else {
-          // For SALES, destination_type should be WEBSITE
           adsetBody.destination_type = "WEBSITE";
-          // Only add promoted_object if we have a valid pixel
           if (pixelId && pixelId !== "PLACEHOLDER") {
             adsetBody.promoted_object = JSON.stringify({ pixel_id: pixelId, custom_event_type: "PURCHASE" });
           }
@@ -319,17 +322,10 @@ export const createFullScale = createServerFn({ method: "POST" })
                status: data.status || "PAUSED",
              };
 
-             if (creative.id && !creative.id.startsWith("new_")) {
-               // Use existing creative ID
-               adBody.creative = JSON.stringify({
-                 creative_id: creative.id
-               });
+             if (creative.id && !creative.id.startsWith("new_") && !creative.id.startsWith("uploaded_")) {
+               adBody.creative = JSON.stringify({ creative_id: creative.id });
              } else {
-               // Build new creative
-               const objectStorySpec: any = {
-                 page_id: data.pageId,
-               };
-
+               const objectStorySpec: any = { page_id: data.pageId };
                const ctaType = data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : (creative.cta || "SHOP_NOW");
                const ctaValue: any = {};
                if (data.destination === "WHATSAPP") {
@@ -344,47 +340,31 @@ export const createFullScale = createServerFn({ method: "POST" })
                    image_url: creative.image_url,
                    title: creative.headline,
                    message: creative.primaryText,
-                   call_to_action: {
-                     type: ctaType,
-                     value: ctaValue
-                   }
+                   call_to_action: { type: ctaType, value: ctaValue }
                  };
                } else {
                  const linkData: any = {
                    message: creative.primaryText,
                    link: data.destination === "WHATSAPP" ? `https://www.facebook.com/${data.pageId}` : (data.destinationUrl || "https://example.com"),
                    caption: creative.headline,
-                   call_to_action: { 
-                     type: ctaType, 
-                     value: ctaValue
-                   },
+                   call_to_action: { type: ctaType, value: ctaValue },
                  };
-
-                 // Only add image_hash if it looks like a valid hash (and isn't the "new_" prefix)
-                 if (creative.id && !creative.id.startsWith("new_")) {
-                   linkData.image_hash = creative.id;
-                 } else if (creative.image_url && !creative.image_url.startsWith("data:")) {
+                 if (creative.image_url && !creative.image_url.startsWith("data:")) {
                    linkData.picture = creative.image_url;
                  }
-                 
                  objectStorySpec.link_data = linkData;
                }
-
                adBody.creative = JSON.stringify({
                  name: `Creative ${idx + 1} - ${Date.now()}`,
                  object_story_spec: objectStorySpec
                });
              }
-             
              await metaPost(`${actId}/ads`, adBody);
            } catch (adError: any) {
              console.error("Erro ao criar anúncio:", adError.message);
-             // Re-throw if we want the whole operation to fail, or just continue
-             throw adError; 
            }
         }
       }
-
       return { 
         ok: true as const, 
         data: campaign, 
