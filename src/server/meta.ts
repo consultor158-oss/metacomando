@@ -852,6 +852,17 @@ export const updateAdName = createServerFn({ method: "POST" })
     }
   });
 
+export const updateAdsetName = createServerFn({ method: "POST" })
+  .inputValidator((d: { adsetId: string; name: string }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const r = await metaPost(data.adsetId, { name: data.name });
+      return { ok: true as const, data: r };
+    } catch (e) {
+      return errorPayload(e);
+    }
+  });
+
 export const updateAdsetStatus = createServerFn({ method: "POST" })
   .inputValidator((d: { adsetId: string; status: "ACTIVE" | "PAUSED" }) => d)
   .handler(async ({ data }) => {
