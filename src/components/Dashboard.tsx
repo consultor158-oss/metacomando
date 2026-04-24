@@ -1046,16 +1046,20 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
     try {
       const res = await createFullScale({
         data: {
-          name: `[IA ULTRA] ${data.strategy.defaults.namePrefix || data.strategy.name} - ${new Date().toLocaleDateString()}`,
+          name: data.name || `[IA ULTRA] ${data.strategy.defaults.namePrefix || data.strategy.name} - ${new Date().toLocaleDateString()}`,
           objective: destination === "WHATSAPP" ? "OUTCOME_ENGAGEMENT" : data.strategy.defaults.objective,
-          dailyBudgetCents: data.strategy.defaults.dailyBudgetCents,
+          dailyBudgetCents: data.budget || data.strategy.defaults.dailyBudgetCents,
           strategy: data.strategy.id,
           status: data.strategy.defaults.status,
           pageId: selectedPage,
           destination: destination,
+          targeting: data.targeting,
           creatives: data.creatives?.map(c => ({
-            primaryText: "Performance Copy",
-            headline: c.name || "Headline",
+            id: c.id,
+            image_url: c.image_url || c.thumbnail_url,
+            video_id: c.video_id,
+            primaryText: c.body || "Performance Copy",
+            headline: c.name || c.title || "Headline",
             cta: destination === "WHATSAPP" ? "MESSAGE_PAGE" : "SHOP_NOW"
           }))
         }
