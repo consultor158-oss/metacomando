@@ -1285,7 +1285,7 @@ function ScaleTestTab({ campaigns }: { campaigns: any[] }) {
                   <TableCell>{formatBRL(parseFloat(c.spend || 0))}</TableCell>
                   <TableCell>{(parseFloat(c.purchase_roas?.[0]?.value || 0)).toFixed(2)}x</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={startTest} disabled={testing}>
+                    <Button variant="ghost" size="sm" onClick={() => startTest(c)} disabled={testing}>
                       Simular Escala
                     </Button>
                   </TableCell>
