@@ -145,7 +145,7 @@ export function Dashboard() {
                   <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "overview"} onClick={() => setView("overview")}>
                       <LayoutDashboard className="h-4 w-4" />
-                      <span>Visão Geral</span>
+                      <span>Viso Geral</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
@@ -177,7 +177,7 @@ export function Dashboard() {
                   <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "automation"} onClick={() => setView("automation")}>
                       <RefreshCw className="h-4 w-4" />
-                      <span>Automação</span>
+                      <span>Automao</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   {/* Tutorial Guiado movido para dentro de Escalas */}
@@ -196,7 +196,7 @@ export function Dashboard() {
               <SidebarMenuItem>
                 <SidebarMenuButton isActive={view === "settings"} onClick={() => setView("settings")}>
                   <Settings className="h-4 w-4" />
-                  <span>Configurações</span>
+                  <span>Configuraes</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -209,12 +209,12 @@ export function Dashboard() {
             <div className="flex flex-1 items-center justify-between">
               <div>
                 <h1 className="text-lg font-semibold capitalize">
-                  {view === "overview" && "Visão Geral"}
+                  {view === "overview" && "Viso Geral"}
                   {view === "campaigns" && "Campanhas"}
                   {view === "scales" && "Escalas de IA"}
                   {view === "creatives" && "Biblioteca de Criativos"}
-                  {view === "automation" && "Automação"}
-                  {view === "settings" && "Configurações"}
+                  {view === "automation" && "Automao"}
+                  {view === "settings" && "Configuraes"}
                 </h1>
                 <p className="text-xs text-muted-foreground">
                   {accountData ? `Conta: ${accountData.name}` : "Carregando conta..."}
@@ -238,7 +238,7 @@ export function Dashboard() {
                   setDryRunData(data);
                 }} />
                 <div className="border-t pt-10">
-                  <h3 className="text-xl font-bold mb-6">Outras Estratégias de Escala</h3>
+                  <h3 className="text-xl font-bold mb-6">Outras Estratgias de Escala</h3>
                   <ScalesTab onSelect={(s) => setDryRunData({ strategy: s })} />
                 </div>
               </div>
@@ -273,20 +273,20 @@ function OverviewTab({ stats, funnel }: { stats: any; funnel: any }) {
         <KPICard title="Investimento" value={formatBRL(parseFloat(stats.spend || 0))} icon={<DollarSign className="h-4 w-4 text-primary" />} trend="+12%" />
         <KPICard title="CTR Geral" value={formatPct(parseFloat(stats.ctr || 0))} icon={<MousePointer2 className="h-4 w-4 text-primary" />} trend="+0.2%" />
         <KPICard title="ROAS" value={(parseFloat(stats.purchase_roas?.[0]?.value || 0)).toFixed(2) + "x"} icon={<TrendingUp className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} trend="+0.5x" positive />
-        <KPICard title="Impressões" value={formatNumber(stats.impressions || 0)} icon={<Eye className="h-4 w-4 text-primary" />} trend="+24k" />
+        <KPICard title="Impresses" value={formatNumber(stats.impressions || 0)} icon={<Eye className="h-4 w-4 text-primary" />} trend="+24k" />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="col-span-1">
           <CardHeader>
-            <CardTitle>Funil de Conversão (30d)</CardTitle>
-            <CardDescription>Fluxo de usuários desde a impressão até a compra.</CardDescription>
+            <CardTitle>Funil de Converso (30d)</CardTitle>
+            <CardDescription>Fluxo de usurios desde a impresso at a compra.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-             <FunnelStep label="Impressões" count={funnel?.impressions || 0} pct="100%" color="bg-primary/20" />
+             <FunnelStep label="Impresses" count={funnel?.impressions || 0} pct="100%" color="bg-primary/20" />
              <FunnelStep label="Cliques no Link" count={funnel?.link_clicks || 0} pct={(funnel?.impressions > 0 ? (funnel?.link_clicks / funnel?.impressions) * 100 : 0).toFixed(2) + "%"} color="bg-primary/40" />
-             <FunnelStep label="Visualizações da Página" count={funnel?.landing_page_views || 0} pct={(funnel?.link_clicks > 0 ? (funnel?.landing_page_views / funnel?.link_clicks) * 100 : 0).toFixed(2) + "%"} color="bg-primary/60" />
-             <FunnelStep label="Finalizações de Compra" count={funnel?.initiate_checkout || 0} pct={(funnel?.landing_page_views > 0 ? (funnel?.initiate_checkout / funnel?.landing_page_views) * 100 : 0).toFixed(2) + "%"} color="bg-primary/80" />
+             <FunnelStep label="Visualizaes da Pgina" count={funnel?.landing_page_views || 0} pct={(funnel?.link_clicks > 0 ? (funnel?.landing_page_views / funnel?.link_clicks) * 100 : 0).toFixed(2) + "%"} color="bg-primary/60" />
+             <FunnelStep label="Finalizaes de Compra" count={funnel?.initiate_checkout || 0} pct={(funnel?.landing_page_views > 0 ? (funnel?.initiate_checkout / funnel?.landing_page_views) * 100 : 0).toFixed(2) + "%"} color="bg-primary/80" />
              <FunnelStep label="Vendas (Purchase)" count={funnel?.purchases || 0} pct={(funnel?.initiate_checkout > 0 ? (funnel?.purchases / funnel?.initiate_checkout) * 100 : 0).toFixed(2) + "%"} color="bg-[oklch(0.7_0.18_162)]" />
           </CardContent>
         </Card>
@@ -295,14 +295,14 @@ function OverviewTab({ stats, funnel }: { stats: any; funnel: any }) {
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div>
               <CardTitle>Status da Conta</CardTitle>
-              <CardDescription>Saúde e performance do pixel e API.</CardDescription>
+              <CardDescription>Sade e performance do pixel e API.</CardDescription>
             </div>
-            <Badge className="bg-[oklch(0.7_0.18_162)]">Saudável</Badge>
+            <Badge className="bg-[oklch(0.7_0.18_162)]">Saudvel</Badge>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span>API de Conversões</span>
+                <span>API de Converses</span>
                 <span className="text-[oklch(0.7_0.18_162)] font-bold">98% Match</span>
               </div>
               <Progress value={98} className="h-1" />
@@ -321,7 +321,7 @@ function OverviewTab({ stats, funnel }: { stats: any; funnel: any }) {
                    <ShieldCheck className="h-4 w-4 text-primary" />
                  </div>
                  <div>
-                   <p className="text-xs font-bold uppercase">Proteção Anti-Bloqueio</p>
+                   <p className="text-xs font-bold uppercase">Proteo Anti-Bloqueio</p>
                    <p className="text-[10px] text-muted-foreground">Monitorando 24/7 atividade incomum.</p>
                  </div>
                </div>
@@ -409,11 +409,11 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir esta campanha? Esta ação não pode ser desfeita.")) return;
+    if (!confirm("Tem certeza que deseja excluir esta campanha? Esta ao no pode ser desfeita.")) return;
     setUpdating(id);
     const res = await deleteCampaign({ data: { campaignId: id } });
     if (res.ok) {
-      toast.success("Campanha excluída com sucesso!");
+      toast.success("Campanha excluda com sucesso!");
       refresh();
     } else {
       toast.error("Erro ao excluir campanha");
@@ -441,7 +441,7 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
               <TableHead>CPA</TableHead>
               <TableHead>CTR</TableHead>
               <TableHead>CPC</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+              <TableHead className="text-right">Aes</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -481,7 +481,7 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
                 <TableCell>{formatBRL(c.cpc)}</TableCell>
                 <TableCell className="text-right">
                    <div className="flex justify-end gap-1">
-                     <Button variant="ghost" size="icon" title="Edição Completa" className="h-8 w-8" onClick={() => setEditingCampaign(c)}>
+                     <Button variant="ghost" size="icon" title="Edio Completa" className="h-8 w-8" onClick={() => setEditingCampaign(c)}>
                        <Edit2 className="h-3.5 w-3.5" />
                      </Button>
                      <Button variant="ghost" size="icon" title="Duplicar" className="h-8 w-8" onClick={() => handleDuplicate(c.id)}>
@@ -575,7 +575,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
     const newStatus = current === "ACTIVE" ? "PAUSED" : "ACTIVE";
     const res = await updateAdStatus({ data: { adId: id, status: newStatus as any } });
     if (res.ok) {
-      toast.success("Status do anúncio atualizado");
+      toast.success("Status do anncio atualizado");
       details.refetch();
     }
   };
@@ -588,18 +588,18 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col p-0 overflow-hidden">
         <DialogHeader className="p-6 pb-0">
-          <DialogTitle>Edição Completa: {name}</DialogTitle>
+          <DialogTitle>Edio Completa: {name}</DialogTitle>
           <DialogDescription>
-            Gerencie campanha, conjuntos de anúncios e criativos.
+            Gerencie campanha, conjuntos de anncios e criativos.
           </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="settings" className="flex-1 flex flex-col overflow-hidden">
           <div className="px-6 border-b">
             <TabsList className="w-full justify-start h-12 bg-transparent gap-6">
-              <TabsTrigger value="settings" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Configurações</TabsTrigger>
+              <TabsTrigger value="settings" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Configuraes</TabsTrigger>
               <TabsTrigger value="adsets" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Conjuntos ({fullCampaignData?.adsets?.length || 0})</TabsTrigger>
-              <TabsTrigger value="ads" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Anúncios ({fullCampaignData?.ads?.length || 0})</TabsTrigger>
+              <TabsTrigger value="ads" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Anncios ({fullCampaignData?.ads?.length || 0})</TabsTrigger>
               <TabsTrigger value="performance" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Desempenho</TabsTrigger>
               <TabsTrigger value="creatives" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Visual Criativos</TabsTrigger>
             </TabsList>
@@ -638,7 +638,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                           <SelectItem value="OUTCOME_SALES">Vendas (Purchase)</SelectItem>
                           <SelectItem value="OUTCOME_LEADS">Cadastros (Leads)</SelectItem>
                           <SelectItem value="OUTCOME_ENGAGEMENT">Engajamento / WhatsApp</SelectItem>
-                          <SelectItem value="OUTCOME_TRAFFIC">Tráfego</SelectItem>
+                          <SelectItem value="OUTCOME_TRAFFIC">Trfego</SelectItem>
                           <SelectItem value="OUTCOME_AWARENESS">Reconhecimento</SelectItem>
                         </SelectContent>
                       </Select>
@@ -647,14 +647,14 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
 
                   <div className="grid grid-cols-2 gap-6">
                     <div className="grid gap-2">
-                      <Label htmlFor="budget_type" className="text-[10px] font-bold uppercase text-muted-foreground">Controle de Orçamento</Label>
+                      <Label htmlFor="budget_type" className="text-[10px] font-bold uppercase text-muted-foreground">Controle de Oramento</Label>
                       <Select value={budgetType} onValueChange={(v: any) => setBudgetType(v)}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="daily">Orçamento Diário</SelectItem>
-                          <SelectItem value="lifetime">Orçamento Vitalício</SelectItem>
+                          <SelectItem value="daily">Oramento Dirio</SelectItem>
+                          <SelectItem value="lifetime">Oramento Vitalcio</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -666,12 +666,12 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
 
                   <div className="grid grid-cols-2 gap-6 pt-4 border-t">
                     <div className="grid gap-2">
-                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Estratégia de Lance</Label>
+                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Estratgia de Lance</Label>
                       <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.bid_strategy || "Volume Mais Alto"}</Badge>
                     </div>
                     <div className="grid gap-2">
                       <Label className="text-[10px] font-bold uppercase text-muted-foreground">Tipo de Compra</Label>
-                      <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.buying_type || "Leilão"}</Badge>
+                      <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.buying_type || "Leilo"}</Badge>
                     </div>
                   </div>
                 </div>
@@ -694,14 +694,14 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                           <p className="text-lg font-bold">{fullCampaignData.insights.purchases}</p>
                        </div>
                        <div className="p-4 rounded-xl border bg-muted/30">
-                          <p className="text-[10px] font-bold text-muted-foreground uppercase">CPA Médio</p>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase">CPA Mdio</p>
                           <p className="text-lg font-bold">{formatBRL(fullCampaignData.insights.cpa)}</p>
                        </div>
                     </div>
 
                     <Card>
                       <CardHeader className="p-4">
-                        <CardTitle className="text-sm">Principais Métricas</CardTitle>
+                        <CardTitle className="text-sm">Principais Mtricas</CardTitle>
                       </CardHeader>
                       <CardContent className="p-4 pt-0 space-y-4">
                         <div className="flex justify-between items-center py-2 border-b">
@@ -709,22 +709,22 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                            <span className="text-xs font-bold">{fullCampaignData.insights.ctr.toFixed(2)}%</span>
                         </div>
                         <div className="flex justify-between items-center py-2 border-b">
-                           <span className="text-xs text-muted-foreground">CPC Médio</span>
+                           <span className="text-xs text-muted-foreground">CPC Mdio</span>
                            <span className="text-xs font-bold">{formatBRL(fullCampaignData.insights.cpc)}</span>
                         </div>
                         <div className="flex justify-between items-center py-2 border-b">
-                           <span className="text-xs text-muted-foreground">Impressões</span>
+                           <span className="text-xs text-muted-foreground">Impresses</span>
                            <span className="text-xs font-bold">{formatNumber(fullCampaignData.insights.impressions)}</span>
                         </div>
                         <div className="flex justify-between items-center py-2">
-                           <span className="text-xs text-muted-foreground">Alcance Único</span>
+                           <span className="text-xs text-muted-foreground">Alcance nico</span>
                            <span className="text-xs font-bold">{formatNumber(fullCampaignData.insights.reach)}</span>
                         </div>
                       </CardContent>
                     </Card>
                   </div>
                 ) : (
-                  <div className="text-center py-20 text-muted-foreground">Sem dados de desempenho para o período.</div>
+                  <div className="text-center py-20 text-muted-foreground">Sem dados de desempenho para o perodo.</div>
                 )}
               </TabsContent>
 
@@ -760,12 +760,12 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                                   const val = parseFloat(e.target.value);
                                   if (!isNaN(val)) {
                                     await updateAdsetBudget({ data: { adsetId: as.id, dailyBudgetBRL: val } });
-                                    toast.success("Orçamento atualizado");
+                                    toast.success("Oramento atualizado");
                                   }
                                 }}
                               />
                               <span className="text-[9px] text-muted-foreground uppercase">
-                                {as.daily_budget ? "Diário" : "Total"}
+                                {as.daily_budget ? "Dirio" : "Total"}
                               </span>
                             </div>
                             <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">
@@ -791,7 +791,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
               <TabsContent value="ads" className="mt-0">
                  <div className="space-y-3">
                   {details.isLoading ? (
-                    <div className="text-center py-10 text-muted-foreground">Carregando anúncios...</div>
+                    <div className="text-center py-10 text-muted-foreground">Carregando anncios...</div>
                   ) : fullCampaignData?.ads?.map((ad: any) => (
                     <div key={ad.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-3">
@@ -813,7 +813,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                             onBlur={async (e) => {
                               if (e.target.value !== ad.name) {
                                 await updateAdName({ data: { adId: ad.id, name: e.target.value } });
-                                toast.success("Nome do anúncio atualizado");
+                                toast.success("Nome do anncio atualizado");
                               }
                             }}
                           />
@@ -870,7 +870,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
           <Button variant="outline" onClick={onClose} disabled={saving}>Fechar</Button>
           <Button onClick={handleSave} disabled={saving}>
             {saving ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : null}
-            Salvar Alterações
+            Salvar Alteraes
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -885,11 +885,11 @@ function ScalesTab({ onSelect }: { onSelect: (s: ScaleStrategy) => void }) {
         <div className="absolute top-0 right-0 p-4 opacity-10">
           <Rocket className="h-24 w-24" />
         </div>
-        <h2 className="text-2xl font-bold">Escalas com Inteligência Artificial</h2>
-        <p className="text-muted-foreground max-w-xl mt-2">Selecione uma estratégia validada para subir campanhas ou duplicar conjuntos vencedores com um clique.</p>
+        <h2 className="text-2xl font-bold">Escalas com Inteligncia Artificial</h2>
+        <p className="text-muted-foreground max-w-xl mt-2">Selecione uma estratgia validada para subir campanhas ou duplicar conjuntos vencedores com um clique.</p>
         <div className="flex gap-2 mt-6">
-          <Button className="bg-primary shadow-lg shadow-primary/20">Nova Escala Rápida</Button>
-          <Button variant="outline">Ver Histórico</Button>
+          <Button className="bg-primary shadow-lg shadow-primary/20">Nova Escala Rpida</Button>
+          <Button variant="outline">Ver Histrico</Button>
         </div>
       </div>
 
@@ -899,7 +899,7 @@ function ScalesTab({ onSelect }: { onSelect: (s: ScaleStrategy) => void }) {
             <CardHeader className="p-4 pb-2">
               <div className="flex justify-between items-start">
                 <div className="text-3xl">{s.emoji}</div>
-                <Badge variant="secondary" className="text-[10px] uppercase font-bold">Estratégia</Badge>
+                <Badge variant="secondary" className="text-[10px] uppercase font-bold">Estratgia</Badge>
               </div>
               <CardTitle className="mt-2">{s.name}</CardTitle>
               <CardDescription className="text-xs line-clamp-2 mt-1">{s.shortDesc}</CardDescription>
@@ -933,8 +933,8 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
   const organizedCreatives = creatives.map(c => ({ 
     ...c, 
     campaign_name: "CARBON",
-    headline: c.headline || "Título do Anúncio",
-    body: c.body || "Texto principal do anúncio que aparece no feed.",
+    headline: c.headline || "Ttulo do Anncio",
+    body: c.body || "Texto principal do anncio que aparece no feed.",
     link_url: c.link_url || "https://seulink.com"
   }));
   
@@ -979,7 +979,7 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
             <Rocket className="h-3 w-3 text-primary" /> Escalar Criativos
           </Button>
           <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90">
-            <Plus className="h-3 w-3" /> Hospedar Mídia
+            <Plus className="h-3 w-3" /> Hospedar Mdia
           </Button>
         </div>
       </div>
@@ -1047,7 +1047,7 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
               <div className="p-6 flex flex-col gap-6 overflow-y-auto">
                 <div>
                   <h3 className="text-xl font-bold">Editar Criativo</h3>
-                  <p className="text-xs text-muted-foreground">Ajuste as informações para escala.</p>
+                  <p className="text-xs text-muted-foreground">Ajuste as informaes para escala.</p>
                 </div>
 
                 <div className="space-y-4">
@@ -1061,7 +1061,7 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-bold uppercase">Título (Headline)</Label>
+                    <Label className="text-[10px] font-bold uppercase">Ttulo (Headline)</Label>
                     <Input 
                       value={editingCreative.headline} 
                       onChange={(e) => setEditingCreative({...editingCreative, headline: e.target.value})}
@@ -1094,7 +1094,7 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
                     </div>
                     <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
                       <p className="text-[10px] font-bold text-muted-foreground uppercase">Formato</p>
-                      <p className="text-xs font-bold">{editingCreative.video_id ? "VÍDEO" : "IMAGEM"}</p>
+                      <p className="text-xs font-bold">{editingCreative.video_id ? "VDEO" : "IMAGEM"}</p>
                     </div>
                   </div>
                 </div>
@@ -1102,7 +1102,7 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
                 <div className="mt-auto flex gap-2">
                   <Button variant="outline" className="flex-1" onClick={() => setSelectedCreative(null)}>Cancelar</Button>
                   <Button className="flex-1 gap-2" onClick={handleSave}>
-                    <Save className="h-4 w-4" /> Salvar Alterações
+                    <Save className="h-4 w-4" /> Salvar Alteraes
                   </Button>
                 </div>
               </div>
@@ -1133,17 +1133,17 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
   }, [selectedStrategy]);
 
   const steps = [
-    { id: 1, title: "Estratégia", desc: "Como vamos escalar?" },
-    { id: 2, title: "Configuração", desc: "Nome e Orçamento" },
-    { id: 3, title: "Público", desc: "Região e Interesses" },
-    { id: 4, title: "Criativos", desc: "Seus melhores anúncios" }
+    { id: 1, title: "Estratgia", desc: "Como vamos escalar?" },
+    { id: 2, title: "Configurao", desc: "Nome e Oramento" },
+    { id: 3, title: "Pblico", desc: "Regio e Interesses" },
+    { id: 4, title: "Criativos", desc: "Seus melhores anncios" }
   ];
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
       <div className="text-center space-y-4">
         <h2 className="text-4xl font-extrabold tracking-tight">Escala Guiada Passo a Passo</h2>
-        <p className="text-muted-foreground text-lg">Siga o guia real para dominar seus anúncios como um administrador profissional.</p>
+        <p className="text-muted-foreground text-lg">Siga o guia real para dominar seus anncios como um administrador profissional.</p>
         
         <div className="flex justify-center gap-4 mt-8 bg-muted/20 p-6 rounded-2xl border border-border/50">
           {steps.map(s => (
@@ -1204,16 +1204,16 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                   <Label htmlFor="tut-name" className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                     <Rocket className="h-4 w-4 text-primary" /> Nome Identificador da Campanha
                   </Label>
-                  <Input id="tut-name" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: [IA] Escala de Verão" className="h-12 text-lg font-bold border-2 focus:border-primary" />
+                  <Input id="tut-name" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: [IA] Escala de Vero" className="h-12 text-lg font-bold border-2 focus:border-primary" />
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-8">
                   <div className="grid gap-3">
-                    <Label htmlFor="tut-budget" className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Orçamento Diário (R$)</Label>
+                    <Label htmlFor="tut-budget" className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Oramento Dirio (R$)</Label>
                     <div className="flex flex-col gap-3">
                       <Input id="tut-budget" type="number" value={budget} onChange={e => setBudget(e.target.value)} className="h-12 text-lg font-bold border-2 text-primary" />
                       <p className="text-[10px] text-muted-foreground bg-primary/5 p-2 rounded-lg border border-primary/10 italic">
-                        Sugestão Profissional: R$ {selectedStrategy.defaults.dailyBudgetCents/100}
+                        Sugesto Profissional: R$ {selectedStrategy.defaults.dailyBudgetCents/100}
                       </p>
                     </div>
                   </div>
@@ -1221,9 +1221,9 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                   <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col justify-center">
                     <div className="flex items-center gap-2 mb-2">
                        <ShieldCheck className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />
-                       <p className="text-xs font-black uppercase text-slate-100">Configuração de Segurança</p>
+                       <p className="text-xs font-black uppercase text-slate-100">Configurao de Segurana</p>
                     </div>
-                    <p className="text-[11px] text-slate-400">A estratégia <b>{selectedStrategy.name}</b> será aplicada automaticamente em nível de Campanha (CBO) para maximizar o ROAS.</p>
+                    <p className="text-[11px] text-slate-400">A estratgia <b>{selectedStrategy.name}</b> ser aplicada automaticamente em nvel de Campanha (CBO) para maximizar o ROAS.</p>
                   </div>
                 </div>
               </div>
@@ -1234,8 +1234,8 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                 </div>
                 <p className="text-sm font-black flex items-center gap-2 mb-2"><Zap className="h-4 w-4 text-primary" /> INSIGHT DO MOTOR DE IA</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Para garantir a fase de aprendizado da Meta, recomendamos manter esse orçamento por no mínimo 7 dias sem alterações bruscas. 
-                  O motor de escala cuidará das otimizações automáticas.
+                  Para garantir a fase de aprendizado da Meta, recomendamos manter esse oramento por no mnimo 7 dias sem alteraes bruscas. 
+                  O motor de escala cuidar das otimizaes automticas.
                 </p>
               </div>
             </div>
@@ -1246,21 +1246,21 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
               <div className="grid gap-8 md:grid-cols-2">
                 <div className="space-y-6">
                   <Label className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                    <Globe className="h-5 w-5" /> Geografia do Público
+                    <Globe className="h-5 w-5" /> Geografia do Pblico
                   </Label>
                   <div className="grid gap-4 bg-muted/30 p-6 rounded-2xl border border-border">
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-state" className="text-[10px] font-bold uppercase text-muted-foreground">Estado / Região</Label>
+                      <Label htmlFor="tut-state" className="text-[10px] font-bold uppercase text-muted-foreground">Estado / Regio</Label>
                       <Select value={state} onValueChange={setState}>
                         <SelectTrigger id="tut-state" className="h-11">
                           <SelectValue placeholder="Selecione o Estado" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="SP">São Paulo</SelectItem>
+                          <SelectItem value="SP">So Paulo</SelectItem>
                           <SelectItem value="RJ">Rio de Janeiro</SelectItem>
                           <SelectItem value="MG">Minas Gerais</SelectItem>
                           <SelectItem value="RS">Rio Grande do Sul</SelectItem>
-                          <SelectItem value="PR">Paraná</SelectItem>
+                          <SelectItem value="PR">Paran</SelectItem>
                           <SelectItem value="SC">Santa Catarina</SelectItem>
                           <SelectItem value="BA">Bahia</SelectItem>
                           <SelectItem value="ALL">Todo o Brasil</SelectItem>
@@ -1268,10 +1268,10 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-city" className="text-[10px] font-bold uppercase text-muted-foreground">Cidade Específica</Label>
+                      <Label htmlFor="tut-city" className="text-[10px] font-bold uppercase text-muted-foreground">Cidade Especfica</Label>
                       <Input 
                         id="tut-city" 
-                        placeholder="Ex: São Paulo, Campinas..." 
+                        placeholder="Ex: So Paulo, Campinas..." 
                         value={city} 
                         onChange={(e) => setCity(e.target.value)}
                         className="h-11"
@@ -1286,7 +1286,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                   </Label>
                   <div className="grid gap-4 bg-muted/30 p-6 rounded-2xl border border-border">
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-interests" className="text-[10px] font-bold uppercase text-muted-foreground">Palavras-chave (IA filtrará)</Label>
+                      <Label htmlFor="tut-interests" className="text-[10px] font-bold uppercase text-muted-foreground">Palavras-chave (IA filtrar)</Label>
                       <Input 
                         id="tut-interests" 
                         placeholder="Ex: Marketing Digital, E-commerce, Moda..." 
@@ -1298,10 +1298,10 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                     <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
                       <div className="flex items-center gap-2 mb-1">
                          <Zap className="h-3 w-3 text-blue-500" />
-                         <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Recomendação IA</p>
+                         <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Recomendao IA</p>
                       </div>
                       <p className="text-[10px] text-muted-foreground">
-                        Para a estratégia <b>{selectedStrategy.name}</b>, o motor de IA sugere começar com "Público Aberto" para que o algoritmo do Meta encontre seus clientes mais rapidamente.
+                        Para a estratgia <b>{selectedStrategy.name}</b>, o motor de IA sugere comear com "Pblico Aberto" para que o algoritmo do Meta encontre seus clientes mais rapidamente.
                       </p>
                     </div>
                   </div>
@@ -1311,8 +1311,8 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
               <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Configuração do Público:</p>
-                   <p className="text-xs text-slate-100 font-bold">{state === 'ALL' ? 'Brasil Inteiro' : (state || 'Brasil')} {city ? ` ${city}` : ""} {interests ? `+ ${interests.split(',').length} Interesses` : "+ Público Aberto"}</p>
+                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Configurao do Pblico:</p>
+                   <p className="text-xs text-slate-100 font-bold">{state === 'ALL' ? 'Brasil Inteiro' : (state || 'Brasil')} {city ? ` ${city}` : ""} {interests ? `+ ${interests.split(',').length} Interesses` : "+ Pblico Aberto"}</p>
                 </div>
               </div>
             </div>
@@ -1323,7 +1323,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                  <div>
                    <h3 className="text-xl font-black uppercase">Selecione seus Criativos Winners</h3>
-                   <p className="text-xs text-muted-foreground">Escolha os anúncios que já performam bem para escalar com segurança.</p>
+                   <p className="text-xs text-muted-foreground">Escolha os anncios que j performam bem para escalar com segurana.</p>
                  </div>
                  <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold">
                    {selectedCreatives.length} DE {creatives.length} SELECIONADOS
@@ -1362,7 +1362,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                      <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
                         <Plus className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors" />
                      </div>
-                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Hospedar Mídia</p>
+                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Hospedar Mdia</p>
                   </div>
                </div>
 
@@ -1373,7 +1373,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                      </div>
                      <div>
                         <p className="text-sm font-bold text-slate-100">Pronto para a Escala Ultra</p>
-                        <p className="text-xs text-slate-400">Ao clicar em finalizar, o motor de IA criará a estrutura completa no seu Gerenciador de Anúncios.</p>
+                        <p className="text-xs text-slate-400">Ao clicar em finalizar, o motor de IA criar a estrutura completa no seu Gerenciador de Anncios.</p>
                      </div>
                   </div>
                </div>
@@ -1431,8 +1431,8 @@ function SettingsTab({ account }: { account: any }) {
     <div className="space-y-6 max-w-2xl">
        <Card>
          <CardHeader>
-           <CardTitle>Configurações da Conta</CardTitle>
-           <CardDescription>Gerencie suas credenciais e conexões do Meta Ads.</CardDescription>
+           <CardTitle>Configuraes da Conta</CardTitle>
+           <CardDescription>Gerencie suas credenciais e conexes do Meta Ads.</CardDescription>
          </CardHeader>
          <CardContent className="space-y-4">
             <div className="grid gap-2">
@@ -1444,26 +1444,26 @@ function SettingsTab({ account }: { account: any }) {
               <div className="p-2 bg-muted rounded border text-sm">{account?.currency}</div>
             </div>
             <div className="grid gap-2">
-              <label className="text-xs font-bold uppercase text-muted-foreground">Fuso Horário</label>
+              <label className="text-xs font-bold uppercase text-muted-foreground">Fuso Horrio</label>
               <div className="p-2 bg-muted rounded border text-sm">{account?.timezone_name}</div>
             </div>
          </CardContent>
          <div className="p-6 border-t flex justify-between items-center">
-            <p className="text-xs text-muted-foreground">Última sincronização: {new Date().toLocaleTimeString()}</p>
-            <Button variant="destructive" size="sm" onClick={() => toast.error("Função desabilitada para proteção da conta.")}>Desconectar Conta</Button>
+            <p className="text-xs text-muted-foreground">ltima sincronizao: {new Date().toLocaleTimeString()}</p>
+            <Button variant="destructive" size="sm" onClick={() => toast.error("Funo desabilitada para proteo da conta.")}>Desconectar Conta</Button>
          </div>
        </Card>
 
        <Card>
          <CardHeader>
            <CardTitle>Limites de Escala</CardTitle>
-           <CardDescription>Defina proteções para a IA não gastar excessivamente.</CardDescription>
+           <CardDescription>Defina protees para a IA no gastar excessivamente.</CardDescription>
          </CardHeader>
          <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-bold">Orçamento Máximo Diário</p>
-                <p className="text-xs text-muted-foreground">A IA pausará se ultrapassar este valor.</p>
+                <p className="text-sm font-bold">Oramento Mximo Dirio</p>
+                <p className="text-xs text-muted-foreground">A IA pausar se ultrapassar este valor.</p>
               </div>
               <div className="font-bold">R$ 5.000,00</div>
             </div>
@@ -1482,17 +1482,17 @@ function SettingsTab({ account }: { account: any }) {
 
 function AutomationTab() {
   const rules = [
-    { id: 1, name: "Pausar CPA Alto", desc: "Pausa o conjunto se o CPA for maior que R$ 25,00 após 500 impressões.", active: true, icon: <ZapOff className="h-4 w-4 text-destructive" /> },
-    { id: 2, name: "Escala Vertical", desc: "Aumenta o orçamento em 20% se o ROAS for maior que 3.0 nos últimos 3 dias.", active: true, icon: <TrendingUp className="h-4 w-4 text-[oklch(0.7_0.18_162)]" /> },
-    { id: 3, name: "Limpeza de Criativos", desc: "Pausa criativos com CTR abaixo de 0.8% após R$ 50,00 gastos.", active: false, icon: <RefreshCw className="h-4 w-4 text-blue-500" /> },
+    { id: 1, name: "Pausar CPA Alto", desc: "Pausa o conjunto se o CPA for maior que R$ 25,00 aps 500 impresses.", active: true, icon: <ZapOff className="h-4 w-4 text-destructive" /> },
+    { id: 2, name: "Escala Vertical", desc: "Aumenta o oramento em 20% se o ROAS for maior que 3.0 nos ltimos 3 dias.", active: true, icon: <TrendingUp className="h-4 w-4 text-[oklch(0.7_0.18_162)]" /> },
+    { id: 3, name: "Limpeza de Criativos", desc: "Pausa criativos com CTR abaixo de 0.8% aps R$ 50,00 gastos.", active: false, icon: <RefreshCw className="h-4 w-4 text-blue-500" /> },
   ];
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold">Regras de Automação IA</h2>
-          <p className="text-xs text-muted-foreground">O motor de automação otimiza suas campanhas em tempo real.</p>
+          <h2 className="text-xl font-bold">Regras de Automao IA</h2>
+          <p className="text-xs text-muted-foreground">O motor de automao otimiza suas campanhas em tempo real.</p>
         </div>
         <Button size="sm" className="gap-2">
           <Plus className="h-3 w-3" /> Nova Regra
@@ -1529,7 +1529,7 @@ function AutomationTab() {
         </div>
         <div className="flex-1">
           <h3 className="text-sm font-bold">Monitoramento Ativo</h3>
-          <p className="text-xs text-muted-foreground">A IA realizou 14 ações de otimização nas últimas 24 horas.</p>
+          <p className="text-xs text-muted-foreground">A IA realizou 14 aes de otimizao nas ltimas 24 horas.</p>
         </div>
         <Button variant="outline" size="sm">Ver Logs</Button>
       </div>
@@ -1551,7 +1551,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
 
   const handleActivate = async () => {
     if (!data || !selectedPage) {
-      if (!selectedPage) toast.error("Selecione uma Página do Facebook");
+      if (!selectedPage) toast.error("Selecione uma Pgina do Facebook");
       return;
     }
     setIsActivating(true);
@@ -1578,13 +1578,13 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
       });
 
       if (res.ok) {
-        toast.success(`Estratégia ${data.strategy.name} ativada com sucesso via API!`);
+        toast.success(`Estratgia ${data.strategy.name} ativada com sucesso via API!`);
         onClose();
       } else {
         toast.error("Erro ao ativar escala: " + res.error);
       }
     } catch (e: any) {
-      toast.error("Erro na conexão: " + e.message);
+      toast.error("Erro na conexo: " + e.message);
     } finally {
       setIsActivating(false);
     }
@@ -1605,9 +1605,9 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
               {strategy.emoji}
             </div>
             <div>
-              <DialogTitle className="text-xl font-bold">Revisão Profissional da Escala</DialogTitle>
+              <DialogTitle className="text-xl font-bold">Reviso Profissional da Escala</DialogTitle>
               <DialogDescription className="text-slate-400">
-                Verifique o destino, a campanha e as características do conjunto de anúncios.
+                Verifique o destino, a campanha e as caractersticas do conjunto de anncios.
               </DialogDescription>
             </div>
           </div>
@@ -1617,10 +1617,10 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Página do Facebook (Emissor)</Label>
+                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Pgina do Facebook (Emissor)</Label>
                 <Select value={selectedPage} onValueChange={setSelectedPage}>
                   <SelectTrigger className="bg-slate-900 border-slate-800 h-11">
-                    <SelectValue placeholder="Selecione a Página" />
+                    <SelectValue placeholder="Selecione a Pgina" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
                     {pages.map(p => (
@@ -1631,7 +1631,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Destino do Tráfego</Label>
+                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Destino do Trfego</Label>
                 <RadioGroup value={destination} onValueChange={(v: any) => setDestination(v)} className="grid grid-cols-2 gap-4">
                    <div className={`flex items-center space-x-2 border p-3 rounded-lg cursor-pointer transition-all ${destination === 'WHATSAPP' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('WHATSAPP')}>
                       <RadioGroupItem value="WHATSAPP" id="dest-wa" className="border-slate-400" />
@@ -1647,14 +1647,14 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
 
             <Card className="bg-slate-900 border-slate-800 p-4 flex flex-col justify-between">
                <div>
-                  <p className="text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Resumo da Estratégia</p>
+                  <p className="text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Resumo da Estratgia</p>
                   <div className="space-y-3">
                      <div className="flex justify-between text-xs">
                         <span className="text-slate-400">Total de Conjuntos:</span>
                         <span className="font-bold text-slate-100">{adsetCount}</span>
                      </div>
                      <div className="flex justify-between text-xs">
-                        <span className="text-slate-400">Investimento Diário:</span>
+                        <span className="text-slate-400">Investimento Dirio:</span>
                         <span className="font-bold text-primary">{formatBRL(totalBudget)}</span>
                      </div>
                      <div className="flex justify-between text-xs">
@@ -1664,9 +1664,9 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
                   </div>
                </div>
                <div className="mt-6 pt-4 border-t border-slate-800">
-                  <p className="text-[9px] text-slate-500 uppercase font-bold">Público Estimado</p>
+                  <p className="text-[9px] text-slate-500 uppercase font-bold">Pblico Estimado</p>
                   <p className="text-xs text-slate-300 mt-1">
-                    {data.targeting?.geo_locations?.regions?.[0]?.name || "Todo o Brasil"} • 
+                    {data.targeting?.geo_locations?.regions?.[0]?.name || "Todo o Brasil"}  
                     {data.targeting?.interests ? ` ${data.targeting.interests.length} Interesses` : " Aberto"}
                   </p>
                </div>
