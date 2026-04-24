@@ -740,7 +740,16 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                           onCheckedChange={() => handleUpdateAdsetStatus(as.id, as.status)}
                         />
                         <div>
-                          <p className="text-sm font-medium">{as.name}</p>
+                          <Input 
+                            className="text-sm font-medium h-7 border-transparent hover:border-input focus:border-input bg-transparent hover:bg-muted focus:bg-background transition-all" 
+                            defaultValue={as.name}
+                            onBlur={async (e) => {
+                              if (e.target.value !== as.name) {
+                                await updateAdsetName({ data: { adsetId: as.id, name: e.target.value } });
+                                toast.success("Nome do conjunto atualizado");
+                              }
+                            }}
+                          />
                           <div className="flex items-center gap-3 mt-1">
                             <div className="flex items-center gap-1">
                               <Input 
