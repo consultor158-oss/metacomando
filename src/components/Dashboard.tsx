@@ -1186,17 +1186,33 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
         <h2 className="text-4xl font-extrabold tracking-tight">Escala Guiada Passo a Passo</h2>
         <p className="text-muted-foreground text-lg">Siga o guia real para dominar seus anúncios como um administrador profissional.</p>
         
-        <div className="flex justify-center gap-4 mt-8 bg-muted/20 p-6 rounded-2xl border border-border/50 overflow-x-auto pb-4">
-          {steps.map(s => (
-            <div key={s.id} className="flex flex-col items-center gap-3 min-w-[80px]">
-              <div className={`h-12 w-12 rounded-2xl flex items-center justify-center font-bold transition-all ${step >= s.id ? 'bg-primary text-primary-foreground scale-110 shadow-lg shadow-primary/20 rotate-3' : 'bg-muted text-muted-foreground opacity-50'}`}>
-                {step > s.id ? <CheckCircle2 className="h-6 w-6" /> : s.id}
+        <div className="relative mt-12 mb-8 px-10">
+          <div className="absolute top-6 left-10 right-10 h-1 bg-muted rounded-full">
+            <div 
+              className="h-full bg-primary transition-all duration-500 ease-out shadow-[0_0_15px_rgba(var(--primary),0.5)]" 
+              style={{ width: `${((step - 1) / (steps.length - 1)) * 100}%` }}
+            />
+          </div>
+          <div className="flex justify-between relative z-10">
+            {steps.map(s => (
+              <div key={s.id} className="flex flex-col items-center gap-3">
+                <div 
+                  className={`h-12 w-12 rounded-2xl flex items-center justify-center font-bold transition-all duration-500 ${
+                    step >= s.id 
+                      ? 'bg-primary text-primary-foreground scale-110 shadow-xl shadow-primary/20' 
+                      : 'bg-muted text-muted-foreground'
+                  } ${step === s.id ? 'ring-4 ring-primary/20' : ''}`}
+                >
+                  {step > s.id ? <CheckCircle2 className="h-6 w-6" /> : s.id}
+                </div>
+                <div className="text-center absolute -bottom-8 w-24 left-1/2 -translate-x-1/2">
+                  <span className={`text-[10px] font-black uppercase tracking-widest block transition-colors duration-300 ${step >= s.id ? 'text-primary' : 'text-muted-foreground'}`}>
+                    {s.title}
+                  </span>
+                </div>
               </div>
-              <div className="text-center">
-                <span className={`text-[10px] font-black uppercase tracking-widest block ${step === s.id ? 'text-primary' : 'text-muted-foreground'}`}>{s.title}</span>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
