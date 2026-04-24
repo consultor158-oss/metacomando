@@ -1157,7 +1157,7 @@ function ScaleTestTab({ campaigns }: { campaigns: any[] }) {
   const [progress, setProgress] = useState(0);
   const [results, setResults] = useState<any>(null);
 
-  const startTest = () => {
+  const startTest = (campaign?: any) => {
     setTesting(true);
     setProgress(0);
     setResults(null);
@@ -1167,13 +1167,17 @@ function ScaleTestTab({ campaigns }: { campaigns: any[] }) {
         if (p >= 100) {
           clearInterval(interval);
           setTesting(false);
+          
+          const roas = campaign ? parseFloat(campaign.purchase_roas?.[0]?.value || "0") : (Math.random() * 2 + 1);
+          const spend = campaign ? parseFloat(campaign.spend || "0") : 1000;
+          
           setResults({
-            reach: Math.floor(Math.random() * 1000000),
-            conversions: Math.floor(Math.random() * 1000),
-            roas: (Math.random() * 4 + 1).toFixed(2),
-            score: Math.floor(Math.random() * 40 + 60),
-            bottleneck: Math.random() > 0.5 ? "Criativo saturando" : "Frequência alta",
-            recommendation: "Aumentar orçamento em 25% gradualmente"
+            reach: campaign ? Math.floor(campaign.impressions * 1.5) : Math.floor(Math.random() * 1000000),
+            conversions: campaign ? Math.floor(campaign.conversions * 1.3) : Math.floor(Math.random() * 1000),
+            roas: (roas * 0.85).toFixed(2), // Projeção conservadora de queda no ROAS ao escalar
+            score: campaign ? Math.min(100, Math.floor(roas * 20)) : Math.floor(Math.random() * 40 + 60),
+            bottleneck: roas < 1.5 ? "ROAS baixo para escala agressiva" : (spend > 5000 ? "Frequência no limite" : "Fatia de leilão saturada"),
+            recommendation: roas > 2 ? "Aumentar orçamento em 50% imediatamente" : "Otimizar criativos antes de escalar"
           });
           return 100;
         }
