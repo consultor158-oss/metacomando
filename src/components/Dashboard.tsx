@@ -1240,22 +1240,6 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
               </div>
             </div>
           )}
-              <div className="grid gap-2">
-                <Label htmlFor="tut-name">Nome da Campanha</Label>
-                <Input id="tut-name" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: [IA] Escala de Verão" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="tut-budget">Orçamento Diário (R$)</Label>
-                <div className="flex items-center gap-4">
-                  <Input id="tut-budget" type="number" value={budget} onChange={e => setBudget(e.target.value)} className="w-40" />
-                  <span className="text-xs text-muted-foreground">Valor sugerido pela estratégia {selectedStrategy.name}: R$ {selectedStrategy.defaults.dailyBudgetCents/100}</span>
-                </div>
-              </div>
-              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-                <p className="text-sm font-bold flex items-center gap-2"><Zap className="h-4 w-4 text-primary" /> Dica do Mentor</p>
-                <p className="text-xs text-muted-foreground mt-1">A estratégia {selectedStrategy.name} funciona melhor com orçamentos acima de R$ {selectedStrategy.defaults.dailyBudgetCents/100} para garantir dados suficientes para a IA.</p>
-              </div>
-            </div>
           )}
 
           {step === 3 && (
