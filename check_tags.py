@@ -1,38 +1,42 @@
 import re
-import sys
 
 def check_file(filename):
     with open(filename, 'r') as f:
-        content = f.read()
+        lines = f.readlines()
 
-    # Simple tag matching logic
-    tags = re.findall(r'<(/?)([a-zA-Z0-9]+)(\s|/?>)', content)
     stack = []
-    line_numbers = content.split('\n')
     
-    # We need to find the line numbers for each tag to report them
-    # But for now let's just count.
-    
-    opening = {}
-    closing = {}
-    
-    for tag in tags:
-        is_closing = tag[0] == '/'
-        tag_name = tag[1]
-        is_self_closing = tag[2].strip() == '/>'
-        
-        if is_self_closing:
-            continue
+    # Improved regex to handle self-closing tags and ignore attributes
+    # This regex is still a bit simple but better.
+    tag_re = re.compile(r'<(/?)([a-zA-Z0-9]+)(\s[^>]*?)?(/?)(>|$)')
+
+    for i, line in enumerate(lines):
+        line_num = i + 1
+        for match in tag_re.finditer(line):
+            is_closing = match.group(1) == '/'
+            tag_name = match.group(2)
+            is_self_closing = match.group(4) == '/'
             
-        if is_closing:
-            closing[tag_name] = closing.get(tag_name, 0) + 1
-        else:
-            opening[tag_name] = opening.get(tag_name, 0) + 1
+            # Skip common self-closing components and HTML tags
+            if is_self_closing:
+                continue
             
-    for name in sorted(set(opening.keys()) | set(closing.keys())):
-        o = opening.get(name, 0)
-        c = closing.get(name, 0)
-        if o != c:
-            print(f"Tag {name}: {o} opening, {c} closing")
+            # Basic list of tags we know are almost always self-closing in this project
+            if tag_name in ['Input', 'img', 'ArrowUpRight', 'CheckCircle2', 'ChevronRight', 'ChevronLeft', 'Copy', 'DollarSign', 'Edit2', 'Eye', 'Folder', 'Globe', 'ImageIcon', 'Layers', 'LayoutDashboard', 'MessageCircle', 'MousePointer2', 'Plus', 'Progress', 'RadioGroupItem', 'RefreshCw', 'Rocket', 'Save', 'SelectValue', 'Settings', 'ShieldCheck', 'SidebarTrigger', 'Switch', 'Target', 'Textarea', 'Trash2', 'TrendingUp', 'Users', 'Video', 'Zap', 'ZapOff', 'Activity', 'FunnelStep', 'KPICard']:
+                 if not is_closing:
+                    continue
+
+            if is_closing:
+                if not stack:
+                    print(f"Error: Unexpected closing tag </{tag_name}> at line {line_num}")
+                else:
+                    top_tag, top_line = stack.pop()
+                    if top_tag != tag_name:
+                        print(f"Error: Mismatched tag </{tag_name}> at line {line_num} (expected </{top_tag}> from line {top_line})")
+            else:
+                stack.append((tag_name, line_num))
+
+    for tag_name, line_num in reversed(stack):
+        print(f"Error: Unclosed tag <{tag_name}> at line {line_num}")
 
 check_file('src/components/Dashboard.tsx')
