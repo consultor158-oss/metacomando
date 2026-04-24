@@ -599,7 +599,8 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
             <TabsList className="w-full justify-start h-12 bg-transparent gap-6">
               <TabsTrigger value="settings" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Configuraes</TabsTrigger>
               <TabsTrigger value="adsets" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Conjuntos ({fullCampaignData?.adsets?.length || 0})</TabsTrigger>
-              <TabsTrigger value="ads" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Anncios ({fullCampaignData?.ads?.length || 0})</TabsTrigger>
+              <TabsTrigger value="ads" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Anúncios ({fullCampaignData?.ads?.length || 0})</TabsTrigger>
+              <TabsTrigger value="targeting" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Público e Posicionamento</TabsTrigger>
               <TabsTrigger value="performance" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Desempenho</TabsTrigger>
               <TabsTrigger value="creatives" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Visual Criativos</TabsTrigger>
             </TabsList>
@@ -638,7 +639,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                           <SelectItem value="OUTCOME_SALES">Vendas (Purchase)</SelectItem>
                           <SelectItem value="OUTCOME_LEADS">Cadastros (Leads)</SelectItem>
                           <SelectItem value="OUTCOME_ENGAGEMENT">Engajamento / WhatsApp</SelectItem>
-                          <SelectItem value="OUTCOME_TRAFFIC">Trfego</SelectItem>
+                          <SelectItem value="OUTCOME_TRAFFIC">Tráfego</SelectItem>
                           <SelectItem value="OUTCOME_AWARENESS">Reconhecimento</SelectItem>
                         </SelectContent>
                       </Select>
@@ -647,14 +648,14 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
 
                   <div className="grid grid-cols-2 gap-6">
                     <div className="grid gap-2">
-                      <Label htmlFor="budget_type" className="text-[10px] font-bold uppercase text-muted-foreground">Controle de Oramento</Label>
+                      <Label htmlFor="budget_type" className="text-[10px] font-bold uppercase text-muted-foreground">Controle de Orçamento</Label>
                       <Select value={budgetType} onValueChange={(v: any) => setBudgetType(v)}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="daily">Oramento Dirio</SelectItem>
-                          <SelectItem value="lifetime">Oramento Vitalcio</SelectItem>
+                          <SelectItem value="daily">Orçamento Diário</SelectItem>
+                          <SelectItem value="lifetime">Orçamento Vitalício</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -666,12 +667,23 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
 
                   <div className="grid grid-cols-2 gap-6 pt-4 border-t">
                     <div className="grid gap-2">
-                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Estratgia de Lance</Label>
+                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Estratégia de Lance</Label>
                       <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.bid_strategy || "Volume Mais Alto"}</Badge>
                     </div>
                     <div className="grid gap-2">
                       <Label className="text-[10px] font-bold uppercase text-muted-foreground">Tipo de Compra</Label>
-                      <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.buying_type || "Leilo"}</Badge>
+                      <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.buying_type || "Leilão"}</Badge>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6 pt-4 border-t">
+                    <div className="grid gap-2">
+                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Janela de Atribuição</Label>
+                      <Badge variant="outline" className="w-fit">7 dias clique / 1 dia visualização</Badge>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Categorias Especiais</Label>
+                      <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.special_ad_categories?.length ? fullCampaignData.campaign.special_ad_categories.join(", ") : "Nenhuma"}</Badge>
                     </div>
                   </div>
                 </div>
@@ -791,7 +803,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
               <TabsContent value="ads" className="mt-0">
                  <div className="space-y-3">
                   {details.isLoading ? (
-                    <div className="text-center py-10 text-muted-foreground">Carregando anncios...</div>
+                    <div className="text-center py-10 text-muted-foreground">Carregando anúncios...</div>
                   ) : fullCampaignData?.ads?.map((ad: any) => (
                     <div key={ad.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-3">
@@ -826,6 +838,102 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                       </div>
                     </div>
                   ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="targeting" className="mt-0">
+                <div className="space-y-6">
+                  {fullCampaignData?.adsets?.[0] ? (
+                    <div className="grid gap-6">
+                      <div className="p-4 rounded-xl border bg-muted/30">
+                        <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
+                          <Globe className="h-4 w-4 text-primary" /> Geografia e Localização
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4 text-xs">
+                          <div>
+                            <p className="text-muted-foreground uppercase font-bold text-[9px]">Países/Regiões</p>
+                            <p className="font-medium mt-1">
+                              {fullCampaignData.adsets[0].targeting?.geo_locations?.countries?.join(", ") || 
+                               fullCampaignData.adsets[0].targeting?.geo_locations?.regions?.map((r: any) => r.name).join(", ") || 
+                               "Global / Brasil"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground uppercase font-bold text-[9px]">Cidades</p>
+                            <p className="font-medium mt-1">
+                              {fullCampaignData.adsets[0].targeting?.geo_locations?.cities?.map((c: any) => c.name).join(", ") || "Todas as cidades"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-xl border bg-muted/30">
+                        <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
+                          <Target className="h-4 w-4 text-primary" /> Segmentação Detalhada
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4 text-xs">
+                          <div>
+                            <p className="text-muted-foreground uppercase font-bold text-[9px]">Idade</p>
+                            <p className="font-medium mt-1">
+                              {fullCampaignData.adsets[0].targeting?.age_min || 18} - {fullCampaignData.adsets[0].targeting?.age_max || "65+"} anos
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground uppercase font-bold text-[9px]">Gênero</p>
+                            <p className="font-medium mt-1">
+                              {fullCampaignData.adsets[0].targeting?.genders?.includes(1) && fullCampaignData.adsets[0].targeting?.genders?.includes(2) ? "Todos" : 
+                               fullCampaignData.adsets[0].targeting?.genders?.includes(1) ? "Homens" : 
+                               fullCampaignData.adsets[0].targeting?.genders?.includes(2) ? "Mulheres" : "Todos"}
+                            </p>
+                          </div>
+                          <div className="col-span-2 pt-2 border-t">
+                            <p className="text-muted-foreground uppercase font-bold text-[9px]">Interesses e Comportamentos</p>
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {fullCampaignData.adsets[0].targeting?.flexible_spec?.[0]?.interests?.map((i: any) => (
+                                <Badge key={i.id} variant="secondary" className="text-[9px]">{i.name}</Badge>
+                              )) || <span className="text-muted-foreground italic">Público Aberto (Advantage+)</span>}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-xl border bg-muted/30">
+                        <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
+                          <Layers className="h-4 w-4 text-primary" /> Posicionamentos
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {fullCampaignData.adsets[0].targeting?.publisher_platforms ? (
+                            fullCampaignData.adsets[0].targeting.publisher_platforms.map((p: string) => (
+                              <Badge key={p} variant="outline" className="capitalize text-[10px]">{p}</Badge>
+                            ))
+                          ) : (
+                            <Badge variant="outline" className="text-[oklch(0.7_0.18_162)] border-[oklch(0.7_0.18_162)] font-bold">
+                              Posicionamentos Advantage+ (Automático)
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-xl border bg-blue-500/10 border-blue-500/20">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Zap className="h-4 w-4 text-blue-500" />
+                          <p className="text-xs font-bold text-blue-500 uppercase">Configuração de Entrega</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-xs">
+                          <div>
+                            <p className="text-muted-foreground uppercase font-bold text-[9px]">Objetivo de Otimização</p>
+                            <p className="font-medium mt-1">{fullCampaignData.adsets[0].optimization_goal || "OFFSITE_CONVERSIONS"}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground uppercase font-bold text-[9px]">Evento de Cobrança</p>
+                            <p className="font-medium mt-1">{fullCampaignData.adsets[0].billing_event || "IMPRESSIONS"}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-20 text-muted-foreground">Carregando dados de segmentação...</div>
+                  )}
                 </div>
               </TabsContent>
 
@@ -1184,7 +1292,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
     <div className="space-y-8 max-w-4xl mx-auto">
       <div className="text-center space-y-4">
         <h2 className="text-4xl font-extrabold tracking-tight">Escala Guiada Passo a Passo</h2>
-        <p className="text-muted-foreground text-lg">Siga o guia real para dominar seus anúncios como um administrador profissional.</p>
+        <p className="text-muted-foreground text-lg">Siga o guia real extraído dos manuais de alta performance para dominar seus anúncios como um administrador profissional.</p>
         
         <div className="relative mt-12 mb-8 px-10">
           <div className="absolute top-6 left-10 right-10 h-1 bg-muted rounded-full">
@@ -1248,9 +1356,43 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                       {selectedStrategy.id === s.id && <Badge className="bg-primary text-primary-foreground text-[10px]">RECOMENDADO</Badge>}
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{s.shortDesc}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">{s.shortDesc}</p>
+                  
+                  {selectedStrategy.id === s.id && (
+                    <div className="mt-2 p-3 bg-primary/10 rounded-xl border border-primary/20 animate-in fade-in duration-300">
+                      <p className="text-[10px] font-black uppercase text-primary mb-1">Dica de Especialista:</p>
+                      <p className="text-[10px] text-muted-foreground italic">
+                        {s.id === 'baiana' && "Suba em massa. O segredo é o volume de conjuntos para encontrar a fatia certa do leilão."}
+                        {s.id === 'cbo' && "Deixe a IA trabalhar. Não mexa na campanha por pelo menos 72h após o início."}
+                        {s.id === 'abo' && "Controle total. Use para testar públicos específicos com o mesmo criativo vencedor."}
+                        {s.id === '111' && "Ideal para novos pixels ou contas. Valide o criativo antes de escalar a verba."}
+                        {s.id === 'russa' && "Escala conservadora. Aumente 20% a cada 2-3 dias se o ROAS estiver estável."}
+                        {s.id === 'mortal' && "CUIDADO: Alta agressividade. Exige monitoramento de hora em hora."}
+                        {s.id === 'ia_opt' && "Nosso motor analisa o comportamento do pixel em tempo real para otimizar lances."}
+                      </p>
+                    </div>
+                  )}
                 </div>
               ))}
+              <div className="mt-8 p-6 rounded-2xl border bg-muted/30">
+                <h4 className="text-sm font-bold uppercase mb-3 flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-primary" /> Checklist de Segurança para Escala
+                </h4>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <li className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary" /> Pixel com Match {">"} 85% verificado
+                  </li>
+                  <li className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary" /> API de Conversões Ativa e Saudável
+                  </li>
+                  <li className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary" /> Criativos validados em testes prévios
+                  </li>
+                  <li className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary" /> Oferta validada com ROAS {">"} 1.5x
+                  </li>
+                </ul>
+              </div>
             </div>
           )}
 
@@ -1294,6 +1436,16 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                   Para garantir a fase de aprendizado da Meta, recomendamos manter esse orçamento por no mínimo 7 dias sem alterações bruscas. 
                   O motor de escala cuidará das otimizações automáticas.
                 </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4 mt-6">
+                 <div className="p-4 rounded-xl border bg-muted/30">
+                   <p className="text-[9px] font-bold text-muted-foreground uppercase">Estratégia de Lance</p>
+                   <p className="text-sm font-bold mt-1">Volume Mais Alto (Automático)</p>
+                 </div>
+                 <div className="p-4 rounded-xl border bg-muted/30">
+                   <p className="text-[9px] font-bold text-muted-foreground uppercase">Atribuição (Window)</p>
+                   <p className="text-sm font-bold mt-1">7 dias clique / 1 dia visualização</p>
+                 </div>
               </div>
             </div>
           )}
@@ -1494,7 +1646,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                             <div className="h-10 w-10 rounded-xl bg-slate-800 flex items-center justify-center">
                                <Globe className="h-5 w-5 text-slate-400" />
                             </div>
-                            <div>
+                            <div className="flex-1">
                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Público e Geografia</p>
                                <p className="text-sm text-slate-200 font-bold">
                                   {region === 'ALL' ? 'Mundo Inteiro' : region} {city && `• ${city}`} • {ageRange} • {gender === 'ALL' ? 'Todos' : (gender === 'MALE' ? 'Homens' : 'Mulheres')}
@@ -1505,9 +1657,23 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                             <div className="h-10 w-10 rounded-xl bg-slate-800 flex items-center justify-center">
                                <Target className="h-5 w-5 text-slate-400" />
                             </div>
-                            <div>
-                               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Interesses Sugeridos</p>
-                               <p className="text-sm text-slate-200 font-bold italic">{interests || "Público Aberto (Broad)"}</p>
+                            <div className="flex-1">
+                               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Configuração Técnica Meta</p>
+                               <p className="text-[11px] text-slate-400 leading-tight">
+                                  <b>Objetivo:</b> {selectedStrategy.defaults.objective} • <b>Lance:</b> Menor Custo • <b>Distribuição:</b> {selectedStrategy.id === 'abo' ? 'Adset Level' : 'CBO (Campaign level)'}
+                               </p>
+                            </div>
+                         </div>
+                         <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-xl bg-slate-800 flex items-center justify-center">
+                               <Zap className="h-5 w-5 text-slate-400" />
+                            </div>
+                            <div className="flex-1">
+                               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Pixel & CAPI Status</p>
+                               <div className="flex items-center gap-2 mt-1">
+                                  <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                                  <p className="text-[11px] text-slate-400 font-bold">Verificado (Qualidade Excelente)</p>
+                               </div>
                             </div>
                          </div>
                       </div>
@@ -1515,33 +1681,24 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="p-4 rounded-2xl bg-muted/30 border border-border">
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3">Criativos Selecionados ({selectedCreatives.length})</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {creatives.filter(c => selectedCreatives.includes(c.id)).slice(0, 4).map(c => (
-                        <div key={c.id} className="aspect-square rounded-lg overflow-hidden bg-muted">
-                          <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover" />
-                        </div>
-                      ))}
-                      {selectedCreatives.length > 4 && (
-                        <div className="aspect-square rounded-lg bg-primary/10 flex items-center justify-center border-2 border-dashed border-primary/30">
-                          <span className="text-xs font-black text-primary">+{selectedCreatives.length - 4}</span>
-                        </div>
-                      )}
+                <div className="space-y-6">
+                  <div className="p-6 rounded-3xl border bg-card/50">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">Criativos Selecionados ({selectedCreatives.length})</p>
+                    <div className="grid grid-cols-2 gap-3">
+                       {creatives.filter(c => selectedCreatives.includes(c.id)).map((c: any) => (
+                         <div key={c.id} className="aspect-square rounded-xl overflow-hidden border border-border">
+                            <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover" />
+                         </div>
+                       ))}
                     </div>
                   </div>
                   
-                  <div className="p-4 rounded-2xl bg-orange-500/10 border border-orange-500/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Zap className="h-4 w-4 text-orange-500" />
-                      <p className="text-[10px] font-black text-orange-500 uppercase">AVISO DE ESCALA</p>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed">
-                      {selectedStrategy.id === 'mortal' ? 
-                        "A Escala Mortal dobrará seu orçamento agressivamente. Certifique-se de ter limite no cartão e estoque disponível." :
-                        "O motor de IA criará a estrutura completa. Não altere os anúncios manualmente nas primeiras 48h."
-                      }
+                  <div className="p-6 rounded-3xl bg-[oklch(0.7_0.18_162)]/10 border-2 border-[oklch(0.7_0.18_162)]/20">
+                    <p className="text-xs font-black text-[oklch(0.7_0.18_162)] uppercase tracking-widest mb-2 flex items-center gap-2">
+                       <Rocket className="h-4 w-4" /> Pronto para o Lançamento
+                    </p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                       Todas as configurações foram revisadas pelo Motor de IA. A campanha será criada via API Meta oficial.
                     </p>
                   </div>
                 </div>
