@@ -668,7 +668,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                 <div className="space-y-3">
                   {details.isLoading ? (
                     <div className="text-center py-10 text-muted-foreground">Carregando conjuntos...</div>
-                  ) : fullData?.adsets?.map((as: any) => (
+                  ) : fullCampaignData?.adsets?.map((as: any) => (
                     <div key={as.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-3">
                         <Switch 
