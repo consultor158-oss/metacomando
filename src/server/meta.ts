@@ -318,10 +318,11 @@ export const createFullScale = createServerFn({ method: "POST" })
         // Sempre enviar is_adset_budget_sharing_enabled como false para evitar erros de campo obrigatório no Meta
         // Nota: Alguns relatos indicam que o Meta pode exigir o valor explicitamente em certas versões da API
         // Usando o valor booleano false conforme documentação oficial v21.0
-        adsetBody.is_adset_budget_sharing_enabled = false;
+        // Definido pelo usuário ou padrão false para evitar erros de campo obrigatório no Meta
+        adsetBody.is_adset_budget_sharing_enabled = data.is_adset_budget_sharing_enabled ?? false;
 
         if (data.destination === "WHATSAPP") {
-          adsetBody.destination_type = "MESSAGING_DIRECT";
+          adsetBody.destination_type = "WHATSAPP";
           adsetBody.promoted_object = JSON.stringify({ page_id: data.pageId });
         } else {
           adsetBody.destination_type = "WEBSITE";
