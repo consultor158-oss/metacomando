@@ -415,7 +415,7 @@ export const duplicateCampaign = createServerFn({ method: "POST" })
         data.newName ||
         `${src.name} — cópia ${new Date().toLocaleDateString("pt-BR")} ${new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
 
-      const body: Record<string, string> = {
+      const body: Record<string, any> = {
         name: finalName,
         objective: src.objective || "OUTCOME_SALES",
         buying_type: src.buying_type || "AUCTION",
