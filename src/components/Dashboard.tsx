@@ -185,7 +185,7 @@ export function Dashboard() {
                   <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "overview"} onClick={() => setView("overview")}>
                       <LayoutDashboard className="h-4 w-4" />
-                      <span>Viso Geral</span>
+                      <span>Visão Geral</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
@@ -203,7 +203,7 @@ export function Dashboard() {
                   <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "insta_organic"} onClick={() => setView("insta_organic")}>
                       <Smartphone className="h-4 w-4" />
-                      <span>Instagram Orgnico</span>
+                      <span>Instagram Orgânico</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
@@ -223,7 +223,7 @@ export function Dashboard() {
                   <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "wa_reports"} onClick={() => setView("wa_reports")}>
                       <MessageSquare className="h-4 w-4" />
-                      <span>Relatrios no WhatsApp</span>
+                      <span>Relatórios no WhatsApp</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
@@ -249,7 +249,7 @@ export function Dashboard() {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel>Inteligncia & IA</SidebarGroupLabel>
+              <SidebarGroupLabel>Inteligência & IA</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
@@ -261,7 +261,7 @@ export function Dashboard() {
                   <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "ai_analysis"} onClick={() => setView("ai_analysis")}>
                       <Brain className="h-4 w-4" />
-                      <span>Anlise de Performance</span>
+                      <span>Análise de Performance</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
@@ -273,7 +273,7 @@ export function Dashboard() {
                   <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "automation"} onClick={() => setView("automation")}>
                       <RefreshCw className="h-4 w-4" />
-                      <span>Automao</span>
+                      <span>Automação</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -311,13 +311,13 @@ export function Dashboard() {
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={() => setIsWAModalOpen(true)} className="text-[oklch(0.7_0.18_162)] hover:text-[oklch(0.7_0.18_162)]">
                   <MessageCircle className="h-4 w-4" />
-                  <span>Configuraes WhatsApp</span>
+                  <span>Configurações WhatsApp</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton isActive={view === "settings"} onClick={() => setView("settings")}>
                   <Settings className="h-4 w-4" />
-                  <span>Configuraes do Sistema</span>
+                  <span>Configurações do Sistema</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -330,22 +330,21 @@ export function Dashboard() {
             <div className="flex flex-1 items-center justify-between">
               <div>
                 <h1 className="text-lg font-semibold capitalize">
-                  {view === "overview" && "Viso Geral"}
+                  {view === "overview" && "Visão Geral"}
                   {view === "campaigns" && "Gerenciar Meta Ads"}
                   {view === "google_ads" && "Gerenciar Google Ads"}
-                  {view === "insta_organic" && "Instagram Orgnico"}
+                  {view === "insta_organic" && "Instagram Orgânico"}
                   {view === "scales" && "Escalas de IA"}
-                  {view === "scale_test" && "Teste de Escala Real"}
                   {view === "creatives" && "Biblioteca de Ativos"}
-                  {view === "automation" && "Automao"}
-                  {view === "settings" && "Configuraes do Sistema"}
-                  {view === "wa_reports" && "Relatrios no WhatsApp"}
+                  {view === "automation" && "Automação"}
+                  {view === "settings" && "Configurações do Sistema"}
+                  {view === "wa_reports" && "Relatórios no WhatsApp"}
                   {view === "wa_alerts" && "Alertas de Saldo"}
                   {view === "client_dash" && "Compartilhar com Cliente"}
                   {view === "lead_tracking" && "Rastreamento de Leads"}
                   {view === "wa_support" && "Atendimento WhatsApp"}
-                  {view === "ai_creatives" && "Gerao de Criativos IA"}
-                  {view === "ai_analysis" && "Anlise de Performance IA"}
+                  {view === "ai_creatives" && "Geração de Criativos IA"}
+                  {view === "ai_analysis" && "Análise de Performance IA"}
                   {view === "ecommerce" && "Rastrear Ecommerce"}
                   {view === "crm" && "CRM Interno"}
                   
@@ -364,10 +363,6 @@ export function Dashboard() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                 <Badge variant="outline" className="hidden md:flex gap-1.5 px-2 py-1 text-[10px] font-bold uppercase">
-                   <div className="h-1.5 w-1.5 rounded-full bg-[oklch(0.7_0.18_162)] animate-pulse" />
-                   Motor de IA Ativo
-                 </Badge>
               </div>
             </div>
           </header>
