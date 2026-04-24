@@ -283,15 +283,18 @@ export const createFullScale = createServerFn({ method: "POST" })
           status: data.status || "PAUSED",
           daily_budget: String(Math.max(100, data.dailyBudgetCents || 2000)),
           billing_event: "IMPRESSIONS",
-          optimization_goal: data.destination === "WHATSAPP" ? "CONVERSIONS" : "OFFSITE_CONVERSIONS",
+          optimization_goal: data.destination === "WHATSAPP" ? "REPLIES" : "OFFSITE_CONVERSIONS",
           targeting: JSON.stringify(data.targeting || { geo_locations: { countries: ["BR"] } }),
-          promoted_object: data.destination === "WHATSAPP" 
-            ? JSON.stringify({ page_id: data.pageId }) 
-            : JSON.stringify({ pixel_id: pixelId, custom_event_type: "PURCHASE" }),
         };
 
         if (data.destination === "WHATSAPP") {
-           adsetBody.destination_type = JSON.stringify(["WHATSAPP_MESSAGE"]);
+          adsetBody.destination_type = JSON.stringify(["WHATSAPP_MESSAGE"]);
+          adsetBody.promoted_object = JSON.stringify({ page_id: data.pageId });
+        } else {
+          // Only add promoted_object if we have a valid pixel
+          if (pixelId && pixelId !== "PLACEHOLDER") {
+            adsetBody.promoted_object = JSON.stringify({ pixel_id: pixelId, custom_event_type: "PURCHASE" });
+          }
         }
 
         const adset = await metaPost(`${actId}/adsets`, adsetBody);
