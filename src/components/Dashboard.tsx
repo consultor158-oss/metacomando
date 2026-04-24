@@ -65,7 +65,8 @@ import {
   updateAdName,
   uploadImage,
   uploadVideo,
-  deleteCreative
+  deleteCreative,
+  testMetaConnection
 } from "../server/meta";
 import { WhatsAppModal } from "./WhatsAppModal";
 import { SCALE_STRATEGIES, ScaleStrategy } from "../lib/scales";
@@ -118,6 +119,7 @@ type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
   const [isWAModalOpen, setIsWAModalOpen] = useState(false);
+  const [isMetaConnectOpen, setIsMetaConnectOpen] = useState(false);
   const [dryRunData, setDryRunData] = useState<{ strategy: ScaleStrategy; creatives?: any[] } | null>(null);
   const [scalingCampaign, setScalingCampaign] = useState<string | null>(null);
   const [tutorialStep, setTutorialStep] = useState(1);
@@ -363,10 +365,20 @@ export function Dashboard() {
                   {accountData ? (
                     `Conta: ${accountData.name}`
                   ) : account.data?.ok === false ? (
-                    <span className="text-destructive font-bold flex items-center gap-1">
-                      <ZapOff className="h-3 w-3" />
-                      Meta Ads desconectado: {account.data.error}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-destructive font-bold flex items-center gap-1">
+                        <ZapOff className="h-3 w-3" />
+                        Meta Ads desconectado
+                      </span>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-7 text-[10px] border-destructive text-destructive hover:bg-destructive hover:text-white"
+                        onClick={() => setIsMetaConnectOpen(true)}
+                      >
+                        Resolver Agora
+                      </Button>
+                    </div>
                   ) : (
                     "Carregando conta..."
                   )}
@@ -411,7 +423,7 @@ export function Dashboard() {
               />
             )}
             {view === "automation" && <AutomationTab />}
-            {view === "settings" && <SettingsTab account={accountData} />}
+            {view === "settings" && <SettingsTab account={accountData} onConnect={() => setIsMetaConnectOpen(true)} />}
             {view === "wa_reports" && <WAReportsTab />}
             {view === "wa_alerts" && <WAAlertsTab />}
             {view === "client_dash" && <ClientDashTab />}
@@ -421,7 +433,7 @@ export function Dashboard() {
             {view === "ai_analysis" && <AIAnalysisTab />}
             {view === "ecommerce" && <EcommerceTab />}
             {view === "crm" && <CRMTab leads={crmLeads} onAdd={addLead} onMove={moveLead} />}
-            {view === "apis" && <ApisTab />}
+            {view === "apis" && <ApisTab onConnect={() => setIsMetaConnectOpen(true)} />}
           </main>
         </SidebarInset>
 
@@ -436,6 +448,10 @@ export function Dashboard() {
           onClose={() => setDryRunData(null)} 
           data={dryRunData} 
           pages={pagesData}
+        />
+        <MetaConnectDialog 
+          isOpen={isMetaConnectOpen} 
+          onClose={() => setIsMetaConnectOpen(false)} 
         />
       </div>
     </SidebarProvider>
@@ -2107,7 +2123,7 @@ function TutorialTab({ scalingCampaign, onStepChange, onClearFilter, onComplete 
   );
 }
 
-function SettingsTab({ account }: { account: any }) {
+function SettingsTab({ account, onConnect }: { account: any, onConnect: () => void }) {
   return (
     <div className="space-y-6 max-w-2xl">
        <Card>
@@ -2131,7 +2147,10 @@ function SettingsTab({ account }: { account: any }) {
          </CardContent>
          <div className="p-6 border-t flex justify-between items-center">
             <p className="text-xs text-muted-foreground">ltima sincronizao: {new Date().toLocaleTimeString()}</p>
-            <Button variant="destructive" size="sm" onClick={() => toast.error("Funo desabilitada para proteo da conta.")}>Desconectar Conta</Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => onConnect()}>Configurar Conexão Real</Button>
+              <Button variant="destructive" size="sm" onClick={() => toast.error("Função desabilitada para proteção da conta.")}>Desconectar Conta</Button>
+            </div>
          </div>
        </Card>
 
@@ -2894,7 +2913,7 @@ function CRMPipeColumn({ title, id, leads, color, onAdd, onMove }: { title: stri
   );
 }
 
-function ApisTab() {
+function ApisTab({ onConnect }: { onConnect: () => void }) {
   return (
     <div className="space-y-6">
       <Card>
@@ -2915,9 +2934,9 @@ function ApisTab() {
                   <h3 className="font-bold">Nova Integração API</h3>
                   <p className="text-sm text-muted-foreground">Conecte sua API personalizada para automatizar processos.</p>
                 </div>
-                <Button variant="outline" className="w-full">
-                  <Plus className="h-4 w-4 mr-2" /> Configurar Nova API
-                </Button>
+                 <Button variant="outline" className="w-full" onClick={onConnect}>
+                   <Plus className="h-4 w-4 mr-2" /> Conectar Meta Ads "Real"
+                 </Button>
               </CardContent>
             </Card>
 
@@ -2970,5 +2989,102 @@ function Heart({ className }: { className?: string }) {
     >
       <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
     </svg>
+  );
+}
+
+function MetaConnectDialog({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+  const [token, setToken] = useState("");
+  const [accountId, setAccountId] = useState("");
+  const [isValidating, setIsValidating] = useState(false);
+  const [step, setStep] = useState(1);
+
+  const handleValidate = async () => {
+    if (!token || !accountId) {
+      toast.error("Preencha todos os campos");
+      return;
+    }
+    setIsValidating(true);
+    try {
+      const res = await testMetaConnection({ data: { token, accountId } });
+      if (res.ok) {
+        toast.success(`Conexão validada! Conta: ${res.data.name}`);
+        setStep(2);
+      } else {
+        toast.error("Erro na validação: " + (res.error || "Verifique suas credenciais"));
+      }
+    } catch (e: any) {
+      toast.error("Falha ao conectar: " + e.message);
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md bg-background border-border">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-primary" />
+            Configurar Integração Real
+          </DialogTitle>
+          <DialogDescription>
+            Conecte sua conta do Meta Ads para gerenciar campanhas e escalas.
+          </DialogDescription>
+        </DialogHeader>
+
+        {step === 1 ? (
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Token de Acesso (User Access Token)</Label>
+              <Input 
+                type="password" 
+                placeholder="EAAB..." 
+                value={token} 
+                onChange={(e) => setToken(e.target.value)} 
+                className="bg-muted/50"
+              />
+              <p className="text-[10px] text-muted-foreground">
+                Obtenha no <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Graph API Explorer</a>
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label>ID da Conta de Anúncios</Label>
+              <Input 
+                placeholder="Ex: 1234567890 (sem act_)" 
+                value={accountId} 
+                onChange={(e) => setAccountId(e.target.value)} 
+                className="bg-muted/50"
+              />
+            </div>
+            <Button className="w-full" onClick={handleValidate} disabled={isValidating}>
+              {isValidating ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : "Validar e Seguir"}
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4 py-4 text-center">
+            <div className="flex justify-center">
+              <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
+                <CheckCircle2 className="h-8 w-8" />
+              </div>
+            </div>
+            <h3 className="font-bold">Conexão Validada!</h3>
+            <p className="text-sm text-muted-foreground">
+              As credenciais estão corretas. Agora você deve salvá-las nos Segredos do Lovable para persistência:
+            </p>
+            <div className="p-4 bg-muted rounded-lg text-left text-[11px] space-y-2 font-mono border">
+              <p className="text-muted-foreground">// No painel lateral do Lovable:</p>
+              <p>1. Settings &gt; Secrets</p>
+              <p>2. Adicione as chaves:</p>
+              <p className="text-primary font-bold">META_ACCESS_TOKEN</p>
+              <p className="text-primary font-bold">META_AD_ACCOUNT_ID</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>Voltar</Button>
+              <Button className="flex-1" onClick={onClose}>Concluído</Button>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
