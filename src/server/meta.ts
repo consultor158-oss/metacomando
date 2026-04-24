@@ -202,7 +202,10 @@ export const updateBudget = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; dailyBudgetCents: number; type: "campaign" | "adset" }) => d)
   .handler(async ({ data }) => {
     try {
-      const result = await metaPost(data.id, { daily_budget: String(data.dailyBudgetCents) });
+      const result = await metaPost(data.id, { 
+        daily_budget: String(data.dailyBudgetCents),
+        ...(data.type === "adset" ? { is_adset_budget_sharing_enabled: "false" } : {})
+      });
       return { ok: true as const, data: result };
     } catch (e) {
       return errorPayload(e);
@@ -310,6 +313,8 @@ export const createFullScale = createServerFn({ method: "POST" })
 
         if (!isCBO) {
           adsetBody.daily_budget = String(Math.max(1000, data.dailyBudgetCents || 2000));
+          // Explicitly set budget sharing to false for ABO to avoid the required field error
+          adsetBody.is_adset_budget_sharing_enabled = "false";
         }
 
         if (data.destination === "WHATSAPP") {
@@ -948,7 +953,10 @@ export const updateAdsetBudget = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     try {
       const cents = Math.max(100, Math.round(data.dailyBudgetBRL * 100)).toString();
-      const r = await metaPost(data.adsetId, { daily_budget: cents });
+      const r = await metaPost(data.adsetId, { 
+        daily_budget: cents,
+        is_adset_budget_sharing_enabled: "false" 
+      });
       return { ok: true as const, data: r };
     } catch (e) {
       return errorPayload(e);
