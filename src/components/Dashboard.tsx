@@ -807,7 +807,16 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                           />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{ad.name}</p>
+                          <Input 
+                            className="text-sm font-medium h-7 border-transparent hover:border-input focus:border-input bg-transparent hover:bg-muted focus:bg-background transition-all p-0" 
+                            defaultValue={ad.name}
+                            onBlur={async (e) => {
+                              if (e.target.value !== ad.name) {
+                                await updateAdName({ data: { adId: ad.id, name: e.target.value } });
+                                toast.success("Nome do anúncio atualizado");
+                              }
+                            }}
+                          />
                           <p className="text-[10px] text-muted-foreground truncate max-w-[300px]">{ad.creative?.body || ad.creative?.title || "Sem texto"}</p>
                         </div>
                       </div>
