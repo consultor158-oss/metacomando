@@ -26,7 +26,10 @@ import {
   Clock,
   Edit2,
   Copy,
-  Trash2
+  Trash2,
+  Globe,
+  Users,
+  Video
 } from "lucide-react";
 import {
   getAccountInfo,
