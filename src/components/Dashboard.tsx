@@ -1544,7 +1544,8 @@ function TutorialTab({ creatives, scalingCampaign, onStepChange, onClearFilter, 
             thumbnail_url: res.data.url,
             body: "Nova mídia hospedada via API Meta",
             title: "Headline automática",
-            video_id: isVideo ? res.data.id : undefined
+            video_id: isVideo ? res.data.id : undefined,
+            campaign_name: name // Associa ao nome da nova campanha
           };
           setLocalCreatives(prev => [newCreative, ...prev]);
           setSelectedCreatives(prev => [...prev, newCreative.id]);
