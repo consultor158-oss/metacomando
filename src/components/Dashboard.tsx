@@ -639,7 +639,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                           <SelectItem value="OUTCOME_SALES">Vendas (Purchase)</SelectItem>
                           <SelectItem value="OUTCOME_LEADS">Cadastros (Leads)</SelectItem>
                           <SelectItem value="OUTCOME_ENGAGEMENT">Engajamento / WhatsApp</SelectItem>
-                          <SelectItem value="OUTCOME_TRAFFIC">Trfego</SelectItem>
+                          <SelectItem value="OUTCOME_TRAFFIC">Tráfego</SelectItem>
                           <SelectItem value="OUTCOME_AWARENESS">Reconhecimento</SelectItem>
                         </SelectContent>
                       </Select>
@@ -648,14 +648,14 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
 
                   <div className="grid grid-cols-2 gap-6">
                     <div className="grid gap-2">
-                      <Label htmlFor="budget_type" className="text-[10px] font-bold uppercase text-muted-foreground">Controle de Oramento</Label>
+                      <Label htmlFor="budget_type" className="text-[10px] font-bold uppercase text-muted-foreground">Controle de Orçamento</Label>
                       <Select value={budgetType} onValueChange={(v: any) => setBudgetType(v)}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="daily">Oramento Dirio</SelectItem>
-                          <SelectItem value="lifetime">Oramento Vitalcio</SelectItem>
+                          <SelectItem value="daily">Orçamento Diário</SelectItem>
+                          <SelectItem value="lifetime">Orçamento Vitalício</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -667,13 +667,15 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
 
                   <div className="grid grid-cols-2 gap-6 pt-4 border-t">
                     <div className="grid gap-2">
-                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Estratgia de Lance</Label>
+                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Estratégia de Lance</Label>
                       <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.bid_strategy || "Volume Mais Alto"}</Badge>
                     </div>
                     <div className="grid gap-2">
                       <Label className="text-[10px] font-bold uppercase text-muted-foreground">Tipo de Compra</Label>
-                      <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.buying_type || "Leilo"}</Badge>
+                      <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.buying_type || "Leilão"}</Badge>
                     </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-6 pt-4 border-t">
                     <div className="grid gap-2">
                       <Label className="text-[10px] font-bold uppercase text-muted-foreground">Janela de Atribuição</Label>
