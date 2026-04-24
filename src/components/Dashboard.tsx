@@ -1302,7 +1302,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
   const handleFinish = () => {
     onComplete({
       strategy: selectedStrategy,
-      creatives: creatives.filter(c => selectedCreatives.includes(c.id)),
+      creatives: allCreatives.filter(c => selectedCreatives.includes(c.id)),
       name,
       budget: Number(budget) * 100,
       targeting: { 
