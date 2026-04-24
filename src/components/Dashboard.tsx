@@ -1251,6 +1251,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
   const [city, setCity] = useState("");
   const [interests, setInterests] = useState("");
   const [ageRange, setAgeRange] = useState("18-65+");
+  const [gender, setGender] = useState("ALL");
   const [localCreatives, setLocalCreatives] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
