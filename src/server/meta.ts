@@ -234,6 +234,7 @@ export const createFullScale = createServerFn({ method: "POST" })
       strategy?: string;
       pageId?: string;
       destination?: "WHATSAPP" | "SALES";
+      is_adset_budget_sharing_enabled?: boolean;
       destinationUrl?: string;
       targeting?: any;
       creatives?: Array<{
