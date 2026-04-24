@@ -521,7 +521,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
     enabled: !!campaign && isOpen
   });
 
-  const fullData = details.data?.ok ? details.data.data : null;
+  const fullCampaignData = details.data?.ok ? details.data.data : null;
 
   useEffect(() => {
     if (campaign) {
@@ -544,7 +544,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
     const res = await updateCampaign({
       data: {
         campaignId: campaign.id,
-        name,
+        name: name,
         status: status as any,
         daily_budget: budgetType === "daily" ? Math.round(parseFloat(budget) * 100) : undefined,
         lifetime_budget: budgetType === "lifetime" ? Math.round(parseFloat(budget) * 100) : undefined,
@@ -597,8 +597,8 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
           <div className="px-6 border-b">
             <TabsList className="w-full justify-start h-12 bg-transparent gap-6">
               <TabsTrigger value="settings" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Configurações</TabsTrigger>
-              <TabsTrigger value="adsets" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Conjuntos ({fullData?.adsets?.length || 0})</TabsTrigger>
-              <TabsTrigger value="ads" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Anúncios ({fullData?.ads?.length || 0})</TabsTrigger>
+              <TabsTrigger value="adsets" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Conjuntos ({fullCampaignData?.adsets?.length || 0})</TabsTrigger>
+              <TabsTrigger value="ads" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Anúncios ({fullCampaignData?.ads?.length || 0})</TabsTrigger>
               <TabsTrigger value="creatives" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Visual Criativos</TabsTrigger>
             </TabsList>
           </div>
@@ -668,7 +668,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                 <div className="space-y-3">
                   {details.isLoading ? (
                     <div className="text-center py-10 text-muted-foreground">Carregando conjuntos...</div>
-                  ) : fullData?.adsets?.map((as: any) => (
+                  ) : fullCampaignData?.adsets?.map((as: any) => (
                     <div key={as.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-3">
                         <Switch 
@@ -719,7 +719,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                  <div className="space-y-3">
                   {details.isLoading ? (
                     <div className="text-center py-10 text-muted-foreground">Carregando anúncios...</div>
-                  ) : fullData?.ads?.map((ad: any) => (
+                  ) : fullCampaignData?.ads?.map((ad: any) => (
                     <div key={ad.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-3">
                         <Switch 
@@ -749,7 +749,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
 
               <TabsContent value="creatives" className="mt-0">
                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                   {fullData?.ads?.map((ad: any) => (
+                   {fullCampaignData?.ads?.map((ad: any) => (
                      <Card key={ad.id} className="overflow-hidden border-2 hover:border-primary transition-colors cursor-pointer">
                         <div className="aspect-square relative">
                           <img 
