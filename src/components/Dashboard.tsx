@@ -1569,6 +1569,8 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
                       <p className="text-gray-300 text-[8px] line-clamp-2">{editingCreative.body}</p>
                       <Button size="sm" className="w-full mt-2 h-7 text-[10px] bg-primary">SAIBA MAIS</Button>
                    </div>
+                </div>
+              </div>
 
               {/* Editor Column */}
               <div className="p-6 flex flex-col gap-6 overflow-y-auto">
