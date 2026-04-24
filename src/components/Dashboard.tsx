@@ -1341,7 +1341,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                 <div className="flex items-center gap-3">
                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Configuração do Público:</p>
-                   <p className="text-xs text-slate-100 font-bold">{state === 'ALL' ? 'Brasil Inteiro' : (state || 'Brasil')} {city ? ` ${city}` : ""} {interests ? `+ ${interests.split(',').length} Interesses` : "+ Público Aberto"}</p>
+                   <p className="text-xs text-slate-100 font-bold">{region === 'ALL' ? 'Mundo Inteiro' : (region || 'Global')} {city ? ` ${city}` : ""} {interests ? `+ ${interests.split(',').length} Interesses` : "+ Público Aberto"} • {ageRange} • {gender === 'ALL' ? 'Ambos' : (gender === 'MALE' ? 'Homens' : 'Mulheres')}</p>
                 </div>
               </div>
             </div>
