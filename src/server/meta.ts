@@ -61,8 +61,11 @@ async function metaPost(path: string, body: Record<string, string>) {
   }
   if (!res.ok || data?.error) {
     const err = data?.error || {};
-    const e: any = new Error(err.message || `Meta API ${res.status}`);
+    let msg = err.message || `Meta API ${res.status}`;
+    if (err.error_user_title) msg = `${err.error_user_title}: ${err.error_user_msg || msg}`;
+    const e: any = new Error(msg);
     e.code = err.code;
+    e.fbtrace_id = err.fbtrace_id;
     throw e;
   }
   return data;
@@ -270,7 +273,7 @@ export const createFullScale = createServerFn({ method: "POST" })
       };
 
       if (isCBO) {
-        campaignBody.daily_budget = String(Math.max(100, data.dailyBudgetCents || 2000));
+        campaignBody.daily_budget = String(Math.max(1000, data.dailyBudgetCents || 2000));
         campaignBody.bid_strategy = "LOWEST_COST_WITHOUT_CAP";
       }
 
@@ -281,24 +284,32 @@ export const createFullScale = createServerFn({ method: "POST" })
       const adsToCreate = data.creatives || [];
 
       for (let i = 0; i < adsetCount; i++) {
-        const cleanTargeting = { ...data.targeting };
-        if (cleanTargeting.interests) delete cleanTargeting.interests;
+        // Clean targeting for Meta API
+        const cleanTargeting: any = { 
+          geo_locations: { countries: ["BR"] }
+        };
         
-        if (!cleanTargeting.geo_locations || (!cleanTargeting.geo_locations.countries && !cleanTargeting.geo_locations.cities && !cleanTargeting.geo_locations.regions)) {
-          cleanTargeting.geo_locations = { countries: ["BR"] };
+        if (data.targeting) {
+           if (data.targeting.geo_locations) {
+             cleanTargeting.geo_locations = data.targeting.geo_locations;
+           }
+           if (data.targeting.age_min) cleanTargeting.age_min = data.targeting.age_min;
+           if (data.targeting.age_max) cleanTargeting.age_max = data.targeting.age_max;
+           if (data.targeting.genders) cleanTargeting.genders = data.targeting.genders;
+           // Note: interests require specific IDs from Meta, we fallback to broad targeting if names are provided as strings
         }
-
+        
         const adsetBody: Record<string, string> = {
           name: `[ULTRA] ${data.name} - Conjunto ${i + 1}`,
           campaign_id: campaignId,
           status: data.status || "PAUSED",
           billing_event: "IMPRESSIONS",
-          optimization_goal: data.destination === "WHATSAPP" ? "REPLIES" : "OFFSITE_CONVERSIONS",
+          optimization_goal: data.destination === "WHATSAPP" ? "CONVERSATIONS" : "OFFSITE_CONVERSIONS",
           targeting: JSON.stringify(cleanTargeting),
         };
 
         if (!isCBO) {
-          adsetBody.daily_budget = String(Math.max(100, data.dailyBudgetCents || 2000));
+          adsetBody.daily_budget = String(Math.max(1000, data.dailyBudgetCents || 2000));
         }
 
         if (data.destination === "WHATSAPP") {
