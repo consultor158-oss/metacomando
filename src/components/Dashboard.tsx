@@ -1345,9 +1345,15 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                     <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
                       <div className="flex items-center gap-2 mb-1">
                          <Zap className="h-3 w-3 text-blue-500" />
-                         <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Recomendação IA</p>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Recomendação IA para Escala</p>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed">
+                      Para escala global, use <b>Público Aberto (Broad)</b> ou <b>Lookalike 1%</b>. 
+                      O algoritmo da Meta encontra os melhores compradores automaticamente quando o criativo é forte. 
+                      Evite segmentações muito nichadas que limitam a entrega.
+                    </p>
+                  </div>
+                </div>
                         Para a estratégia <b>{selectedStrategy.name}</b>, o motor de IA sugere começar com "Público Aberto" para que o algoritmo do Meta encontre seus clientes mais rapidamente.
                       </p>
                     </div>
