@@ -2707,37 +2707,66 @@ function AICreativesTab() {
 }
 
 function AIAnalysisTab() {
+  const [analyzing, setAnalyzing] = useState(false);
+
+  const handleAction = (msg: string) => {
+    setAnalyzing(true);
+    setTimeout(() => {
+      setAnalyzing(false);
+      toast.success(msg);
+    }, 1500);
+  };
+
   return (
     <div className="space-y-6">
       <Card className="border-primary/50 shadow-lg shadow-primary/10">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Brain className="h-6 w-6 text-primary animate-pulse" />
-            <CardTitle>Anlise de Performance IA</CardTitle>
+            <CardTitle>Análise de Performance IA</CardTitle>
           </div>
-          <CardDescription>Insights profundos sobre o que est funcionando e o que deve ser pausado.</CardDescription>
+          <CardDescription>Insights profundos sobre o que está funcionando e o que deve ser pausado.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+          <div className="p-4 bg-primary/10 rounded-lg border border-primary/20 relative overflow-hidden">
+             {analyzing && <div className="absolute inset-0 bg-background/50 flex items-center justify-center backdrop-blur-sm"><RefreshCw className="h-6 w-6 animate-spin text-primary" /></div>}
              <p className="text-sm font-bold flex items-center gap-2">
-               <Zap className="h-4 w-4 text-primary" /> Sugesto da IA:
+               <Zap className="h-4 w-4 text-primary" /> Sugestão da IA:
              </p>
              <p className="text-sm mt-2">
-               "Sua campanha 'Escala Baiana' est com CTR 25% acima da média, mas o checkout rate caiu. Sugiro simplificar a página de destino."
+               "Sua campanha 'Escala Baiana' está com CTR 25% acima da média, mas o checkout rate caiu. Sugiro simplificar a página de destino."
              </p>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-             <div className="p-4 border rounded-lg">
+             <div className="p-4 border rounded-lg hover:border-primary/50 transition-colors">
                 <p className="text-xs font-bold uppercase text-muted-foreground">Oportunidade de Escala</p>
                 <p className="text-lg font-bold">Adset #4 - ROAS 4.2x</p>
-                <Button size="sm" className="mt-2">Aumentar Oramento</Button>
+                <Button 
+                  size="sm" 
+                  className="mt-2" 
+                  onClick={() => handleAction("Orçamento aumentado em 20% conforme sugestão da IA")}
+                  disabled={analyzing}
+                >
+                  Aumentar Orçamento
+                </Button>
              </div>
-             <div className="p-4 border rounded-lg">
+             <div className="p-4 border rounded-lg hover:border-destructive/50 transition-colors">
                 <p className="text-xs font-bold uppercase text-muted-foreground">Risco de Perda</p>
                 <p className="text-lg font-bold text-destructive">Criativo 'Video_V2' saturando</p>
-                <Button variant="outline" size="sm" className="mt-2 text-destructive">Pausar Agora</Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2 text-destructive hover:bg-destructive hover:text-white"
+                  onClick={() => handleAction("Anúncio pausado com sucesso")}
+                  disabled={analyzing}
+                >
+                  Pausar Agora
+                </Button>
              </div>
           </div>
+          <Button variant="ghost" className="w-full text-xs" onClick={() => handleAction("Análise completa enviada para seu e-mail")}>
+            Ver Relatório Detalhado Completo
+          </Button>
         </CardContent>
       </Card>
     </div>
