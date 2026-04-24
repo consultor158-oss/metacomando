@@ -676,6 +676,22 @@ export const uploadVideo = createServerFn({ method: "POST" })
     }
   });
 
+export const deleteCreative = createServerFn({ method: "POST" })
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const { token } = getCreds();
+      const url = new URL(`${BASE}/${data.id}`);
+      url.searchParams.set("access_token", token);
+      const res = await fetch(url.toString(), { method: "DELETE" });
+      const j = await res.json();
+      if (!res.ok || j.error) throw new Error(j.error?.message || "Erro ao deletar");
+      return { ok: true as const, data: j };
+    } catch (e) {
+      return errorPayload(e);
+    }
+  });
+
 
 // ==================== CAMPAIGN-LEVEL CONVERSION DETAILS ====================
 export const getCampaignsConversion = createServerFn({ method: "GET" })

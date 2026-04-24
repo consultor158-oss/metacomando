@@ -63,7 +63,8 @@ import {
   updateAdsetName,
   updateAdName,
   uploadImage,
-  uploadVideo
+  uploadVideo,
+  deleteCreative
 } from "../server/meta";
 import { WhatsAppModal } from "./WhatsAppModal";
 import { SCALE_STRATEGIES, ScaleStrategy } from "../lib/scales";
@@ -1367,13 +1368,16 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
   const [filter, setFilter] = useState("CARBON");
   const [view, setView] = useState<"folders" | "files">("folders");
   const [editingCreative, setEditingCreative] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const organizedCreatives = creatives.map((c, idx) => ({ 
     ...c, 
-    campaign_name: idx % 2 === 0 ? "CARBON - Campanha Base" : "ESCALA - Ultra Global",
+    campaign_name: c.campaign_name || (idx % 2 === 0 ? "CARBON - Campanha Base" : "ESCALA - Ultra Global"),
     headline: c.headline || "Título do Anúncio",
     body: c.body || "Texto principal do anúncio que aparece no feed.",
-    link_url: c.link_url || "https://seulink.com"
+    link_url: c.link_url || "https://seulink.com",
+    description: c.description || "Descrição opcional do anúncio"
   }));
   
   const folders = Array.from(new Set(organizedCreatives.map(c => c.campaign_name)));
@@ -1388,6 +1392,56 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
     toast.success("Criativo atualizado com sucesso!");
     setSelectedCreative(null);
     setEditingCreative(null);
+  };
+
+  const handleDelete = async () => {
+    if (!editingCreative) return;
+    if (!confirm("Tem certeza que deseja apagar este criativo?")) return;
+    
+    setIsDeleting(true);
+    try {
+      const res = await deleteCreative({ data: { id: editingCreative.id } });
+      if (res.ok) {
+        toast.success("Criativo removido com sucesso!");
+        setSelectedCreative(null);
+        setEditingCreative(null);
+      } else {
+        toast.error("Erro ao deletar: " + res.error);
+      }
+    } catch (e: any) {
+      toast.error("Erro ao deletar criativo");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const base64 = event.target?.result as string;
+      try {
+        const isVideo = file.type.startsWith('video/');
+        const res = isVideo 
+          ? await uploadVideo({ data: { bytes: base64, filename: file.name } })
+          : await uploadImage({ data: { bytes: base64, filename: file.name } });
+
+        if (res.ok) {
+          toast.success(`${isVideo ? 'Vídeo' : 'Imagem'} hospedado com sucesso!`);
+          // Em um app real, aqui faríamos o refetch dos criativos
+        } else {
+          toast.error("Erro no upload: " + res.error);
+        }
+      } catch (err) {
+        toast.error("Falha ao processar arquivo");
+      } finally {
+        setIsUploading(false);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -1416,9 +1470,13 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
           <Button size="sm" variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5">
             <Rocket className="h-3 w-3 text-primary" /> Escalar Criativos
           </Button>
-          <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90">
-            <Plus className="h-3 w-3" /> Nova Pasta
-          </Button>
+          <label className="cursor-pointer">
+            <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90 pointer-events-none">
+              {isUploading ? <RefreshCw className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />} 
+              Hospedar Criativo
+            </Button>
+            <input type="file" className="hidden" accept="image/*,video/*" onChange={handleUpload} disabled={isUploading} />
+          </label>
         </div>
       </div>
 
@@ -1491,9 +1549,23 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
               {/* Preview Column */}
               <div className="bg-black flex items-center justify-center p-4">
                 <div className="relative w-full max-w-[350px] aspect-[9/16] bg-zinc-900 rounded-3xl overflow-hidden border-8 border-zinc-800 shadow-2xl">
-                   <img src={editingCreative.image_url || editingCreative.thumbnail_url} className="w-full h-full object-cover" />
-                   <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                   {editingCreative.video_id ? (
+                     <video 
+                       src={editingCreative.image_url || editingCreative.thumbnail_url} 
+                       className="w-full h-full object-cover" 
+                       controls 
+                       autoPlay 
+                       loop 
+                       muted 
+                     />
+                   ) : (
+                     <img src={editingCreative.image_url || editingCreative.thumbnail_url} className="w-full h-full object-cover" />
+                   )}
+                   <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none">
                       <p className="text-white text-[10px] font-bold mb-1">{editingCreative.headline}</p>
+                      {editingCreative.description && (
+                        <p className="text-gray-400 text-[7px] mb-1 line-clamp-1">{editingCreative.description}</p>
+                      )}
                       <p className="text-gray-300 text-[8px] line-clamp-2">{editingCreative.body}</p>
                       <Button size="sm" className="w-full mt-2 h-7 text-[10px] bg-primary">SAIBA MAIS</Button>
                    </div>
@@ -1502,9 +1574,20 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
 
               {/* Editor Column */}
               <div className="p-6 flex flex-col gap-6 overflow-y-auto">
-                <div>
-                  <h3 className="text-xl font-bold">Editar Criativo</h3>
-                  <p className="text-xs text-muted-foreground">Ajuste as informaes para escala.</p>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-bold">Editar Criativo</h3>
+                    <p className="text-xs text-muted-foreground">Ajuste as informações para escala.</p>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-destructive hover:bg-destructive/10"
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  </Button>
                 </div>
 
                 <div className="space-y-4">
@@ -1531,7 +1614,17 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
                     <Textarea 
                       value={editingCreative.body} 
                       onChange={(e) => setEditingCreative({...editingCreative, body: e.target.value})}
-                      className="bg-muted/50 h-32"
+                      className="bg-muted/50 h-24"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold uppercase">Descrição (Abaixo do Título)</Label>
+                    <Input 
+                      value={editingCreative.description} 
+                      onChange={(e) => setEditingCreative({...editingCreative, description: e.target.value})}
+                      className="bg-muted/50"
+                      placeholder="Ex: Frete grátis para todo o Brasil"
                     />
                   </div>
 
@@ -1965,11 +2058,23 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                    <h3 className="text-xl font-black uppercase">Selecione seus Criativos Winners</h3>
                    <p className="text-xs text-muted-foreground">Escolha os anúncios que já performam bem para escalar com segurança.</p>
                  </div>
-                 <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold">
-                   {selectedCreatives.length} DE {allCreatives.length} SELECIONADOS
-                 </Badge>
+                 <div className="flex items-center gap-3">
+                   <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg border">
+                      <Button 
+                        size="sm" 
+                        variant={localCreatives.length > 0 ? "secondary" : "ghost"}
+                        onClick={() => setSelectedCreatives(localCreatives.map(c => c.id))}
+                        className="text-[10px] h-7 uppercase font-bold"
+                      >
+                        Somente Novos ({localCreatives.length})
+                      </Button>
+                   </div>
+                   <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold">
+                     {selectedCreatives.length} DE {allCreatives.length} SELECIONADOS
+                   </Badge>
+                 </div>
                </div>
-               
+
                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                   {allCreatives.map((c: any) => (
                     <div 
