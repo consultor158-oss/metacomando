@@ -310,6 +310,7 @@ export function Dashboard() {
                   {view === "google_ads" && "Gerenciar Google Ads"}
                   {view === "insta_organic" && "Instagram Orgnico"}
                   {view === "scales" && "Escalas de IA"}
+                  {view === "scale_test" && "Teste de Escala Real"}
                   {view === "creatives" && "Biblioteca de Ativos"}
                   {view === "automation" && "Automao"}
                   {view === "settings" && "Configuraes do Sistema"}
