@@ -2215,6 +2215,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
   const [selectedPage, setSelectedPage] = useState<string>("");
   const [destination, setDestination] = useState<"WHATSAPP" | "SALES">("WHATSAPP");
   const [destinationUrl, setDestinationUrl] = useState<string>("");
+  const [isBudgetSharingEnabled, setIsBudgetSharingEnabled] = useState(false);
 
   useEffect(() => {
     if (pages.length > 0 && !selectedPage) {
