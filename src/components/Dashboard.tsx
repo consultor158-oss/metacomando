@@ -2355,10 +2355,16 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
                         <span className="text-slate-400">Total de Conjuntos:</span>
                         <span className="font-bold text-slate-100">{adsetCount}</span>
                      </div>
-                     <div className="flex justify-between text-xs">
-                        <span className="text-slate-400">Investimento Dirio:</span>
-                        <span className="font-bold text-primary">{formatBRL(totalBudget)}</span>
-                     </div>
+                      <div className="flex justify-between text-xs">
+                         <span className="text-slate-400">Investimento {strategy.defaults?.isCBO ? "na Campanha" : "por Conjunto"}:</span>
+                         <span className="font-bold text-primary">{formatBRL((data.budget || strategy.defaults.dailyBudgetCents) / 100)}</span>
+                      </div>
+                      {!strategy.defaults?.isCBO && (
+                        <div className="flex justify-between text-xs">
+                           <span className="text-slate-400">Investimento Total Diário:</span>
+                           <span className="font-bold text-slate-100">{formatBRL(totalBudget)}</span>
+                        </div>
+                      )}
                      <div className="flex justify-between text-xs">
                         <span className="text-slate-400">Objetivo:</span>
                         <span className="font-bold text-slate-100">{destination === 'WHATSAPP' ? 'Engajamento' : 'Vendas'}</span>
