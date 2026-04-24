@@ -423,7 +423,7 @@ export function Dashboard() {
               />
             )}
             {view === "automation" && <AutomationTab />}
-            {view === "settings" && <SettingsTab account={accountData} />}
+            {view === "settings" && <SettingsTab account={accountData} onConnect={() => setIsMetaConnectOpen(true)} />}
             {view === "wa_reports" && <WAReportsTab />}
             {view === "wa_alerts" && <WAAlertsTab />}
             {view === "client_dash" && <ClientDashTab />}
