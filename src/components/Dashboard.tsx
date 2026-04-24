@@ -2192,6 +2192,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
           status: data.strategy.defaults.status,
           pageId: selectedPage,
           destination: destination,
+          destinationUrl: destinationUrl,
           targeting: data.targeting,
           creatives: data.creatives?.map(c => ({
             id: c.id,
