@@ -770,7 +770,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                             </div>
                             <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">
                               <Globe className="h-3 w-3" />
-                              {as.targeting?.geo_locations?.countries?.join(", ") || as.targeting?.geo_locations?.regions?.map((r: any) => r.name).join(", ") || "Brasil"}
+                              {as.targeting?.geo_locations?.countries?.join(", ") || as.targeting?.geo_locations?.regions?.map((r: any) => r.name).join(", ") || "Global"}
                             </div>
                             <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">
                               <Users className="h-3 w-3" />
