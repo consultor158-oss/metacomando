@@ -333,6 +333,8 @@ export function Dashboard() {
           <main className="flex-1 p-6 overflow-y-auto">
             {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} />}
             {view === "campaigns" && <CampaignsTab campaigns={campaignsData} refresh={() => campaigns.refetch()} />}
+            {view === "google_ads" && <GoogleAdsTab />}
+            {view === "insta_organic" && <InstaOrganicTab />}
             {view === "scales" && (
               <div className="space-y-10">
                 <TutorialTab creatives={creativesData} onComplete={(data) => {
@@ -347,6 +349,15 @@ export function Dashboard() {
             {view === "creatives" && <CreativesTab creatives={creativesData} />}
             {view === "automation" && <AutomationTab />}
             {view === "settings" && <SettingsTab account={accountData} />}
+            {view === "wa_reports" && <WAReportsTab />}
+            {view === "wa_alerts" && <WAAlertsTab />}
+            {view === "client_dash" && <ClientDashTab />}
+            {view === "lead_tracking" && <LeadTrackingTab />}
+            {view === "wa_support" && <WASupportTab />}
+            {view === "ai_creatives" && <AICreativesTab />}
+            {view === "ai_analysis" && <AIAnalysisTab />}
+            {view === "ecommerce" && <EcommerceTab />}
+            {view === "crm" && <CRMTab />}
           </main>
         </SidebarInset>
 
