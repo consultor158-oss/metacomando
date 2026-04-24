@@ -1436,11 +1436,14 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                   budget: Number(budget) * 100,
                   targeting: { 
                     geo_locations: { 
-                      countries: [locations],
-                      regions: state ? [{ key: state, name: state }] : undefined,
+                      countries: region === 'ALL' ? undefined : [region],
+                      regions: region !== 'ALL' && region !== 'BR' && region !== 'US' && region !== 'EU' && region !== 'LATAM' ? [{ key: region, name: region }] : undefined,
                       cities: city ? [{ key: city, name: city }] : undefined
                     },
-                    interests: interests ? interests.split(",").map(i => i.trim()) : undefined
+                    interests: interests ? interests.split(",").map(i => i.trim()) : undefined,
+                    age_min: ageRange.split("-")[0] ? parseInt(ageRange.split("-")[0]) : undefined,
+                    age_max: ageRange.includes("+") ? undefined : (ageRange.split("-")[1] ? parseInt(ageRange.split("-")[1]) : undefined),
+                    genders: gender === 'ALL' ? undefined : (gender === 'MALE' ? [1] : [2])
                   }
                 });
               }}
