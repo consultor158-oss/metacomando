@@ -411,7 +411,7 @@ export function Dashboard() {
             {view === "ai_creatives" && <AICreativesTab />}
             {view === "ai_analysis" && <AIAnalysisTab />}
             {view === "ecommerce" && <EcommerceTab />}
-            {view === "crm" && <CRMTab />}
+            {view === "crm" && <CRMTab leads={crmLeads} onAdd={addLead} onMove={moveLead} />}
             {view === "teste" && (
               <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
                 <div className="p-8 rounded-2xl bg-primary/10 border border-primary/20 text-center animate-in fade-in zoom-in duration-500">
