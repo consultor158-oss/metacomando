@@ -608,15 +608,15 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
           <ScrollArea className="flex-1">
             <div className="p-6">
               <TabsContent value="settings" className="mt-0 space-y-4">
-                <div className="grid gap-4">
+                <div className="grid gap-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="name">Nome da Campanha</Label>
-                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                    <Label htmlFor="name" className="text-[10px] font-bold uppercase text-muted-foreground">Nome da Campanha</Label>
+                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="font-bold" />
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-6">
                     <div className="grid gap-2">
-                      <Label htmlFor="status">Status</Label>
+                      <Label htmlFor="status" className="text-[10px] font-bold uppercase text-muted-foreground">Status</Label>
                       <Select value={status} onValueChange={(v: any) => setStatus(v)}>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione" />
@@ -629,15 +629,15 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="objective">Objetivo</Label>
+                      <Label htmlFor="objective" className="text-[10px] font-bold uppercase text-muted-foreground">Objetivo de Marketing</Label>
                       <Select value={objective} onValueChange={setObjective}>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="OUTCOME_SALES">Vendas</SelectItem>
-                          <SelectItem value="OUTCOME_LEADS">Cadastros</SelectItem>
-                          <SelectItem value="OUTCOME_ENGAGEMENT">Engajamento</SelectItem>
+                          <SelectItem value="OUTCOME_SALES">Vendas (Purchase)</SelectItem>
+                          <SelectItem value="OUTCOME_LEADS">Cadastros (Leads)</SelectItem>
+                          <SelectItem value="OUTCOME_ENGAGEMENT">Engajamento / WhatsApp</SelectItem>
                           <SelectItem value="OUTCOME_TRAFFIC">Tráfego</SelectItem>
                           <SelectItem value="OUTCOME_AWARENESS">Reconhecimento</SelectItem>
                         </SelectContent>
@@ -645,25 +645,87 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-6">
                     <div className="grid gap-2">
-                      <Label htmlFor="budget_type">Tipo Orçamento</Label>
+                      <Label htmlFor="budget_type" className="text-[10px] font-bold uppercase text-muted-foreground">Controle de Orçamento</Label>
                       <Select value={budgetType} onValueChange={(v: any) => setBudgetType(v)}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="daily">Diário</SelectItem>
-                          <SelectItem value="lifetime">Vitalício</SelectItem>
+                          <SelectItem value="daily">Orçamento Diário</SelectItem>
+                          <SelectItem value="lifetime">Orçamento Vitalício</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="budget">Valor (R$)</Label>
-                      <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} />
+                      <Label htmlFor="budget" className="text-[10px] font-bold uppercase text-muted-foreground">Valor Investimento (R$)</Label>
+                      <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} className="font-bold text-primary" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6 pt-4 border-t">
+                    <div className="grid gap-2">
+                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Estratégia de Lance</Label>
+                      <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.bid_strategy || "Volume Mais Alto"}</Badge>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Tipo de Compra</Label>
+                      <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.buying_type || "Leilão"}</Badge>
                     </div>
                   </div>
                 </div>
+              </TabsContent>
+
+              <TabsContent value="performance" className="mt-0">
+                {fullCampaignData?.insights ? (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                       <div className="p-4 rounded-xl border bg-muted/30">
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase">Gasto Total</p>
+                          <p className="text-lg font-bold">{formatBRL(fullCampaignData.insights.spend)}</p>
+                       </div>
+                       <div className="p-4 rounded-xl border bg-muted/30 border-primary/20">
+                          <p className="text-[10px] font-bold text-primary uppercase">ROAS</p>
+                          <p className="text-lg font-bold">{fullCampaignData.insights.roas.toFixed(2)}x</p>
+                       </div>
+                       <div className="p-4 rounded-xl border bg-muted/30">
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase">Vendas</p>
+                          <p className="text-lg font-bold">{fullCampaignData.insights.purchases}</p>
+                       </div>
+                       <div className="p-4 rounded-xl border bg-muted/30">
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase">CPA Médio</p>
+                          <p className="text-lg font-bold">{formatBRL(fullCampaignData.insights.cpa)}</p>
+                       </div>
+                    </div>
+
+                    <Card>
+                      <CardHeader className="p-4">
+                        <CardTitle className="text-sm">Principais Métricas</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-0 space-y-4">
+                        <div className="flex justify-between items-center py-2 border-b">
+                           <span className="text-xs text-muted-foreground">CTR Geral</span>
+                           <span className="text-xs font-bold">{fullCampaignData.insights.ctr.toFixed(2)}%</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b">
+                           <span className="text-xs text-muted-foreground">CPC Médio</span>
+                           <span className="text-xs font-bold">{formatBRL(fullCampaignData.insights.cpc)}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b">
+                           <span className="text-xs text-muted-foreground">Impressões</span>
+                           <span className="text-xs font-bold">{formatNumber(fullCampaignData.insights.impressions)}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2">
+                           <span className="text-xs text-muted-foreground">Alcance Único</span>
+                           <span className="text-xs font-bold">{formatNumber(fullCampaignData.insights.reach)}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ) : (
+                  <div className="text-center py-20 text-muted-foreground">Sem dados de desempenho para o período.</div>
+                )}
               </TabsContent>
 
               <TabsContent value="adsets" className="mt-0">
