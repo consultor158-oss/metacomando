@@ -889,8 +889,11 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
               ))}
             </SelectContent>
           </Select>
-          <Button size="sm" className="gap-2">
-            <Plus className="h-3 w-3" /> Novo Criativo
+          <Button size="sm" variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5">
+            <Rocket className="h-3 w-3 text-primary" /> Escalar Criativos
+          </Button>
+          <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90">
+            <Plus className="h-3 w-3" /> Hospedar Mídia
           </Button>
         </div>
       </div>
