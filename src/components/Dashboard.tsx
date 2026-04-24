@@ -332,7 +332,16 @@ export function Dashboard() {
                   {view === "teste" && "TESTE"}
                 </h1>
                 <p className="text-xs text-muted-foreground">
-                  {accountData ? `Conta: ${accountData.name}` : "Carregando conta..."}
+                  {accountData ? (
+                    `Conta: ${accountData.name}`
+                  ) : account.data?.ok === false ? (
+                    <span className="text-destructive font-bold flex items-center gap-1">
+                      <ZapOff className="h-3 w-3" />
+                      Meta Ads desconectado: {account.data.error}
+                    </span>
+                  ) : (
+                    "Carregando conta..."
+                  )}
                 </p>
               </div>
               <div className="flex items-center gap-2">
