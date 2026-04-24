@@ -830,6 +830,102 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                 </div>
               </TabsContent>
 
+              <TabsContent value="targeting" className="mt-0">
+                <div className="space-y-6">
+                  {fullCampaignData?.adsets?.[0] ? (
+                    <div className="grid gap-6">
+                      <div className="p-4 rounded-xl border bg-muted/30">
+                        <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
+                          <Globe className="h-4 w-4 text-primary" /> Geografia e Localização
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4 text-xs">
+                          <div>
+                            <p className="text-muted-foreground uppercase font-bold text-[9px]">Países/Regiões</p>
+                            <p className="font-medium mt-1">
+                              {fullCampaignData.adsets[0].targeting?.geo_locations?.countries?.join(", ") || 
+                               fullCampaignData.adsets[0].targeting?.geo_locations?.regions?.map((r: any) => r.name).join(", ") || 
+                               "Global / Brasil"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground uppercase font-bold text-[9px]">Cidades</p>
+                            <p className="font-medium mt-1">
+                              {fullCampaignData.adsets[0].targeting?.geo_locations?.cities?.map((c: any) => c.name).join(", ") || "Todas as cidades"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-xl border bg-muted/30">
+                        <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
+                          <Target className="h-4 w-4 text-primary" /> Segmentação Detalhada
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4 text-xs">
+                          <div>
+                            <p className="text-muted-foreground uppercase font-bold text-[9px]">Idade</p>
+                            <p className="font-medium mt-1">
+                              {fullCampaignData.adsets[0].targeting?.age_min || 18} - {fullCampaignData.adsets[0].targeting?.age_max || "65+"} anos
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground uppercase font-bold text-[9px]">Gênero</p>
+                            <p className="font-medium mt-1">
+                              {fullCampaignData.adsets[0].targeting?.genders?.includes(1) && fullCampaignData.adsets[0].targeting?.genders?.includes(2) ? "Todos" : 
+                               fullCampaignData.adsets[0].targeting?.genders?.includes(1) ? "Homens" : 
+                               fullCampaignData.adsets[0].targeting?.genders?.includes(2) ? "Mulheres" : "Todos"}
+                            </p>
+                          </div>
+                          <div className="col-span-2 pt-2 border-t">
+                            <p className="text-muted-foreground uppercase font-bold text-[9px]">Interesses e Comportamentos</p>
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {fullCampaignData.adsets[0].targeting?.flexible_spec?.[0]?.interests?.map((i: any) => (
+                                <Badge key={i.id} variant="secondary" className="text-[9px]">{i.name}</Badge>
+                              )) || <span className="text-muted-foreground italic">Público Aberto (Advantage+)</span>}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-xl border bg-muted/30">
+                        <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
+                          <Layers className="h-4 w-4 text-primary" /> Posicionamentos
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {fullCampaignData.adsets[0].targeting?.publisher_platforms ? (
+                            fullCampaignData.adsets[0].targeting.publisher_platforms.map((p: string) => (
+                              <Badge key={p} variant="outline" className="capitalize text-[10px]">{p}</Badge>
+                            ))
+                          ) : (
+                            <Badge variant="outline" className="text-[oklch(0.7_0.18_162)] border-[oklch(0.7_0.18_162)] font-bold">
+                              Posicionamentos Advantage+ (Automático)
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-xl border bg-blue-500/10 border-blue-500/20">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Zap className="h-4 w-4 text-blue-500" />
+                          <p className="text-xs font-bold text-blue-500 uppercase">Configuração de Entrega</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-xs">
+                          <div>
+                            <p className="text-muted-foreground uppercase font-bold text-[9px]">Objetivo de Otimização</p>
+                            <p className="font-medium mt-1">{fullCampaignData.adsets[0].optimization_goal || "OFFSITE_CONVERSIONS"}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground uppercase font-bold text-[9px]">Evento de Cobrança</p>
+                            <p className="font-medium mt-1">{fullCampaignData.adsets[0].billing_event || "IMPRESSIONS"}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-20 text-muted-foreground">Carregando dados de segmentação...</div>
+                  )}
+                </div>
+              </TabsContent>
+
               <TabsContent value="creatives" className="mt-0">
                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                    {fullCampaignData?.ads?.map((ad: any) => (
