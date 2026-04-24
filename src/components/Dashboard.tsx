@@ -1306,7 +1306,7 @@ function CreativesTab({ creatives, onEscalate }: { creatives: any[], onEscalate?
               ))}
             </SelectContent>
           </Select>
-          <Button size="sm" variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5">
+          <Button size="sm" variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5" onClick={() => onEscalate?.(filter)}>
             <Rocket className="h-3 w-3 text-primary" /> Escalar Criativos
           </Button>
           <label className="cursor-pointer">
