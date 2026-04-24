@@ -1733,7 +1733,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                   <div className="p-6 rounded-3xl border bg-card/50">
                     <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">Criativos Selecionados ({selectedCreatives.length})</p>
                     <div className="grid grid-cols-2 gap-3">
-                       {creatives.filter(c => selectedCreatives.includes(c.id)).map((c: any) => (
+                       {allCreatives.filter(c => selectedCreatives.includes(c.id)).map((c: any) => (
                          <div key={c.id} className="aspect-square rounded-xl overflow-hidden border border-border">
                             <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover" />
                          </div>
