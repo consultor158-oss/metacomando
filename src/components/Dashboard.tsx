@@ -390,10 +390,10 @@ function OverviewTab({ stats, funnel }: { stats: any; funnel: any }) {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <KPICard title="Investimento" value={formatBRL(parseFloat(stats.spend || 0))} icon={<DollarSign className="h-4 w-4 text-primary" />} trend="+12%" />
-        <KPICard title="CTR Geral" value={formatPct(parseFloat(stats.ctr || 0))} icon={<MousePointer2 className="h-4 w-4 text-primary" />} trend="+0.2%" />
-        <KPICard title="ROAS" value={(parseFloat(stats.purchase_roas?.[0]?.value || 0)).toFixed(2) + "x"} icon={<TrendingUp className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} trend="+0.5x" positive />
-        <KPICard title="Impresses" value={formatNumber(stats.impressions || 0)} icon={<Eye className="h-4 w-4 text-primary" />} trend="+24k" />
+        <KPICard title="Investimento" value={formatBRL(parseFloat(stats.spend || 0))} icon={<DollarSign className="h-4 w-4 text-primary" />} />
+        <KPICard title="CTR Geral" value={formatPct(parseFloat(stats.ctr || 0))} icon={<MousePointer2 className="h-4 w-4 text-primary" />} />
+        <KPICard title="ROAS" value={(parseFloat(stats.purchase_roas?.[0]?.value || 0)).toFixed(2) + "x"} icon={<TrendingUp className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} positive />
+        <KPICard title="Impressões" value={formatNumber(stats.impressions || 0)} icon={<Eye className="h-4 w-4 text-primary" />} />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -462,7 +462,7 @@ function OverviewTab({ stats, funnel }: { stats: any; funnel: any }) {
   );
 }
 
-function KPICard({ title, value, icon, trend, positive }: { title: string, value: string, icon: any, trend: string, positive?: boolean }) {
+function KPICard({ title, value, icon, trend, positive }: { title: string, value: string, icon: any, trend?: string, positive?: boolean }) {
   return (
     <Card>
       <CardContent className="p-6">
@@ -470,9 +470,11 @@ function KPICard({ title, value, icon, trend, positive }: { title: string, value
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/50">
             {icon}
           </div>
-          <div className={`flex items-center text-[10px] font-bold ${positive ? 'text-[oklch(0.7_0.18_162)]' : 'text-blue-500'}`}>
-            {trend} {positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowUpRight className="h-3 w-3" />}
-          </div>
+          {trend && (
+            <div className={`flex items-center text-[10px] font-bold ${positive ? 'text-[oklch(0.7_0.18_162)]' : 'text-blue-500'}`}>
+              {trend} {positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowUpRight className="h-3 w-3" />}
+            </div>
+          )}
         </div>
         <div className="mt-4">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{title}</p>
@@ -1157,7 +1159,7 @@ function ScaleTestTab({ campaigns }: { campaigns: any[] }) {
   const [progress, setProgress] = useState(0);
   const [results, setResults] = useState<any>(null);
 
-  const startTest = () => {
+  const startTest = (campaign?: any) => {
     setTesting(true);
     setProgress(0);
     setResults(null);
@@ -1167,13 +1169,17 @@ function ScaleTestTab({ campaigns }: { campaigns: any[] }) {
         if (p >= 100) {
           clearInterval(interval);
           setTesting(false);
+          
+          const roas = campaign ? parseFloat(campaign.purchase_roas?.[0]?.value || "0") : (Math.random() * 2 + 1);
+          const spend = campaign ? parseFloat(campaign.spend || "0") : 1000;
+          
           setResults({
-            reach: Math.floor(Math.random() * 1000000),
-            conversions: Math.floor(Math.random() * 1000),
-            roas: (Math.random() * 4 + 1).toFixed(2),
-            score: Math.floor(Math.random() * 40 + 60),
-            bottleneck: Math.random() > 0.5 ? "Criativo saturando" : "Frequência alta",
-            recommendation: "Aumentar orçamento em 25% gradualmente"
+            reach: campaign ? Math.floor(campaign.impressions * 1.5) : Math.floor(Math.random() * 1000000),
+            conversions: campaign ? Math.floor(campaign.conversions * 1.3) : Math.floor(Math.random() * 1000),
+            roas: (roas * 0.85).toFixed(2), // Projeção conservadora de queda no ROAS ao escalar
+            score: campaign ? Math.min(100, Math.floor(roas * 20)) : Math.floor(Math.random() * 40 + 60),
+            bottleneck: roas < 1.5 ? "ROAS baixo para escala agressiva" : (spend > 5000 ? "Frequência no limite" : "Fatia de leilão saturada"),
+            recommendation: roas > 2 ? "Aumentar orçamento em 50% imediatamente" : "Otimizar criativos antes de escalar"
           });
           return 100;
         }
@@ -1191,7 +1197,7 @@ function ScaleTestTab({ campaigns }: { campaigns: any[] }) {
         <h2 className="text-2xl font-bold text-white">Simulador de Escala Real</h2>
         <p className="text-slate-400 max-w-xl mt-2">Analise o potencial de escala das suas campanhas atuais antes de investir pesado. Nossa IA projeta o ROAS baseado no comportamento do leilão.</p>
         <div className="flex gap-2 mt-6">
-          <Button onClick={startTest} disabled={testing} className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
+          <Button onClick={() => startTest()} disabled={testing} className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20">
             {testing ? "Analisando..." : "Iniciar Teste de Estresse"}
           </Button>
         </div>
@@ -1281,7 +1287,7 @@ function ScaleTestTab({ campaigns }: { campaigns: any[] }) {
                   <TableCell>{formatBRL(parseFloat(c.spend || 0))}</TableCell>
                   <TableCell>{(parseFloat(c.purchase_roas?.[0]?.value || 0)).toFixed(2)}x</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={startTest} disabled={testing}>
+                    <Button variant="ghost" size="sm" onClick={() => startTest(c)} disabled={testing}>
                       Simular Escala
                     </Button>
                   </TableCell>
@@ -2168,6 +2174,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
   const [isActivating, setIsActivating] = useState(false);
   const [selectedPage, setSelectedPage] = useState<string>("");
   const [destination, setDestination] = useState<"WHATSAPP" | "SALES">("WHATSAPP");
+  const [destinationUrl, setDestinationUrl] = useState<string>("");
 
   useEffect(() => {
     if (pages.length > 0 && !selectedPage) {
@@ -2191,6 +2198,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
           status: data.strategy.defaults.status,
           pageId: selectedPage,
           destination: destination,
+          destinationUrl: destinationUrl,
           targeting: data.targeting,
           creatives: data.creatives?.map(c => ({
             id: c.id,
@@ -2266,7 +2274,17 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
                    <div className={`flex items-center space-x-2 border p-3 rounded-lg cursor-pointer transition-all ${destination === 'SALES' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('SALES')}>
                       <RadioGroupItem value="SALES" id="dest-sales" className="border-slate-400" />
                       <Label htmlFor="dest-sales" className="cursor-pointer font-bold text-xs">Site / Vendas</Label>
-                   </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">URL de Destino</Label>
+                <Input 
+                  value={destinationUrl} 
+                  onChange={(e) => setDestinationUrl(e.target.value)} 
+                  placeholder={destination === 'WHATSAPP' ? "Ex: wa.me/55..." : "Ex: https://meusite.com"} 
+                  className="bg-slate-900 border-slate-800 h-11"
+                />
+              </div>
                 </RadioGroup>
               </div>
             </div>
@@ -2321,7 +2339,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
             {isActivating ? (
               <> <RefreshCw className="h-4 w-4 animate-spin" /> Subindo API... </>
             ) : (
-              <> <Rocket className="h-4 w-4" /> Ativar no Facebook </>
+              <> <Rocket className="h-4 w-4" /> Ativar no Facebook (API REAL) </>
             )}
           </Button>
         </DialogFooter>

@@ -229,6 +229,7 @@ export const createFullScale = createServerFn({ method: "POST" })
       strategy?: string;
       pageId?: string;
       destination?: "WHATSAPP" | "SALES";
+      destinationUrl?: string;
       targeting?: any;
       creatives?: Array<{
         id?: string;
@@ -323,22 +324,22 @@ export const createFullScale = createServerFn({ method: "POST" })
                    message: creative.primaryText,
                    call_to_action: {
                      type: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : creative.cta,
-                     value: { link: "https://example.com" }
+                      value: { link: data.destinationUrl || "https://example.com" }
                    }
                  };
-               } else {
-                 objectStorySpec.link_data = {
-                   message: creative.primaryText,
-                   link: "https://example.com",
-                   caption: creative.headline,
-                   image_hash: creative.id?.startsWith("new_") ? creative.id.replace("new_", "") : creative.id,
-                   picture: creative.image_url,
-                   call_to_action: { 
-                     type: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : creative.cta, 
-                     value: { link: "https://example.com" } 
-                   },
-                 };
-               }
+                } else {
+                  objectStorySpec.link_data = {
+                    message: creative.primaryText,
+                    link: data.destinationUrl || "https://example.com",
+                    caption: creative.headline,
+                    image_hash: creative.id?.startsWith("new_") ? creative.id.replace("new_", "") : creative.id,
+                    picture: creative.image_url,
+                    call_to_action: { 
+                      type: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : creative.cta, 
+                      value: { link: data.destinationUrl || "https://example.com" } 
+                    },
+                  };
+                }
 
                adBody.creative = JSON.stringify({
                  name: `Creative ${idx + 1} - ${Date.now()}`,
