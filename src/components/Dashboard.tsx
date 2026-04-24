@@ -117,6 +117,34 @@ export function Dashboard() {
   const [view, setView] = useState<View>("overview");
   const [isWAModalOpen, setIsWAModalOpen] = useState(false);
   const [dryRunData, setDryRunData] = useState<{ strategy: ScaleStrategy; creatives?: any[] } | null>(null);
+  
+  // Mock CRM State
+  const [crmLeads, setCrmLeads] = useState([
+    { id: 1, name: "João Silva", value: 250, stage: "novo" },
+    { id: 2, name: "Maria Oliveira", value: 1200, stage: "novo" },
+    { id: 3, name: "Pedro Santos", value: 450, stage: "atendimento" },
+    { id: 4, name: "Ana Souza", value: 3000, stage: "pagamento" },
+    { id: 5, name: "Lucas Lima", value: 150, stage: "fechado" },
+  ]);
+
+  const addLead = (stage: string) => {
+    const name = prompt("Nome do Lead:");
+    const value = prompt("Valor (R$):");
+    if (name && value) {
+      setCrmLeads([...crmLeads, { 
+        id: Date.now(), 
+        name, 
+        value: parseFloat(value), 
+        stage 
+      }]);
+      toast.success("Lead adicionado com sucesso!");
+    }
+  };
+
+  const moveLead = (id: number, newStage: string) => {
+    setCrmLeads(crmLeads.map(l => l.id === id ? { ...l, stage: newStage } : l));
+    toast.info("Status do lead atualizado");
+  };
 
   const account = useQuery({ queryKey: ["meta-account"], queryFn: () => getAccountInfo() });
   const insights = useQuery({ queryKey: ["meta-insights"], queryFn: () => getAccountInsights({ data: { datePreset: "last_30d" } }) });
