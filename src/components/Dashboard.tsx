@@ -1549,8 +1549,19 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
               {/* Preview Column */}
               <div className="bg-black flex items-center justify-center p-4">
                 <div className="relative w-full max-w-[350px] aspect-[9/16] bg-zinc-900 rounded-3xl overflow-hidden border-8 border-zinc-800 shadow-2xl">
-                   <img src={editingCreative.image_url || editingCreative.thumbnail_url} className="w-full h-full object-cover" />
-                   <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                   {editingCreative.video_id ? (
+                     <video 
+                       src={editingCreative.image_url || editingCreative.thumbnail_url} 
+                       className="w-full h-full object-cover" 
+                       controls 
+                       autoPlay 
+                       loop 
+                       muted 
+                     />
+                   ) : (
+                     <img src={editingCreative.image_url || editingCreative.thumbnail_url} className="w-full h-full object-cover" />
+                   )}
+                   <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none">
                       <p className="text-white text-[10px] font-bold mb-1">{editingCreative.headline}</p>
                       <p className="text-gray-300 text-[8px] line-clamp-2">{editingCreative.body}</p>
                       <Button size="sm" className="w-full mt-2 h-7 text-[10px] bg-primary">SAIBA MAIS</Button>
@@ -1560,9 +1571,20 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
 
               {/* Editor Column */}
               <div className="p-6 flex flex-col gap-6 overflow-y-auto">
-                <div>
-                  <h3 className="text-xl font-bold">Editar Criativo</h3>
-                  <p className="text-xs text-muted-foreground">Ajuste as informaes para escala.</p>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-xl font-bold">Editar Criativo</h3>
+                    <p className="text-xs text-muted-foreground">Ajuste as informações para escala.</p>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-destructive hover:bg-destructive/10"
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  </Button>
                 </div>
 
                 <div className="space-y-4">
