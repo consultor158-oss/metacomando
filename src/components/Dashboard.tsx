@@ -1348,7 +1348,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                          <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Recomendação IA para Escala</p>
                       </div>
                       <p className="text-[10px] text-muted-foreground leading-relaxed">
-                        Para escala global, use <b>Público Aberto (Broad)</b> ou <b>Lookalike 1%</b>. 
+                        Para escala global, use <strong>Público Aberto (Broad)</strong> ou <strong>Lookalike 1%</strong>. 
                         O algoritmo da Meta encontra os melhores compradores automaticamente quando o criativo é forte. 
                       </p>
                     </div>
@@ -1358,7 +1358,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                          <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">Escala de Público</p>
                       </div>
                       <p className="text-[10px] text-muted-foreground leading-relaxed">
-                        Ao escalar, teste <b>Lookalike de Compradores (LAL)</b> e <b>Públicos de Retenção</b>. 
+                        Ao escalar, teste <strong>Lookalike de Compradores (LAL)</strong> e <strong>Públicos de Retenção</strong>. 
                       </p>
                     </div>
                   </div>
@@ -1369,7 +1369,15 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                 <div className="flex items-center gap-3">
                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Configuração do Público:</p>
-                   <p className="text-xs text-slate-100 font-bold">{region === 'ALL' ? 'Mundo Inteiro' : (region || 'Global')} {city ? ` ${city}` : ""} {interests ? `+ ${interests.split(',').length} Interesses` : "+ Público Aberto"} • {ageRange} • {gender === 'ALL' ? 'Ambos' : (gender === 'MALE' ? 'Homens' : 'Mulheres')}</p>
+                   <p className="text-xs text-slate-100 font-bold">
+                     {region === 'ALL' ? 'Mundo Inteiro' : (region || 'Global')}
+                     {city ? ` ${city}` : ""}
+                     {interests ? ` + ${interests.split(',').length} Interesses` : " + Público Aberto"}
+                     {" • "}
+                     {ageRange}
+                     {" • "}
+                     {gender === 'ALL' ? 'Ambos' : (gender === 'MALE' ? 'Homens' : 'Mulheres')}
+                   </p>
                 </div>
               </div>
             </div>
