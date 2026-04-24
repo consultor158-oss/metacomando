@@ -319,6 +319,14 @@ export const createFullScale = createServerFn({ method: "POST" })
                  page_id: data.pageId,
                };
 
+               const ctaType = data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : (creative.cta || "SHOP_NOW");
+               const ctaValue: any = {};
+               if (data.destination === "WHATSAPP") {
+                 ctaValue.app_destination = "WHATSAPP";
+               } else {
+                 ctaValue.link = data.destinationUrl || "https://example.com";
+               }
+
                if (creative.video_id) {
                  objectStorySpec.video_data = {
                    video_id: creative.video_id,
@@ -326,30 +334,30 @@ export const createFullScale = createServerFn({ method: "POST" })
                    title: creative.headline,
                    message: creative.primaryText,
                    call_to_action: {
-                     type: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : creative.cta,
-                      value: { link: data.destinationUrl || "https://example.com" }
+                     type: ctaType,
+                     value: ctaValue
                    }
                  };
-                } else {
-                  const linkData: any = {
-                    message: creative.primaryText,
-                    link: data.destinationUrl || "https://example.com",
-                    caption: creative.headline,
-                    call_to_action: { 
-                      type: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : creative.cta, 
-                      value: { link: data.destinationUrl || "https://example.com" } 
-                    },
-                  };
+               } else {
+                 const linkData: any = {
+                   message: creative.primaryText,
+                   link: data.destination === "WHATSAPP" ? `https://www.facebook.com/${data.pageId}` : (data.destinationUrl || "https://example.com"),
+                   caption: creative.headline,
+                   call_to_action: { 
+                     type: ctaType, 
+                     value: ctaValue
+                   },
+                 };
 
-                  // Only add image_hash if it looks like a valid hash (and isn't the "new_" prefix)
-                  if (creative.id && !creative.id.startsWith("new_")) {
-                    linkData.image_hash = creative.id;
-                  } else if (creative.image_url && !creative.image_url.startsWith("data:")) {
-                    linkData.picture = creative.image_url;
-                  }
-                  
-                  objectStorySpec.link_data = linkData;
-                }
+                 // Only add image_hash if it looks like a valid hash (and isn't the "new_" prefix)
+                 if (creative.id && !creative.id.startsWith("new_")) {
+                   linkData.image_hash = creative.id;
+                 } else if (creative.image_url && !creative.image_url.startsWith("data:")) {
+                   linkData.picture = creative.image_url;
+                 }
+                 
+                 objectStorySpec.link_data = linkData;
+               }
 
                adBody.creative = JSON.stringify({
                  name: `Creative ${idx + 1} - ${Date.now()}`,
