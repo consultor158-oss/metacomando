@@ -521,7 +521,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
     enabled: !!campaign && isOpen
   });
 
-  const fullData = details.data?.ok ? details.data.data : null;
+  const fullCampaignData = details.data?.ok ? details.data.data : null;
 
   useEffect(() => {
     if (campaign) {
