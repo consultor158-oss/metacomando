@@ -2337,7 +2337,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
             {isActivating ? (
               <> <RefreshCw className="h-4 w-4 animate-spin" /> Subindo API... </>
             ) : (
-              <> <Rocket className="h-4 w-4" /> Ativar no Facebook </>
+              <> <Rocket className="h-4 w-4" /> Ativar no Facebook (API REAL) </>
             )}
           </Button>
         </DialogFooter>
