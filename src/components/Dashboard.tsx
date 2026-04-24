@@ -2934,9 +2934,9 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
                   <h3 className="font-bold">Nova Integração API</h3>
                   <p className="text-sm text-muted-foreground">Conecte sua API personalizada para automatizar processos.</p>
                 </div>
-                <Button variant="outline" className="w-full">
-                  <Plus className="h-4 w-4 mr-2" /> Configurar Nova API
-                </Button>
+                 <Button variant="outline" className="w-full" onClick={onConnect}>
+                   <Plus className="h-4 w-4 mr-2" /> Conectar Meta Ads "Real"
+                 </Button>
               </CardContent>
             </Card>
 
