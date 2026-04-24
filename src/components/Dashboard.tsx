@@ -664,29 +664,30 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                       <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} className="font-bold text-primary" />
                     </div>
                   </div>
+                </div>
 
-                  <div className="grid grid-cols-2 gap-6 pt-4 border-t">
-                    <div className="grid gap-2">
-                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Estratégia de Lance</Label>
-                      <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.bid_strategy || "Volume Mais Alto"}</Badge>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Tipo de Compra</Label>
-                      <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.buying_type || "Leilão"}</Badge>
-                    </div>
+                <div className="grid grid-cols-2 gap-6 pt-4 border-t">
+                  <div className="grid gap-2">
+                    <Label className="text-[10px] font-bold uppercase text-muted-foreground">Estratégia de Lance</Label>
+                    <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.bid_strategy || "Volume Mais Alto"}</Badge>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-6 pt-4 border-t">
-                    <div className="grid gap-2">
-                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Janela de Atribuição</Label>
-                      <Badge variant="outline" className="w-fit">7 dias clique / 1 dia visualização</Badge>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Categorias Especiais</Label>
-                      <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.special_ad_categories?.length ? fullCampaignData.campaign.special_ad_categories.join(", ") : "Nenhuma"}</Badge>
-                    </div>
+                  <div className="grid gap-2">
+                    <Label className="text-[10px] font-bold uppercase text-muted-foreground">Tipo de Compra</Label>
+                    <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.buying_type || "Leilão"}</Badge>
                   </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-6 pt-4 border-t">
+                  <div className="grid gap-2">
+                    <Label className="text-[10px] font-bold uppercase text-muted-foreground">Janela de Atribuição</Label>
+                    <Badge variant="outline" className="w-fit">7 dias clique / 1 dia visualização</Badge>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label className="text-[10px] font-bold uppercase text-muted-foreground">Categorias Especiais</Label>
+                    <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.special_ad_categories?.length ? fullCampaignData.campaign.special_ad_categories.join(", ") : "Nenhuma"}</Badge>
+                  </div>
+                </div>
+              </div>
               </TabsContent>
 
               <TabsContent value="performance" className="mt-0">
