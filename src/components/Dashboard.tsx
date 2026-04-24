@@ -2268,7 +2268,17 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
                    <div className={`flex items-center space-x-2 border p-3 rounded-lg cursor-pointer transition-all ${destination === 'SALES' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('SALES')}>
                       <RadioGroupItem value="SALES" id="dest-sales" className="border-slate-400" />
                       <Label htmlFor="dest-sales" className="cursor-pointer font-bold text-xs">Site / Vendas</Label>
-                   </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">URL de Destino</Label>
+                <Input 
+                  value={destinationUrl} 
+                  onChange={(e) => setDestinationUrl(e.target.value)} 
+                  placeholder={destination === 'WHATSAPP' ? "Ex: wa.me/55..." : "Ex: https://meusite.com"} 
+                  className="bg-slate-900 border-slate-800 h-11"
+                />
+              </div>
                 </RadioGroup>
               </div>
             </div>
