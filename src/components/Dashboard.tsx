@@ -187,6 +187,12 @@ export function Dashboard() {
                       <span>Teste de Escala Real</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "teste"} onClick={() => setView("teste")}>
+                      <Activity className="h-4 w-4" />
+                      <span>TESTE</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
