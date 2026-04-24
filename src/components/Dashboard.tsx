@@ -749,7 +749,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
         <Tabs defaultValue="settings" className="flex-1 flex flex-col overflow-hidden">
           <div className="px-6 border-b">
             <TabsList className="w-full justify-start h-12 bg-transparent gap-6">
-              <TabsTrigger value="settings" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Configuraes</TabsTrigger>
+              <TabsTrigger value="settings" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Configurações</TabsTrigger>
               <TabsTrigger value="adsets" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Conjuntos ({fullCampaignData?.adsets?.length || 0})</TabsTrigger>
               <TabsTrigger value="ads" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Anúncios ({fullCampaignData?.ads?.length || 0})</TabsTrigger>
               <TabsTrigger value="targeting" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Público e Posicionamento</TabsTrigger>
@@ -2081,7 +2081,7 @@ function SettingsTab({ account }: { account: any }) {
     <div className="space-y-6 max-w-2xl">
        <Card>
          <CardHeader>
-           <CardTitle>Configuraes da Conta</CardTitle>
+           <CardTitle>Configurações da Conta</CardTitle>
            <CardDescription>Gerencie suas credenciais e conexes do Meta Ads.</CardDescription>
          </CardHeader>
          <CardContent className="space-y-4">
@@ -2141,7 +2141,7 @@ function AutomationTab() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold">Regras de Automao IA</h2>
+          <h2 className="text-xl font-bold">Regras de Automação IA</h2>
           <p className="text-xs text-muted-foreground">O motor de automao otimiza suas campanhas em tempo real.</p>
         </div>
         <Button size="sm" className="gap-2">
@@ -2202,7 +2202,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
 
   const handleActivate = async () => {
     if (!data || !selectedPage) {
-      if (!selectedPage) toast.error("Selecione uma Pgina do Facebook");
+      if (!selectedPage) toast.error("Selecione uma Página do Facebook");
       return;
     }
     setIsActivating(true);
@@ -2230,7 +2230,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
       });
 
       if (res.ok) {
-        toast.success(`Estratgia ${data.strategy.name} ativada com sucesso via API!`);
+        toast.success(`Estratégia ${data.strategy.name} ativada com sucesso via API!`);
         onClose();
       } else {
         toast.error("Erro ao ativar escala: " + res.error);
@@ -2271,10 +2271,10 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Pgina do Facebook (Emissor)</Label>
+                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Página do Facebook (Emissor)</Label>
                 <Select value={selectedPage} onValueChange={setSelectedPage}>
                   <SelectTrigger className="bg-slate-900 border-slate-800 h-11">
-                    <SelectValue placeholder="Selecione a Pgina" />
+                    <SelectValue placeholder="Selecione a Página" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
                     {pages.map(p => (
@@ -2312,7 +2312,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
 
             <Card className="bg-slate-900 border-slate-800 p-4 flex flex-col justify-between">
                <div>
-                  <p className="text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Resumo da Estratgia</p>
+                  <p className="text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Resumo da Estratégia</p>
                   <div className="space-y-3">
                      <div className="flex justify-between text-xs">
                         <span className="text-slate-400">Total de Conjuntos:</span>
