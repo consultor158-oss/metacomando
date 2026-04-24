@@ -9,6 +9,8 @@ export type ScaleStrategy = {
     dailyBudgetCents: number;
     namePrefix: string;
     status: "ACTIVE" | "PAUSED";
+    isCBO?: boolean;
+    adsetCount?: number;
   };
   color: string;
   creativeCount?: number; // Adicionado para tutorial guiado
