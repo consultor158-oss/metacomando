@@ -2913,7 +2913,7 @@ function CRMPipeColumn({ title, id, leads, color, onAdd, onMove }: { title: stri
   );
 }
 
-function ApisTab() {
+function ApisTab({ onConnect }: { onConnect: () => void }) {
   return (
     <div className="space-y-6">
       <Card>
