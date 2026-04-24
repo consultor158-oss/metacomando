@@ -1252,28 +1252,26 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                   </Label>
                   <div className="grid gap-4 bg-muted/30 p-6 rounded-2xl border border-border">
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-state" className="text-[10px] font-bold uppercase text-muted-foreground">Estado / Região</Label>
-                      <Select value={state} onValueChange={setState}>
-                        <SelectTrigger id="tut-state" className="h-11">
-                          <SelectValue placeholder="Selecione o Estado" />
+                      <Label htmlFor="tut-region" className="text-[10px] font-bold uppercase text-muted-foreground">Alcance Geográfico</Label>
+                      <Select value={region} onValueChange={setRegion}>
+                        <SelectTrigger id="tut-region" className="h-11">
+                          <SelectValue placeholder="Selecione o Alcance" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="SP">São Paulo</SelectItem>
-                          <SelectItem value="RJ">Rio de Janeiro</SelectItem>
-                          <SelectItem value="MG">Minas Gerais</SelectItem>
-                          <SelectItem value="RS">Rio Grande do Sul</SelectItem>
-                          <SelectItem value="PR">Paraná</SelectItem>
-                          <SelectItem value="SC">Santa Catarina</SelectItem>
-                          <SelectItem value="BA">Bahia</SelectItem>
-                          <SelectItem value="ALL">Todo o Brasil</SelectItem>
+                          <SelectItem value="ALL">Mundo Inteiro (Global)</SelectItem>
+                          <SelectItem value="US">Estados Unidos (USA)</SelectItem>
+                          <SelectItem value="EU">Europa (Principais Países)</SelectItem>
+                          <SelectItem value="LATAM">América Latina</SelectItem>
+                          <SelectItem value="BR">Brasil (Todo o País)</SelectItem>
+                          <SelectItem value="SP">São Paulo (Estado)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-city" className="text-[10px] font-bold uppercase text-muted-foreground">Cidade Específica</Label>
+                      <Label htmlFor="tut-city" className="text-[10px] font-bold uppercase text-muted-foreground">Cidade ou Região Específica</Label>
                       <Input 
                         id="tut-city" 
-                        placeholder="Ex: São Paulo, Campinas..." 
+                        placeholder="Ex: Miami, London, São Paulo..." 
                         value={city} 
                         onChange={(e) => setCity(e.target.value)}
                         className="h-11"
@@ -1284,14 +1282,43 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
 
                 <div className="space-y-6">
                   <Label className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                    <Target className="h-5 w-5" /> Interesses e Comportamento
+                    <Target className="h-5 w-5" /> Público Alvo Detalhado
                   </Label>
                   <div className="grid gap-4 bg-muted/30 p-6 rounded-2xl border border-border">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label className="text-[10px] font-bold uppercase text-muted-foreground">Faixa Etária</Label>
+                        <Select value={ageRange} onValueChange={setAgeRange}>
+                          <SelectTrigger className="h-11">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="18-65+">18 - 65+</SelectItem>
+                            <SelectItem value="18-35">18 - 35</SelectItem>
+                            <SelectItem value="25-45">25 - 45</SelectItem>
+                            <SelectItem value="35-65+">35 - 65+</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label className="text-[10px] font-bold uppercase text-muted-foreground">Gênero</Label>
+                        <Select value={gender} onValueChange={setGender}>
+                          <SelectTrigger className="h-11">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="ALL">Todos</SelectItem>
+                            <SelectItem value="MALE">Homens</SelectItem>
+                            <SelectItem value="FEMALE">Mulheres</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-interests" className="text-[10px] font-bold uppercase text-muted-foreground">Palavras-chave (IA filtrará)</Label>
+                      <Label htmlFor="tut-interests" className="text-[10px] font-bold uppercase text-muted-foreground">Interesses (IA filtrará)</Label>
                       <Input 
                         id="tut-interests" 
-                        placeholder="Ex: Marketing Digital, E-commerce, Moda..." 
+                        placeholder="Ex: Luxury Goods, Entrepreneurship, Online Shopping..." 
                         value={interests}
                         onChange={(e) => setInterests(e.target.value)}
                         className="h-11"
