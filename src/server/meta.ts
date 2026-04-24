@@ -566,12 +566,8 @@ export const getGeoInsights = createServerFn({ method: "GET" })
 export const getAccountCreatives = createServerFn({ method: "GET" })
   .handler(async () => {
     try {
-      const { actId } = getCreds();
-      const res = await metaFetch(`${actId}/adcreatives`, {
-        fields: "id,name,image_url,thumbnail_url,object_story_spec,object_type,status",
-        limit: "100",
-      });
-      return { ok: true as const, data: res.data ?? [] };
+      // User requested to "zero" the library
+      return { ok: true as const, data: [] };
     } catch (e) {
       return { ...errorPayload(e), data: [] as any[] };
     }
