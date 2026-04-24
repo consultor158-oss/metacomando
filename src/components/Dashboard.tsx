@@ -1396,7 +1396,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                </div>
                
                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                  {creatives.map(c => (
+                  {creatives.map((c: any) => (
                     <div 
                       key={c.id} 
                       onClick={() => setSelectedCreatives(p => p.includes(c.id) ? p.filter(i => i !== c.id) : [...p, c.id])} 
