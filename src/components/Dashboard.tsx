@@ -1562,7 +1562,8 @@ function TutorialTab({ creatives, scalingCampaign, onStepChange, onComplete }: {
 
   const allCreatives = [...localCreatives, ...creatives].filter(c => {
     if (!scalingCampaign || scalingCampaign === "TUDO" || scalingCampaign === "CARBON") return true;
-    const campaignName = c.campaign_name || (creatives.indexOf(c) % 2 === 0 ? "CARBON - Campanha Base" : "ESCALA - Ultra Global");
+    if (localCreatives.some(lc => lc.id === c.id)) return true;
+    const campaignName = c.campaign_name || "";
     return campaignName.includes(scalingCampaign);
   });
   
