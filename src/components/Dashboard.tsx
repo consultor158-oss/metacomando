@@ -862,13 +862,12 @@ function ScalesTab({ onSelect }: { onSelect: (s: ScaleStrategy) => void }) {
 
 function CreativesTab({ creatives }: { creatives: any[] }) {
   const [selectedCreative, setSelectedCreative] = useState<any | null>(null);
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState("CARBON");
 
-  const campaigns = Array.from(new Set(creatives.map(c => c.campaign_name || "Sem Pasta").filter(Boolean)));
+  const organizedCreatives = creatives.map(c => ({ ...c, campaign_name: "CARBON" }));
+  const campaigns = ["CARBON"];
 
-  const filteredCreatives = filter === "all" 
-    ? creatives 
-    : creatives.filter(c => (c.campaign_name || "Sem Pasta") === filter);
+  const filteredCreatives = organizedCreatives;
 
   return (
     <div className="space-y-6">
@@ -883,7 +882,6 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
               <SelectValue placeholder="Filtrar por Pasta" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas as Pastas</SelectItem>
               {campaigns.map(c => (
                 <SelectItem key={c} value={c}>{c}</SelectItem>
               ))}
