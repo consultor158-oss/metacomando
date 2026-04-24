@@ -112,7 +112,7 @@ import { Textarea } from "./ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { ScrollArea } from "./ui/scroll-area";
 
-type View = "overview" | "campaigns" | "scales" | "scale_test" | "creatives" | "automation" | "settings" | "google_ads" | "insta_organic" | "wa_reports" | "wa_alerts" | "client_dash" | "lead_tracking" | "wa_support" | "ai_creatives" | "ai_analysis" | "ecommerce" | "crm" | "teste";
+type View = "overview" | "campaigns" | "scales" | "scale_test" | "creatives" | "automation" | "settings" | "google_ads" | "insta_organic" | "wa_reports" | "wa_alerts" | "client_dash" | "lead_tracking" | "wa_support" | "ai_creatives" | "ai_analysis" | "ecommerce" | "crm";
 
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
@@ -216,12 +216,6 @@ export function Dashboard() {
                     <SidebarMenuButton isActive={view === "scale_test"} onClick={() => setView("scale_test")}>
                       <Activity className="h-4 w-4" />
                       <span>Teste de Escala Real</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton isActive={view === "teste"} onClick={() => setView("teste")}>
-                      <Activity className="h-4 w-4" />
-                      <span>TESTE</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -360,7 +354,7 @@ export function Dashboard() {
                   {view === "ai_analysis" && "Anlise de Performance IA"}
                   {view === "ecommerce" && "Rastrear Ecommerce"}
                   {view === "crm" && "CRM Interno"}
-                  {view === "teste" && "TESTE"}
+                  
                 </h1>
                 <p className="text-xs text-muted-foreground">
                   {accountData ? (
@@ -413,17 +407,6 @@ export function Dashboard() {
             {view === "ai_analysis" && <AIAnalysisTab />}
             {view === "ecommerce" && <EcommerceTab />}
             {view === "crm" && <CRMTab leads={crmLeads} onAdd={addLead} onMove={moveLead} />}
-            {view === "teste" && (
-              <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
-                <div className="p-8 rounded-2xl bg-primary/10 border border-primary/20 text-center animate-in fade-in zoom-in duration-500">
-                  <Activity className="h-16 w-16 text-primary mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold">Aba de Teste</h2>
-                  <p className="text-muted-foreground max-w-md">
-                    Se você está vendo esta mensagem, significa que a nova aba "TESTE" foi criada e hospedada com sucesso!
-                  </p>
-                </div>
-              </div>
-            )}
           </main>
         </SidebarInset>
 
