@@ -119,6 +119,7 @@ type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
   const [isWAModalOpen, setIsWAModalOpen] = useState(false);
+  const [isMetaConnectOpen, setIsMetaConnectOpen] = useState(false);
   const [dryRunData, setDryRunData] = useState<{ strategy: ScaleStrategy; creatives?: any[] } | null>(null);
   const [scalingCampaign, setScalingCampaign] = useState<string | null>(null);
   const [tutorialStep, setTutorialStep] = useState(1);
