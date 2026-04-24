@@ -2733,20 +2733,34 @@ function EcommerceTab() {
   );
 }
 
-function CRMTab() {
+function CRMTab({ leads, onAdd, onMove }: { leads: any[], onAdd: (s: string) => void, onMove: (id: number, s: string) => void }) {
+  const stages = [
+    { id: "novo", title: "Novo Lead", color: "bg-blue-500" },
+    { id: "atendimento", title: "Em Atendimento", color: "bg-yellow-500" },
+    { id: "pagamento", title: "Aguardando Pagto", color: "bg-purple-500" },
+    { id: "fechado", title: "Fechado", color: "bg-green-500" },
+  ];
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>CRM Interno</CardTitle>
-          <CardDescription>Gesto de pipeline e funil de vendas dos leads gerados.</CardDescription>
+          <CardDescription>Gestão de pipeline e funil de vendas dos leads gerados.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 overflow-x-auto pb-4">
-            <CRMPipeColumn title="Novo Lead" count={12} color="bg-blue-500" />
-            <CRMPipeColumn title="Em Atendimento" count={5} color="bg-yellow-500" />
-            <CRMPipeColumn title="Aguardando Pagto" count={3} color="bg-purple-500" />
-            <CRMPipeColumn title="Fechado" count={8} color="bg-green-500" />
+            {stages.map(stage => (
+              <CRMPipeColumn 
+                key={stage.id}
+                id={stage.id}
+                title={stage.title} 
+                leads={leads.filter(l => l.stage === stage.id)} 
+                color={stage.color} 
+                onAdd={() => onAdd(stage.id)}
+                onMove={onMove}
+              />
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -2754,18 +2768,41 @@ function CRMTab() {
   );
 }
 
-function CRMPipeColumn({ title, count, color }: { title: string, count: number, color: string }) {
+function CRMPipeColumn({ title, id, leads, color, onAdd, onMove }: { title: string, id: string, leads: any[], color: string, onAdd: () => void, onMove: (id: number, s: string) => void }) {
   return (
-    <div className="min-w-[250px] bg-muted/50 rounded-lg p-4 space-y-4">
+    <div className="min-w-[280px] bg-muted/50 rounded-lg p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h4 className="font-bold text-sm">{title}</h4>
-        <Badge variant="secondary">{count}</Badge>
+        <Badge variant="secondary">{leads.length}</Badge>
       </div>
-      <div className={`h-1 w-full ${color} rounded-full`} />
-      <div className="space-y-2">
-        <div className="p-3 bg-background rounded border text-xs shadow-sm">Joo Silva - R$ 250,00</div>
-        <div className="p-3 bg-background rounded border text-xs shadow-sm">Maria Oliveira - R$ 1.200,00</div>
-        <Button variant="ghost" className="w-full text-xs" size="sm">+ Adicionar</Button>
+      <div className={`h-1.5 w-full ${color} rounded-full`} />
+      <div className="space-y-3">
+        {leads.map(lead => (
+          <div 
+            key={lead.id} 
+            className="p-3 bg-background rounded-lg border text-xs shadow-sm space-y-2 group relative cursor-move hover:border-primary/50 transition-colors"
+          >
+            <div className="font-bold">{lead.name}</div>
+            <div className="text-muted-foreground">{formatBRL(lead.value)}</div>
+            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+               <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => onMove(lead.id, "novo")} title="Mover para Novo">
+                  <ChevronLeft className="h-3 w-3" />
+               </Button>
+               <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => onMove(lead.id, "atendimento")} title="Em Atendimento">
+                  <Activity className="h-3 w-3" />
+               </Button>
+               <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => onMove(lead.id, "pagamento")} title="Aguardando Pagamento">
+                  <DollarSign className="h-3 w-3" />
+               </Button>
+               <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => onMove(lead.id, "fechado")} title="Mover para Fechado">
+                  <CheckCircle2 className="h-3 w-3" />
+               </Button>
+            </div>
+          </div>
+        ))}
+        <Button variant="ghost" className="w-full text-xs h-9 border-dashed border hover:bg-background" size="sm" onClick={onAdd}>
+          <Plus className="h-3 w-3 mr-1" /> Adicionar Lead
+        </Button>
       </div>
     </div>
   );
