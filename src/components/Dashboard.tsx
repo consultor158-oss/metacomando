@@ -1470,9 +1470,13 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
           <Button size="sm" variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5">
             <Rocket className="h-3 w-3 text-primary" /> Escalar Criativos
           </Button>
-          <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90">
-            <Plus className="h-3 w-3" /> Nova Pasta
-          </Button>
+          <label className="cursor-pointer">
+            <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90 pointer-events-none">
+              {isUploading ? <RefreshCw className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />} 
+              Hospedar Criativo
+            </Button>
+            <input type="file" className="hidden" accept="image/*,video/*" onChange={handleUpload} disabled={isUploading} />
+          </label>
         </div>
       </div>
 
