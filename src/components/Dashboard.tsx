@@ -2480,30 +2480,44 @@ function InstaOrganicTab() {
 }
 
 function WAReportsTab() {
+  const [isSending, setIsSending] = useState(false);
+
+  const handleSendReport = () => {
+    setIsSending(true);
+    setTimeout(() => {
+      setIsSending(false);
+      toast.success("Relatório enviado para o seu WhatsApp!");
+    }, 2000);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Relatrios Automticos via WhatsApp</CardTitle>
+          <CardTitle>Relatórios Automáticos via WhatsApp</CardTitle>
           <CardDescription>Envie PDFs e resumos de performance direto para seu celular ou do cliente.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 border rounded-lg">
+          <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
             <div>
-              <p className="font-bold">Relatrio Dirio (Resumo)</p>
-              <p className="text-xs text-muted-foreground">Enviado todos os dias s 08:00</p>
+              <p className="font-bold">Relatório Diário (Resumo)</p>
+              <p className="text-xs text-muted-foreground">Enviado todos os dias às 08:00</p>
             </div>
-            <Switch defaultChecked />
+            <Switch defaultChecked onCheckedChange={(checked) => toast.info(`Relatório diário ${checked ? "ativado" : "desativado"}`)} />
           </div>
-          <div className="flex items-center justify-between p-4 border rounded-lg">
+          <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
             <div>
-              <p className="font-bold">Relatrio Semanal Consolidado</p>
+              <p className="font-bold">Relatório Semanal Consolidado</p>
               <p className="text-xs text-muted-foreground">Enviado toda segunda-feira</p>
             </div>
-            <Switch defaultChecked />
+            <Switch defaultChecked onCheckedChange={(checked) => toast.info(`Relatório semanal ${checked ? "ativado" : "desativado"}`)} />
           </div>
-          <Button className="w-full">
-            <MessageSquare className="mr-2 h-4 w-4" /> Enviar Relatrio Agora
+          <Button className="w-full h-11" onClick={handleSendReport} disabled={isSending}>
+            {isSending ? (
+              <><RefreshCw className="mr-2 h-4 w-4 animate-spin" /> Enviando...</>
+            ) : (
+              <><MessageSquare className="mr-2 h-4 w-4" /> Enviar Relatório Agora</>
+            )}
           </Button>
         </CardContent>
       </Card>
