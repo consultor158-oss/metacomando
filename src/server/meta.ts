@@ -6,12 +6,40 @@ const BASE = `https://graph.facebook.com/${GRAPH_VERSION}`;
 function getCreds() {
   const token = process.env.META_ACCESS_TOKEN;
   const account = process.env.META_AD_ACCOUNT_ID;
-  if (!token) throw new Error("META_ACCESS_TOKEN não configurado");
-  if (!account) throw new Error("META_AD_ACCOUNT_ID não configurado");
+  
+  if (!token || !account) {
+    const missing = [];
+    if (!token) missing.push("META_ACCESS_TOKEN");
+    if (!account) missing.push("META_AD_ACCOUNT_ID");
+    throw new Error(`Configuração pendente: ${missing.join(", ")} não encontrados nos Segredos do Lovable.`);
+  }
+
   // Normalize account id to act_XXX
   const actId = account.startsWith("act_") ? account : `act_${account}`;
   return { token, actId };
 }
+
+export const testMetaConnection = createServerFn({ method: "POST" })
+  .inputValidator((d: { token: string; accountId: string }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const actId = data.accountId.startsWith("act_") ? data.accountId : `act_${data.accountId}`;
+      const url = new URL(`${BASE}/${actId}`);
+      url.searchParams.set("access_token", data.token);
+      url.searchParams.set("fields", "name,currency,timezone_name");
+      
+      const res = await fetch(url.toString());
+      const result = await res.json();
+      
+      if (!res.ok || result.error) {
+        throw new Error(result.error?.message || "Erro ao validar credenciais");
+      }
+      
+      return { ok: true as const, data: result };
+    } catch (e: any) {
+      return { ok: false as const, error: e.message };
+    }
+  });
 
 async function metaFetch(path: string, params: Record<string, string> = {}, init?: RequestInit) {
   const { token } = getCreds();
