@@ -974,37 +974,68 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
 
           {step === 3 && (
             <div className="space-y-6">
-              <div className="grid gap-2">
-                <Label>Localização (País/Estado)</Label>
-                <div className="flex flex-wrap gap-2">
-                   {["BR", "US", "PT", "ES"].map(c => (
-                     <Badge 
-                      key={c} 
-                      variant={locations.includes(c) ? "default" : "outline"}
-                      className="cursor-pointer py-2 px-4 text-sm"
-                      onClick={() => setLocations(c)}
-                     >
-                       {c === "BR" ? "🇧🇷 Brasil" : c === "US" ? "🇺🇸 EUA" : c === "PT" ? "🇵🇹 Portugal" : "🇪🇸 Espanha"}
-                     </Badge>
-                   ))}
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-4">
+                  <Label className="text-sm font-bold flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-primary" /> Localização Detalhada
+                  </Label>
+                  <div className="grid gap-3">
+                    <div className="grid gap-2">
+                      <Label htmlFor="tut-state" className="text-xs">Estado</Label>
+                      <Select value={state} onValueChange={setState}>
+                        <SelectTrigger id="tut-state">
+                          <SelectValue placeholder="Selecione o Estado" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="SP">São Paulo</SelectItem>
+                          <SelectItem value="RJ">Rio de Janeiro</SelectItem>
+                          <SelectItem value="MG">Minas Gerais</SelectItem>
+                          <SelectItem value="RS">Rio Grande do Sul</SelectItem>
+                          <SelectItem value="PR">Paraná</SelectItem>
+                          <SelectItem value="SC">Santa Catarina</SelectItem>
+                          <SelectItem value="BA">Bahia</SelectItem>
+                          <SelectItem value="ALL">Todo o Brasil</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="tut-city" className="text-xs">Cidade / Município</Label>
+                      <Input 
+                        id="tut-city" 
+                        placeholder="Ex: São Paulo, Campinas..." 
+                        value={city} 
+                        onChange={(e) => setCity(e.target.value)}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Para escala ABO, recomendamos focar no Brasil (BR) para validar criativos com menor custo.</p>
+
+                <div className="space-y-4">
+                  <Label className="text-sm font-bold flex items-center gap-2">
+                    <Target className="h-4 w-4 text-primary" /> Interesses e Segmentação
+                  </Label>
+                  <div className="grid gap-3">
+                    <div className="grid gap-2">
+                      <Label htmlFor="tut-interests" className="text-xs">Interesses (Separados por vírgula)</Label>
+                      <Input 
+                        id="tut-interests" 
+                        placeholder="Ex: Marketing Digital, E-commerce, Moda..." 
+                        value={interests}
+                        onChange={(e) => setInterests(e.target.value)}
+                      />
+                    </div>
+                    <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                      <p className="text-[10px] text-blue-500 font-bold uppercase">IA Suggestion</p>
+                      <p className="text-[10px] text-muted-foreground">O motor de IA recomenda usar "Público Aberto" para a estratégia {selectedStrategy.name} se o orçamento for menor que R$ 100/dia.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                 <div className="p-4 rounded-lg border border-dashed flex flex-col items-center justify-center text-center gap-2">
-                    <Globe className="h-8 w-8 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-bold">Público Aberto</p>
-                      <p className="text-[10px] text-muted-foreground">Deixe o algoritmo do Meta encontrar seus clientes.</p>
-                    </div>
-                 </div>
-                 <div className="p-4 rounded-lg border border-dashed flex flex-col items-center justify-center text-center gap-2 opacity-50 grayscale cursor-not-allowed">
-                    <Users className="h-8 w-8 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-bold">Interesses (IA Pro)</p>
-                      <p className="text-[10px] text-muted-foreground">Disponível em breve para segmentação ultra-precisa.</p>
-                    </div>
-                 </div>
+
+              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-bold text-primary">Configuração Atual:</span> {state || "Brasil"} {city ? `> ${city}` : ""} {interests ? `| Interesses: ${interests}` : "| Público Aberto"}
+                </p>
               </div>
             </div>
           )}
