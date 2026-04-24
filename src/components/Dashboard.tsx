@@ -677,26 +677,39 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                         />
                         <div>
                           <p className="text-sm font-medium">{as.name}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Input 
-                              type="number" 
-                              className="h-6 w-20 text-[10px]" 
-                              defaultValue={as.daily_budget ? parseInt(as.daily_budget)/100 : parseInt(as.lifetime_budget)/100}
-                              onBlur={async (e) => {
-                                const val = parseFloat(e.target.value);
-                                if (!isNaN(val)) {
-                                  await updateAdsetBudget({ data: { adsetId: as.id, dailyBudgetBRL: val } });
-                                  toast.success("Orçamento atualizado");
-                                }
-                              }}
-                            />
-                            <span className="text-[10px] text-muted-foreground uppercase">
-                              {as.daily_budget ? "Diário" : "Total"}
-                            </span>
+                          <div className="flex items-center gap-3 mt-1">
+                            <div className="flex items-center gap-1">
+                              <Input 
+                                type="number" 
+                                className="h-6 w-20 text-[10px]" 
+                                defaultValue={as.daily_budget ? parseInt(as.daily_budget)/100 : parseInt(as.lifetime_budget)/100}
+                                onBlur={async (e) => {
+                                  const val = parseFloat(e.target.value);
+                                  if (!isNaN(val)) {
+                                    await updateAdsetBudget({ data: { adsetId: as.id, dailyBudgetBRL: val } });
+                                    toast.success("Orçamento atualizado");
+                                  }
+                                }}
+                              />
+                              <span className="text-[9px] text-muted-foreground uppercase">
+                                {as.daily_budget ? "Diário" : "Total"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">
+                              <Globe className="h-3 w-3" />
+                              {as.targeting?.geo_locations?.countries?.join(", ") || as.targeting?.geo_locations?.regions?.map((r: any) => r.name).join(", ") || "Brasil"}
+                            </div>
+                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">
+                              <Users className="h-3 w-3" />
+                              {as.targeting?.age_min || 18}-{as.targeting?.age_max || "65+"}
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <Badge variant="outline" className="text-[10px]">{as.optimization_goal}</Badge>
+                      <div className="flex flex-col items-end gap-1">
+                         <Badge variant="outline" className="text-[10px]">{as.optimization_goal}</Badge>
+                         <span className="text-[9px] text-muted-foreground font-mono">{as.id}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
