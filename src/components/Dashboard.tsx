@@ -1633,10 +1633,7 @@ function TutorialTab({ creatives, scalingCampaign, onStepChange, onClearFilter, 
             <Badge variant="secondary" className="px-4 py-1 text-xs font-bold bg-primary/10 text-primary border-primary/20">
               Escalando: {scalingCampaign}
             </Badge>
-            <Button variant="ghost" size="sm" onClick={() => {
-              // We need to clear it in the parent
-              window.dispatchEvent(new CustomEvent('clear-scale-filter'));
-            }} className="h-6 text-[10px] text-muted-foreground hover:text-primary">
+            <Button variant="ghost" size="sm" onClick={onClearFilter} className="h-6 text-[10px] text-muted-foreground hover:text-primary">
               Ver Todos
             </Button>
           </div>
