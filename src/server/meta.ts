@@ -229,6 +229,7 @@ export const createFullScale = createServerFn({ method: "POST" })
       strategy?: string;
       pageId?: string;
       destination?: "WHATSAPP" | "SALES";
+      destinationUrl?: string;
       targeting?: any;
       creatives?: Array<{
         id?: string;
