@@ -863,6 +863,7 @@ function ScalesTab({ onSelect }: { onSelect: (s: ScaleStrategy) => void }) {
 function CreativesTab({ creatives }: { creatives: any[] }) {
   const [selectedCreative, setSelectedCreative] = useState<any | null>(null);
   const [filter, setFilter] = useState("CARBON");
+  const [view, setView] = useState<"folders" | "files">("folders");
 
   const organizedCreatives = creatives.map(c => ({ ...c, campaign_name: "CARBON" }));
   const campaigns = ["CARBON"];
@@ -877,6 +878,11 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
           <p className="text-xs text-muted-foreground">Organizado por campanhas e pastas inteligentes.</p>
         </div>
         <div className="flex items-center gap-2">
+          {view === "files" && (
+            <Button size="sm" variant="ghost" onClick={() => setView("folders")} className="gap-2">
+              <ChevronLeft className="h-4 w-4" /> Voltar para Pastas
+            </Button>
+          )}
           <Select value={filter} onValueChange={setFilter}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Filtrar por Pasta" />
@@ -896,31 +902,48 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {filteredCreatives.map((c) => (
-          <Card key={c.id} className="overflow-hidden group cursor-pointer" onClick={() => setSelectedCreative(c)}>
-            <div className="aspect-square relative">
-              <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                 <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full"><Eye className="h-4 w-4" /></Button>
-              </div>
-              {c.video_id && (
-                <div className="absolute top-2 left-2 bg-black/60 p-1 rounded">
-                  <Video className="h-3 w-3 text-white" />
-                </div>
-              )}
+      {view === "folders" ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <Card 
+            className="p-6 flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-primary/5 transition-colors border-dashed"
+            onClick={() => setView("files")}
+          >
+            <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center">
+              <Folder className="h-8 w-8 text-primary" />
             </div>
-            <CardContent className="p-3">
-              <p className="text-[10px] font-bold truncate uppercase">{c.name}</p>
-              <div className="flex justify-between mt-2">
-                <div className="text-[9px] uppercase text-muted-foreground">CTR</div>
-                <div className="text-[9px] font-bold">{((Math.random() * 2) + 1).toFixed(2)}%</div>
-              </div>
-              <div className="text-[8px] text-muted-foreground mt-1 truncate">Pasta: {c.campaign_name || "Geral"}</div>
-            </CardContent>
+            <div className="text-center">
+              <p className="font-bold text-sm uppercase">CARBON</p>
+              <p className="text-[10px] text-muted-foreground">{filteredCreatives.length} ITENS</p>
+            </div>
           </Card>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {filteredCreatives.map((c) => (
+            <Card key={c.id} className="overflow-hidden group cursor-pointer" onClick={() => setSelectedCreative(c)}>
+              <div className="aspect-square relative">
+                <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                   <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full"><Eye className="h-4 w-4" /></Button>
+                </div>
+                {c.video_id && (
+                  <div className="absolute top-2 left-2 bg-black/60 p-1 rounded">
+                    <Video className="h-3 w-3 text-white" />
+                  </div>
+                )}
+              </div>
+              <CardContent className="p-3">
+                <p className="text-[10px] font-bold truncate uppercase">{c.name}</p>
+                <div className="flex justify-between mt-2">
+                  <div className="text-[9px] uppercase text-muted-foreground">CTR</div>
+                  <div className="text-[9px] font-bold">{((Math.random() * 2) + 1).toFixed(2)}%</div>
+                </div>
+                <div className="text-[8px] text-muted-foreground mt-1 truncate">Pasta: {c.campaign_name || "Geral"}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <Dialog open={!!selectedCreative} onOpenChange={() => setSelectedCreative(null)}>
         <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black/95 border-none">
