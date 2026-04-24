@@ -304,7 +304,7 @@ export const createFullScale = createServerFn({ method: "POST" })
           campaign_id: campaignId,
           status: data.status || "PAUSED",
           billing_event: "IMPRESSIONS",
-          optimization_goal: data.destination === "WHATSAPP" ? "CONVERSATIONS" : "OFFSITE_CONVERSIONS",
+          optimization_goal: data.destination === "WHATSAPP" ? "CONVERSATIONS" : (pixelId && pixelId !== "PLACEHOLDER" ? "OFFSITE_CONVERSIONS" : "LINK_CLICKS"),
           targeting: JSON.stringify(cleanTargeting),
         };
 
@@ -313,7 +313,7 @@ export const createFullScale = createServerFn({ method: "POST" })
         }
 
         if (data.destination === "WHATSAPP") {
-          adsetBody.destination_type = "WHATSAPP";
+          adsetBody.destination_type = "MESSAGING_DIRECT";
           adsetBody.promoted_object = JSON.stringify({ page_id: data.pageId });
         } else {
           adsetBody.destination_type = "WEBSITE";
