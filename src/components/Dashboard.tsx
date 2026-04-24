@@ -377,7 +377,6 @@ export function Dashboard() {
             {view === "scales" && (
               <div className="space-y-10">
                 <TutorialTab 
-                  creatives={creativesData} 
                   scalingCampaign={scalingCampaign}
                   onStepChange={setTutorialStep}
                   onClearFilter={() => setScalingCampaign(null)}
