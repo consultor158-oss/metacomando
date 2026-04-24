@@ -946,7 +946,10 @@ export const updateAdsetStatus = createServerFn({ method: "POST" })
   .inputValidator((d: { adsetId: string; status: "ACTIVE" | "PAUSED" }) => d)
   .handler(async ({ data }) => {
     try {
-      const r = await metaPost(data.adsetId, { status: data.status });
+      const r = await metaPost(data.adsetId, { 
+        status: data.status,
+        is_adset_budget_sharing_enabled: false 
+      });
       return { ok: true as const, data: r };
     } catch (e) {
       return errorPayload(e);
