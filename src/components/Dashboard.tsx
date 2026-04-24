@@ -462,7 +462,7 @@ function OverviewTab({ stats, funnel }: { stats: any; funnel: any }) {
   );
 }
 
-function KPICard({ title, value, icon, trend, positive }: { title: string, value: string, icon: any, trend: string, positive?: boolean }) {
+function KPICard({ title, value, icon, trend, positive }: { title: string, value: string, icon: any, trend?: string, positive?: boolean }) {
   return (
     <Card>
       <CardContent className="p-6">
