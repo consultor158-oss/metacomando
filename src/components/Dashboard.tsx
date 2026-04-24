@@ -380,6 +380,7 @@ export function Dashboard() {
                   creatives={creativesData} 
                   scalingCampaign={scalingCampaign}
                   onStepChange={setTutorialStep}
+                  onClearFilter={() => setScalingCampaign(null)}
                   onComplete={(data) => {
                     setDryRunData(data);
                   }} 
