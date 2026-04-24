@@ -582,7 +582,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
 
   if (!campaign) return null;
 
-  const fullData = details.data?.ok ? details.data.data : null;
+  // fullData already declared above
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
