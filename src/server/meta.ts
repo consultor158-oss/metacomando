@@ -203,7 +203,7 @@ export const updateBudget = createServerFn({ method: "POST" })
     try {
       const result = await metaPost(data.id, { 
         daily_budget: String(data.dailyBudgetCents),
-        ...(data.type === "adset" ? { is_adset_budget_sharing_enabled: "false" } : {})
+        ...(data.type === "adset" ? { is_adset_budget_sharing_enabled: false } : {})
       });
       return { ok: true as const, data: result };
     } catch (e) {
