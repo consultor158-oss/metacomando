@@ -1615,9 +1615,16 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
   ];
 
   const handleFinish = () => {
+    const selected = allCreatives.filter(c => selectedCreatives.includes(c.id));
+    if (selected.length === 0) {
+      toast.error("Por favor, selecione pelo menos um criativo no Passo 4.");
+      setStep(4);
+      return;
+    }
+
     onComplete({
       strategy: selectedStrategy,
-      creatives: allCreatives.filter(c => selectedCreatives.includes(c.id)),
+      creatives: selected,
       name,
       budget: Number(budget) * 100,
       targeting: { 
