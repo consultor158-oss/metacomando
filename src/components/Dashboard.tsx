@@ -356,6 +356,7 @@ export function Dashboard() {
                   {view === "ai_analysis" && "Análise de Performance IA"}
                   {view === "ecommerce" && "Rastrear Ecommerce"}
                   {view === "crm" && "CRM Interno"}
+                  {view === "apis" && "APÍS"}
                   
                 </h1>
                 <p className="text-xs text-muted-foreground">
