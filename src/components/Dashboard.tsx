@@ -1319,38 +1319,62 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
           )}
 
           {step === 4 && (
-            <div className="space-y-6">
-               <div className="flex items-center justify-between">
-                 <h3 className="font-bold">Selecione seus Criativos Winners</h3>
-                 <span className="text-xs text-muted-foreground">{selectedCreatives.length} selecionados</span>
+            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                 <div>
+                   <h3 className="text-xl font-black uppercase">Selecione seus Criativos Winners</h3>
+                   <p className="text-xs text-muted-foreground">Escolha os anúncios que já performam bem para escalar com segurança.</p>
+                 </div>
+                 <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold">
+                   {selectedCreatives.length} DE {creatives.length} SELECIONADOS
+                 </Badge>
                </div>
                
-               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                   {creatives.map(c => (
                     <div 
                       key={c.id} 
                       onClick={() => setSelectedCreatives(p => p.includes(c.id) ? p.filter(i => i !== c.id) : [...p, c.id])} 
-                      className={`relative cursor-pointer rounded-xl border-2 p-2 transition-all hover:shadow-md ${selectedCreatives.includes(c.id) ? 'border-primary bg-primary/5 shadow-inner' : 'border-border'}`}
+                      className={`group relative cursor-pointer rounded-2xl border-2 p-2 transition-all hover:shadow-2xl hover:-translate-y-1 ${selectedCreatives.includes(c.id) ? 'border-primary bg-primary/5 shadow-xl shadow-primary/10' : 'border-border grayscale hover:grayscale-0'}`}
                     >
-                      <div className="aspect-square mb-2 overflow-hidden rounded-lg bg-muted">
-                        <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover" />
+                      <div className="aspect-[4/5] mb-3 overflow-hidden rounded-xl bg-muted relative">
+                        <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
                         {c.video_id && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                            <Video className="h-8 w-8 text-white drop-shadow-lg" />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-60 group-hover:opacity-100 transition-opacity">
+                            <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
+                               <Video className="h-5 w-5 text-white" />
+                            </div>
                           </div>
                         )}
+                        <div className="absolute top-2 left-2 flex gap-1">
+                           <Badge className="bg-black/60 text-[8px] h-4">CTR 1.8%</Badge>
+                        </div>
                       </div>
-                      <p className="text-[10px] font-bold truncate uppercase">{c.name}</p>
+                      <p className="text-[10px] font-black truncate uppercase tracking-tighter">{c.name}</p>
                       {selectedCreatives.includes(c.id) && (
-                        <div className="absolute -top-2 -right-2 h-6 w-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center border-2 border-background">
-                          <CheckCircle2 className="h-4 w-4" />
+                        <div className="absolute -top-3 -right-3 h-8 w-8 bg-primary text-primary-foreground rounded-xl flex items-center justify-center border-4 border-background shadow-lg rotate-12 scale-110 animate-in zoom-in duration-300">
+                          <CheckCircle2 className="h-5 w-5" />
                         </div>
                       )}
                     </div>
                   ))}
-                  <div className="border-2 border-dashed rounded-xl p-2 flex flex-col items-center justify-center text-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors h-[140px]">
-                     <Plus className="h-8 w-8 text-muted-foreground" />
-                     <p className="text-[10px] font-bold uppercase">Novo Criativo</p>
+                  <div className="border-4 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-4 cursor-pointer hover:bg-primary/5 hover:border-primary/50 transition-all aspect-[4/5] group">
+                     <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                        <Plus className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                     </div>
+                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Hospedar Mídia</p>
+                  </div>
+               </div>
+
+               <div className="p-6 rounded-2xl bg-slate-900 border-2 border-slate-800">
+                  <div className="flex items-center gap-3">
+                     <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Rocket className="h-5 w-5 text-primary" />
+                     </div>
+                     <div>
+                        <p className="text-sm font-bold text-slate-100">Pronto para a Escala Ultra</p>
+                        <p className="text-xs text-slate-400">Ao clicar em finalizar, o motor de IA criará a estrutura completa no seu Gerenciador de Anúncios.</p>
+                     </div>
                   </div>
                </div>
             </div>
