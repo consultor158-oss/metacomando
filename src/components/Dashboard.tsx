@@ -513,8 +513,8 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
   const [budget, setBudget] = useState("");
   const [budgetType, setBudgetType] = useState<"daily" | "lifetime">("daily");
   const [status, setStatus] = useState<"ACTIVE" | "PAUSED" | "ARCHIVED">("PAUSED");
+  const [objective, setObjective] = useState("");
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState("config");
 
   const details = useQuery({
     queryKey: ["meta-campaign-details", campaign?.id],
@@ -522,7 +522,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
     enabled: !!campaign && isOpen
   });
 
-  const detailsData = details.data?.ok ? details.data : null;
+  const fullData = details.data?.ok ? details.data.data : null;
 
   useEffect(() => {
     if (campaign) {
@@ -535,6 +535,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
         setBudgetType("lifetime");
       }
       setStatus(campaign.status || "PAUSED");
+      setObjective(campaign.objective || "");
     }
   }, [campaign]);
 
@@ -546,8 +547,9 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
         campaignId: campaign.id,
         name,
         status: status as any,
-        dailyBudget: budgetType === "daily" ? Math.round(parseFloat(budget) * 100) : undefined,
-        lifetimeBudget: budgetType === "lifetime" ? Math.round(parseFloat(budget) * 100) : undefined,
+        daily_budget: budgetType === "daily" ? Math.round(parseFloat(budget) * 100) : undefined,
+        lifetime_budget: budgetType === "lifetime" ? Math.round(parseFloat(budget) * 100) : undefined,
+        objective: objective || undefined,
       }
     });
     if (res.ok) {
