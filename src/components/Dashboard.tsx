@@ -1133,17 +1133,17 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
   }, [selectedStrategy]);
 
   const steps = [
-    { id: 1, title: "Estratgia", desc: "Como vamos escalar?" },
-    { id: 2, title: "Configurao", desc: "Nome e Oramento" },
-    { id: 3, title: "Pblico", desc: "Regio e Interesses" },
-    { id: 4, title: "Criativos", desc: "Seus melhores anncios" }
+    { id: 1, title: "Estratégia", desc: "Como vamos escalar?" },
+    { id: 2, title: "Configuração", desc: "Nome e Orçamento" },
+    { id: 3, title: "Público", desc: "Região e Interesses" },
+    { id: 4, title: "Criativos", desc: "Seus melhores anúncios" }
   ];
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
       <div className="text-center space-y-4">
         <h2 className="text-4xl font-extrabold tracking-tight">Escala Guiada Passo a Passo</h2>
-        <p className="text-muted-foreground text-lg">Siga o guia real para dominar seus anncios como um administrador profissional.</p>
+        <p className="text-muted-foreground text-lg">Siga o guia real para dominar seus anúncios como um administrador profissional.</p>
         
         <div className="flex justify-center gap-4 mt-8 bg-muted/20 p-6 rounded-2xl border border-border/50">
           {steps.map(s => (
@@ -1204,16 +1204,16 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                   <Label htmlFor="tut-name" className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                     <Rocket className="h-4 w-4 text-primary" /> Nome Identificador da Campanha
                   </Label>
-                  <Input id="tut-name" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: [IA] Escala de Vero" className="h-12 text-lg font-bold border-2 focus:border-primary" />
+                  <Input id="tut-name" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: [IA] Escala de Verão" className="h-12 text-lg font-bold border-2 focus:border-primary" />
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-8">
                   <div className="grid gap-3">
-                    <Label htmlFor="tut-budget" className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Oramento Dirio (R$)</Label>
+                    <Label htmlFor="tut-budget" className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Orçamento Diário (R$)</Label>
                     <div className="flex flex-col gap-3">
                       <Input id="tut-budget" type="number" value={budget} onChange={e => setBudget(e.target.value)} className="h-12 text-lg font-bold border-2 text-primary" />
                       <p className="text-[10px] text-muted-foreground bg-primary/5 p-2 rounded-lg border border-primary/10 italic">
-                        Sugesto Profissional: R$ {selectedStrategy.defaults.dailyBudgetCents/100}
+                        Sugestão Profissional: R$ {selectedStrategy.defaults.dailyBudgetCents/100}
                       </p>
                     </div>
                   </div>
@@ -1221,9 +1221,9 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                   <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col justify-center">
                     <div className="flex items-center gap-2 mb-2">
                        <ShieldCheck className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />
-                       <p className="text-xs font-black uppercase text-slate-100">Configurao de Segurana</p>
+                       <p className="text-xs font-black uppercase text-slate-100">Configuração de Segurança</p>
                     </div>
-                    <p className="text-[11px] text-slate-400">A estratgia <b>{selectedStrategy.name}</b> ser aplicada automaticamente em nvel de Campanha (CBO) para maximizar o ROAS.</p>
+                    <p className="text-[11px] text-slate-400">A estratégia <b>{selectedStrategy.name}</b> será aplicada automaticamente em nível de Campanha (CBO) para maximizar o ROAS.</p>
                   </div>
                 </div>
               </div>
@@ -1234,8 +1234,8 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                 </div>
                 <p className="text-sm font-black flex items-center gap-2 mb-2"><Zap className="h-4 w-4 text-primary" /> INSIGHT DO MOTOR DE IA</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Para garantir a fase de aprendizado da Meta, recomendamos manter esse oramento por no mnimo 7 dias sem alteraes bruscas. 
-                  O motor de escala cuidar das otimizaes automticas.
+                  Para garantir a fase de aprendizado da Meta, recomendamos manter esse orçamento por no mínimo 7 dias sem alterações bruscas. 
+                  O motor de escala cuidará das otimizações automáticas.
                 </p>
               </div>
             </div>
@@ -1246,21 +1246,21 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
               <div className="grid gap-8 md:grid-cols-2">
                 <div className="space-y-6">
                   <Label className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                    <Globe className="h-5 w-5" /> Geografia do Pblico
+                    <Globe className="h-5 w-5" /> Geografia do Público
                   </Label>
                   <div className="grid gap-4 bg-muted/30 p-6 rounded-2xl border border-border">
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-state" className="text-[10px] font-bold uppercase text-muted-foreground">Estado / Regio</Label>
+                      <Label htmlFor="tut-state" className="text-[10px] font-bold uppercase text-muted-foreground">Estado / Região</Label>
                       <Select value={state} onValueChange={setState}>
                         <SelectTrigger id="tut-state" className="h-11">
                           <SelectValue placeholder="Selecione o Estado" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="SP">So Paulo</SelectItem>
+                          <SelectItem value="SP">São Paulo</SelectItem>
                           <SelectItem value="RJ">Rio de Janeiro</SelectItem>
                           <SelectItem value="MG">Minas Gerais</SelectItem>
                           <SelectItem value="RS">Rio Grande do Sul</SelectItem>
-                          <SelectItem value="PR">Paran</SelectItem>
+                          <SelectItem value="PR">Paraná</SelectItem>
                           <SelectItem value="SC">Santa Catarina</SelectItem>
                           <SelectItem value="BA">Bahia</SelectItem>
                           <SelectItem value="ALL">Todo o Brasil</SelectItem>
@@ -1268,10 +1268,10 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-city" className="text-[10px] font-bold uppercase text-muted-foreground">Cidade Especfica</Label>
+                      <Label htmlFor="tut-city" className="text-[10px] font-bold uppercase text-muted-foreground">Cidade Específica</Label>
                       <Input 
                         id="tut-city" 
-                        placeholder="Ex: So Paulo, Campinas..." 
+                        placeholder="Ex: São Paulo, Campinas..." 
                         value={city} 
                         onChange={(e) => setCity(e.target.value)}
                         className="h-11"
@@ -1286,7 +1286,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                   </Label>
                   <div className="grid gap-4 bg-muted/30 p-6 rounded-2xl border border-border">
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-interests" className="text-[10px] font-bold uppercase text-muted-foreground">Palavras-chave (IA filtrar)</Label>
+                      <Label htmlFor="tut-interests" className="text-[10px] font-bold uppercase text-muted-foreground">Palavras-chave (IA filtrará)</Label>
                       <Input 
                         id="tut-interests" 
                         placeholder="Ex: Marketing Digital, E-commerce, Moda..." 
@@ -1298,10 +1298,10 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                     <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
                       <div className="flex items-center gap-2 mb-1">
                          <Zap className="h-3 w-3 text-blue-500" />
-                         <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Recomendao IA</p>
+                         <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Recomendação IA</p>
                       </div>
                       <p className="text-[10px] text-muted-foreground">
-                        Para a estratgia <b>{selectedStrategy.name}</b>, o motor de IA sugere comear com "Pblico Aberto" para que o algoritmo do Meta encontre seus clientes mais rapidamente.
+                        Para a estratégia <b>{selectedStrategy.name}</b>, o motor de IA sugere começar com "Público Aberto" para que o algoritmo do Meta encontre seus clientes mais rapidamente.
                       </p>
                     </div>
                   </div>
@@ -1311,8 +1311,8 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
               <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Configurao do Pblico:</p>
-                   <p className="text-xs text-slate-100 font-bold">{state === 'ALL' ? 'Brasil Inteiro' : (state || 'Brasil')} {city ? ` ${city}` : ""} {interests ? `+ ${interests.split(',').length} Interesses` : "+ Pblico Aberto"}</p>
+                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Configuração do Público:</p>
+                   <p className="text-xs text-slate-100 font-bold">{state === 'ALL' ? 'Brasil Inteiro' : (state || 'Brasil')} {city ? ` ${city}` : ""} {interests ? `+ ${interests.split(',').length} Interesses` : "+ Público Aberto"}</p>
                 </div>
               </div>
             </div>
@@ -1323,7 +1323,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                  <div>
                    <h3 className="text-xl font-black uppercase">Selecione seus Criativos Winners</h3>
-                   <p className="text-xs text-muted-foreground">Escolha os anncios que j performam bem para escalar com segurana.</p>
+                   <p className="text-xs text-muted-foreground">Escolha os anúncios que já performam bem para escalar com segurança.</p>
                  </div>
                  <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold">
                    {selectedCreatives.length} DE {creatives.length} SELECIONADOS
@@ -1362,7 +1362,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                      <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
                         <Plus className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors" />
                      </div>
-                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Hospedar Mdia</p>
+                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Hospedar Mídia</p>
                   </div>
                </div>
 
@@ -1373,7 +1373,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                      </div>
                      <div>
                         <p className="text-sm font-bold text-slate-100">Pronto para a Escala Ultra</p>
-                        <p className="text-xs text-slate-400">Ao clicar em finalizar, o motor de IA criar a estrutura completa no seu Gerenciador de Anncios.</p>
+                        <p className="text-xs text-slate-400">Ao clicar em finalizar, o motor de IA criará a estrutura completa no seu Gerenciador de Anúncios.</p>
                      </div>
                   </div>
                </div>
