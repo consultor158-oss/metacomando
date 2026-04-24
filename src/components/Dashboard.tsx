@@ -1202,7 +1202,7 @@ function ScalesTab({ onSelect }: { onSelect: (s: ScaleStrategy) => void }) {
 }
 
 
-function CreativesTab({ creatives }: { creatives: any[] }) {
+function CreativesTab({ creatives, onEscalate }: { creatives: any[], onEscalate?: (campaign: string) => void }) {
   const [selectedCreative, setSelectedCreative] = useState<any | null>(null);
   const [filter, setFilter] = useState("CARBON");
   const [view, setView] = useState<"folders" | "files">("folders");
