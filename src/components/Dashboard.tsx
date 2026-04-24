@@ -449,6 +449,10 @@ export function Dashboard() {
           data={dryRunData} 
           pages={pagesData}
         />
+        <MetaConnectDialog 
+          isOpen={isMetaConnectOpen} 
+          onClose={() => setIsMetaConnectOpen(false)} 
+        />
       </div>
     </SidebarProvider>
   );
