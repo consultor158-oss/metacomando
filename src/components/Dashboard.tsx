@@ -353,6 +353,7 @@ export function Dashboard() {
                 </div>
               </div>
             )}
+            {view === "scale_test" && <ScaleTestTab campaigns={campaignsData} />}
             {view === "creatives" && <CreativesTab creatives={creativesData} />}
             {view === "automation" && <AutomationTab />}
             {view === "settings" && <SettingsTab account={accountData} />}
