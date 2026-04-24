@@ -1242,17 +1242,17 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
           )}
 
           {step === 3 && (
-            <div className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-4">
-                  <Label className="text-sm font-bold flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-primary" /> Localização Detalhada
+            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+              <div className="grid gap-8 md:grid-cols-2">
+                <div className="space-y-6">
+                  <Label className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                    <Globe className="h-5 w-5" /> Geografia do Público
                   </Label>
-                  <div className="grid gap-3">
+                  <div className="grid gap-4 bg-muted/30 p-6 rounded-2xl border border-border">
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-state" className="text-xs">Estado</Label>
+                      <Label htmlFor="tut-state" className="text-[10px] font-bold uppercase text-muted-foreground">Estado / Região</Label>
                       <Select value={state} onValueChange={setState}>
-                        <SelectTrigger id="tut-state">
+                        <SelectTrigger id="tut-state" className="h-11">
                           <SelectValue placeholder="Selecione o Estado" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1268,43 +1268,52 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-city" className="text-xs">Cidade / Município</Label>
+                      <Label htmlFor="tut-city" className="text-[10px] font-bold uppercase text-muted-foreground">Cidade Específica</Label>
                       <Input 
                         id="tut-city" 
                         placeholder="Ex: São Paulo, Campinas..." 
                         value={city} 
                         onChange={(e) => setCity(e.target.value)}
+                        className="h-11"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <Label className="text-sm font-bold flex items-center gap-2">
-                    <Target className="h-4 w-4 text-primary" /> Interesses e Segmentação
+                <div className="space-y-6">
+                  <Label className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                    <Target className="h-5 w-5" /> Interesses e Comportamento
                   </Label>
-                  <div className="grid gap-3">
+                  <div className="grid gap-4 bg-muted/30 p-6 rounded-2xl border border-border">
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-interests" className="text-xs">Interesses (Separados por vírgula)</Label>
+                      <Label htmlFor="tut-interests" className="text-[10px] font-bold uppercase text-muted-foreground">Palavras-chave (IA filtrará)</Label>
                       <Input 
                         id="tut-interests" 
                         placeholder="Ex: Marketing Digital, E-commerce, Moda..." 
                         value={interests}
                         onChange={(e) => setInterests(e.target.value)}
+                        className="h-11"
                       />
                     </div>
-                    <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                      <p className="text-[10px] text-blue-500 font-bold uppercase">IA Suggestion</p>
-                      <p className="text-[10px] text-muted-foreground">O motor de IA recomenda usar "Público Aberto" para a estratégia {selectedStrategy.name} se o orçamento for menor que R$ 100/dia.</p>
+                    <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                      <div className="flex items-center gap-2 mb-1">
+                         <Zap className="h-3 w-3 text-blue-500" />
+                         <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Recomendação IA</p>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        Para a estratégia <b>{selectedStrategy.name}</b>, o motor de IA sugere começar com "Público Aberto" para que o algoritmo do Meta encontre seus clientes mais rapidamente.
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-                <p className="text-xs text-muted-foreground">
-                  <span className="font-bold text-primary">Configuração Atual:</span> {state || "Brasil"} {city ? `> ${city}` : ""} {interests ? `| Interesses: ${interests}` : "| Público Aberto"}
-                </p>
+              <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                   <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Configuração do Público:</p>
+                   <p className="text-xs text-slate-100 font-bold">{state === 'ALL' ? 'Brasil Inteiro' : (state || 'Brasil')} {city ? `> ${city}` : ""} {interests ? `+ ${interests.split(',').length} Interesses` : "+ Público Aberto"}</p>
+                </div>
               </div>
             </div>
           )}
