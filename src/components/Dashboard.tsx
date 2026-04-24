@@ -50,7 +50,9 @@ import {
   getCampaignDetails,
   updateAdStatus,
   updateAdsetStatus,
-  updateAdsetBudget
+  updateAdsetBudget,
+  updateAdsetName,
+  updateAdName
 } from "../server/meta";
 import { WhatsAppModal } from "./WhatsAppModal";
 import { SCALE_STRATEGIES, ScaleStrategy } from "../lib/scales";
@@ -433,11 +435,12 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
             <TableRow>
               <TableHead className="w-[40px]">Status</TableHead>
               <TableHead className="w-[300px]">Campanha / Objetivo</TableHead>
-              <TableHead>Entrega / Destino</TableHead>
-              <TableHead>Orçamento</TableHead>
               <TableHead>Investido</TableHead>
+              <TableHead>Vendas</TableHead>
               <TableHead>ROAS</TableHead>
               <TableHead>CPA</TableHead>
+              <TableHead>CTR</TableHead>
+              <TableHead>CPC</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -463,53 +466,29 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
                     <span className="text-[9px] text-muted-foreground font-mono">ID: {c.id}</span>
                   </div>
                 </TableCell>
+                <TableCell>{formatBRL(c.spend)}</TableCell>
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="text-xs font-medium flex items-center gap-1">
-                      {c.objective === "OUTCOME_ENGAGEMENT" ? (
-                        <><MessageCircle className="h-3 w-3 text-green-500" /> WhatsApp</>
-                      ) : (
-                        <><Globe className="h-3 w-3 text-blue-500" /> Site/Vendas</>
-                      )}
-                    </span>
-                    <span className="text-[9px] text-muted-foreground uppercase">Aprendizado</span>
+                    <span className="font-bold">{c.conversions || 0}</span>
+                    <span className="text-[9px] text-muted-foreground uppercase">Purchases</span>
                   </div>
                 </TableCell>
-                <TableCell>
-                  <div className="text-sm">
-                    {c.daily_budget ? (
-                      <div className="flex flex-col">
-                        <span>{formatBRL(parseInt(c.daily_budget) / 100)}</span>
-                        <span className="text-[9px] text-muted-foreground uppercase">Diário</span>
-                      </div>
-                    ) : c.lifetime_budget ? (
-                      <div className="flex flex-col">
-                        <span>{formatBRL(parseInt(c.lifetime_budget) / 100)}</span>
-                        <span className="text-[9px] text-muted-foreground uppercase">Vitalício</span>
-                      </div>
-                    ) : (
-                      "N/A"
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>{formatBRL(c.spend)}</TableCell>
                 <TableCell className={`font-bold ${c.roas >= 2.5 ? 'text-[oklch(0.7_0.18_162)]' : 'text-blue-500'}`}>
                   {c.roas.toFixed(2)}x
                 </TableCell>
                 <TableCell>{formatBRL(c.cpa)}</TableCell>
+                <TableCell>{c.ctr.toFixed(2)}%</TableCell>
+                <TableCell>{formatBRL(c.cpc)}</TableCell>
                 <TableCell className="text-right">
                    <div className="flex justify-end gap-1">
-                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingCampaign(c)}>
+                     <Button variant="ghost" size="icon" title="Edição Completa" className="h-8 w-8" onClick={() => setEditingCampaign(c)}>
                        <Edit2 className="h-3.5 w-3.5" />
                      </Button>
-                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDuplicate(c.id)}>
+                     <Button variant="ghost" size="icon" title="Duplicar" className="h-8 w-8" onClick={() => handleDuplicate(c.id)}>
                        <Copy className="h-3.5 w-3.5" />
                      </Button>
-                     <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(c.id)}>
+                     <Button variant="ghost" size="icon" title="Excluir" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(c.id)}>
                        <Trash2 className="h-3.5 w-3.5" />
-                     </Button>
-                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toast.info(`Relatório completo de ${c.name} em breve.`)}>
-                       <BarChart3 className="h-3.5 w-3.5" />
                      </Button>
                    </div>
                 </TableCell>
@@ -621,6 +600,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
               <TabsTrigger value="settings" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Configurações</TabsTrigger>
               <TabsTrigger value="adsets" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Conjuntos ({fullCampaignData?.adsets?.length || 0})</TabsTrigger>
               <TabsTrigger value="ads" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Anúncios ({fullCampaignData?.ads?.length || 0})</TabsTrigger>
+              <TabsTrigger value="performance" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Desempenho</TabsTrigger>
               <TabsTrigger value="creatives" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0">Visual Criativos</TabsTrigger>
             </TabsList>
           </div>
@@ -628,15 +608,15 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
           <ScrollArea className="flex-1">
             <div className="p-6">
               <TabsContent value="settings" className="mt-0 space-y-4">
-                <div className="grid gap-4">
+                <div className="grid gap-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="name">Nome da Campanha</Label>
-                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                    <Label htmlFor="name" className="text-[10px] font-bold uppercase text-muted-foreground">Nome da Campanha</Label>
+                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="font-bold" />
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-6">
                     <div className="grid gap-2">
-                      <Label htmlFor="status">Status</Label>
+                      <Label htmlFor="status" className="text-[10px] font-bold uppercase text-muted-foreground">Status</Label>
                       <Select value={status} onValueChange={(v: any) => setStatus(v)}>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione" />
@@ -649,15 +629,15 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="objective">Objetivo</Label>
+                      <Label htmlFor="objective" className="text-[10px] font-bold uppercase text-muted-foreground">Objetivo de Marketing</Label>
                       <Select value={objective} onValueChange={setObjective}>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="OUTCOME_SALES">Vendas</SelectItem>
-                          <SelectItem value="OUTCOME_LEADS">Cadastros</SelectItem>
-                          <SelectItem value="OUTCOME_ENGAGEMENT">Engajamento</SelectItem>
+                          <SelectItem value="OUTCOME_SALES">Vendas (Purchase)</SelectItem>
+                          <SelectItem value="OUTCOME_LEADS">Cadastros (Leads)</SelectItem>
+                          <SelectItem value="OUTCOME_ENGAGEMENT">Engajamento / WhatsApp</SelectItem>
                           <SelectItem value="OUTCOME_TRAFFIC">Tráfego</SelectItem>
                           <SelectItem value="OUTCOME_AWARENESS">Reconhecimento</SelectItem>
                         </SelectContent>
@@ -665,25 +645,87 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-6">
                     <div className="grid gap-2">
-                      <Label htmlFor="budget_type">Tipo Orçamento</Label>
+                      <Label htmlFor="budget_type" className="text-[10px] font-bold uppercase text-muted-foreground">Controle de Orçamento</Label>
                       <Select value={budgetType} onValueChange={(v: any) => setBudgetType(v)}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="daily">Diário</SelectItem>
-                          <SelectItem value="lifetime">Vitalício</SelectItem>
+                          <SelectItem value="daily">Orçamento Diário</SelectItem>
+                          <SelectItem value="lifetime">Orçamento Vitalício</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="budget">Valor (R$)</Label>
-                      <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} />
+                      <Label htmlFor="budget" className="text-[10px] font-bold uppercase text-muted-foreground">Valor Investimento (R$)</Label>
+                      <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} className="font-bold text-primary" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6 pt-4 border-t">
+                    <div className="grid gap-2">
+                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Estratégia de Lance</Label>
+                      <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.bid_strategy || "Volume Mais Alto"}</Badge>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Tipo de Compra</Label>
+                      <Badge variant="outline" className="w-fit">{fullCampaignData?.campaign?.buying_type || "Leilão"}</Badge>
                     </div>
                   </div>
                 </div>
+              </TabsContent>
+
+              <TabsContent value="performance" className="mt-0">
+                {fullCampaignData?.insights ? (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                       <div className="p-4 rounded-xl border bg-muted/30">
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase">Gasto Total</p>
+                          <p className="text-lg font-bold">{formatBRL(fullCampaignData.insights.spend)}</p>
+                       </div>
+                       <div className="p-4 rounded-xl border bg-muted/30 border-primary/20">
+                          <p className="text-[10px] font-bold text-primary uppercase">ROAS</p>
+                          <p className="text-lg font-bold">{fullCampaignData.insights.roas.toFixed(2)}x</p>
+                       </div>
+                       <div className="p-4 rounded-xl border bg-muted/30">
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase">Vendas</p>
+                          <p className="text-lg font-bold">{fullCampaignData.insights.purchases}</p>
+                       </div>
+                       <div className="p-4 rounded-xl border bg-muted/30">
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase">CPA Médio</p>
+                          <p className="text-lg font-bold">{formatBRL(fullCampaignData.insights.cpa)}</p>
+                       </div>
+                    </div>
+
+                    <Card>
+                      <CardHeader className="p-4">
+                        <CardTitle className="text-sm">Principais Métricas</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-0 space-y-4">
+                        <div className="flex justify-between items-center py-2 border-b">
+                           <span className="text-xs text-muted-foreground">CTR Geral</span>
+                           <span className="text-xs font-bold">{fullCampaignData.insights.ctr.toFixed(2)}%</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b">
+                           <span className="text-xs text-muted-foreground">CPC Médio</span>
+                           <span className="text-xs font-bold">{formatBRL(fullCampaignData.insights.cpc)}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b">
+                           <span className="text-xs text-muted-foreground">Impressões</span>
+                           <span className="text-xs font-bold">{formatNumber(fullCampaignData.insights.impressions)}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2">
+                           <span className="text-xs text-muted-foreground">Alcance Único</span>
+                           <span className="text-xs font-bold">{formatNumber(fullCampaignData.insights.reach)}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ) : (
+                  <div className="text-center py-20 text-muted-foreground">Sem dados de desempenho para o período.</div>
+                )}
               </TabsContent>
 
               <TabsContent value="adsets" className="mt-0">
@@ -698,7 +740,16 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                           onCheckedChange={() => handleUpdateAdsetStatus(as.id, as.status)}
                         />
                         <div>
-                          <p className="text-sm font-medium">{as.name}</p>
+                          <Input 
+                            className="text-sm font-medium h-7 border-transparent hover:border-input focus:border-input bg-transparent hover:bg-muted focus:bg-background transition-all" 
+                            defaultValue={as.name}
+                            onBlur={async (e) => {
+                              if (e.target.value !== as.name) {
+                                await updateAdsetName({ data: { adsetId: as.id, name: e.target.value } });
+                                toast.success("Nome do conjunto atualizado");
+                              }
+                            }}
+                          />
                           <div className="flex items-center gap-3 mt-1">
                             <div className="flex items-center gap-1">
                               <Input 
@@ -756,7 +807,16 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                           />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{ad.name}</p>
+                          <Input 
+                            className="text-sm font-medium h-7 border-transparent hover:border-input focus:border-input bg-transparent hover:bg-muted focus:bg-background transition-all p-0" 
+                            defaultValue={ad.name}
+                            onBlur={async (e) => {
+                              if (e.target.value !== ad.name) {
+                                await updateAdName({ data: { adId: ad.id, name: e.target.value } });
+                                toast.success("Nome do anúncio atualizado");
+                              }
+                            }}
+                          />
                           <p className="text-[10px] text-muted-foreground truncate max-w-[300px]">{ad.creative?.body || ad.creative?.title || "Sem texto"}</p>
                         </div>
                       </div>
@@ -1085,77 +1145,114 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
         <h2 className="text-4xl font-extrabold tracking-tight">Escala Guiada Passo a Passo</h2>
         <p className="text-muted-foreground text-lg">Siga o guia real para dominar seus anúncios como um administrador profissional.</p>
         
-        <div className="flex justify-center gap-4 mt-8">
+        <div className="flex justify-center gap-4 mt-8 bg-muted/20 p-6 rounded-2xl border border-border/50">
           {steps.map(s => (
-            <div key={s.id} className="flex flex-col items-center gap-2">
-              <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold transition-all ${step >= s.id ? 'bg-primary text-primary-foreground scale-110 shadow-lg' : 'bg-muted text-muted-foreground opacity-50'}`}>
+            <div key={s.id} className="flex flex-col items-center gap-3 w-24">
+              <div className={`h-12 w-12 rounded-2xl flex items-center justify-center font-bold transition-all ${step >= s.id ? 'bg-primary text-primary-foreground scale-110 shadow-lg shadow-primary/20 rotate-3' : 'bg-muted text-muted-foreground opacity-50'}`}>
                 {step > s.id ? <CheckCircle2 className="h-6 w-6" /> : s.id}
               </div>
-              <span className={`text-xs font-bold uppercase tracking-wider ${step === s.id ? 'text-primary' : 'text-muted-foreground'}`}>{s.title}</span>
+              <div className="text-center">
+                <span className={`text-[10px] font-black uppercase tracking-widest block ${step === s.id ? 'text-primary' : 'text-muted-foreground'}`}>{s.title}</span>
+                <span className="text-[8px] text-muted-foreground line-clamp-1 hidden md:block">{s.desc}</span>
+              </div>
             </div>
           ))}
         </div>
       </div>
 
-      <Card className="border-2 shadow-xl overflow-hidden">
-        <CardHeader className="bg-muted/30 border-b">
-          <CardTitle className="flex items-center gap-2">
-             <span className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold">{step}</span>
-             {steps[step-1].title}: {steps[step-1].desc}
-          </CardTitle>
+      <Card className="border-2 shadow-2xl overflow-hidden rounded-3xl bg-card/50 backdrop-blur-sm border-primary/10">
+        <CardHeader className="bg-gradient-to-r from-primary/10 via-background to-background border-b p-8">
+          <div className="flex items-center gap-4">
+             <div className="h-14 w-14 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground shadow-xl shadow-primary/20">
+                {step === 1 && <Layers className="h-7 w-7" />}
+                {step === 2 && <Settings className="h-7 w-7" />}
+                {step === 3 && <Target className="h-7 w-7" />}
+                {step === 4 && <ImageIcon className="h-7 w-7" />}
+             </div>
+             <div>
+               <p className="text-xs font-bold text-primary uppercase tracking-widest mb-1">Passo {step} de 4</p>
+               <CardTitle className="text-2xl font-black">{steps[step-1].title}: {steps[step-1].desc}</CardTitle>
+             </div>
+          </div>
         </CardHeader>
-        <CardContent className="p-8">
+        <CardContent className="p-10">
           {step === 1 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {SCALE_STRATEGIES.map(s => (
                 <div 
                   key={s.id} 
                   onClick={() => setSelectedStrategy(s)}
-                  className={`p-4 rounded-xl border-2 transition-all cursor-pointer hover:shadow-md ${selectedStrategy.id === s.id ? 'border-primary bg-primary/5' : 'border-border'}`}
+                  className={`group p-6 rounded-2xl border-2 transition-all cursor-pointer hover:shadow-xl ${selectedStrategy.id === s.id ? 'border-primary bg-primary/5 shadow-lg' : 'border-border hover:border-primary/50'}`}
                 >
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-2xl">{s.emoji}</span>
-                    <h3 className="font-bold">{s.name}</h3>
-                    {selectedStrategy.id === s.id && <Badge className="ml-auto">Selecionado</Badge>}
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="text-4xl group-hover:scale-125 transition-transform">{s.emoji}</div>
+                    <div>
+                      <h3 className="font-bold text-lg">{s.name}</h3>
+                      {selectedStrategy.id === s.id && <Badge className="bg-primary text-primary-foreground text-[10px]">RECOMENDADO</Badge>}
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">{s.shortDesc}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{s.shortDesc}</p>
                 </div>
               ))}
             </div>
           )}
 
           {step === 2 && (
-            <div className="space-y-6">
-              <div className="grid gap-2">
-                <Label htmlFor="tut-name">Nome da Campanha</Label>
-                <Input id="tut-name" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: [IA] Escala de Verão" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="tut-budget">Orçamento Diário (R$)</Label>
-                <div className="flex items-center gap-4">
-                  <Input id="tut-budget" type="number" value={budget} onChange={e => setBudget(e.target.value)} className="w-40" />
-                  <span className="text-xs text-muted-foreground">Valor sugerido pela estratégia {selectedStrategy.name}: R$ {selectedStrategy.defaults.dailyBudgetCents/100}</span>
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="grid gap-6">
+                <div className="grid gap-3">
+                  <Label htmlFor="tut-name" className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Rocket className="h-4 w-4 text-primary" /> Nome Identificador da Campanha
+                  </Label>
+                  <Input id="tut-name" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: [IA] Escala de Verão" className="h-12 text-lg font-bold border-2 focus:border-primary" />
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="grid gap-3">
+                    <Label htmlFor="tut-budget" className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Orçamento Diário (R$)</Label>
+                    <div className="flex flex-col gap-3">
+                      <Input id="tut-budget" type="number" value={budget} onChange={e => setBudget(e.target.value)} className="h-12 text-lg font-bold border-2 text-primary" />
+                      <p className="text-[10px] text-muted-foreground bg-primary/5 p-2 rounded-lg border border-primary/10 italic">
+                        Sugestão Profissional: R$ {selectedStrategy.defaults.dailyBudgetCents/100}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col justify-center">
+                    <div className="flex items-center gap-2 mb-2">
+                       <ShieldCheck className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />
+                       <p className="text-xs font-black uppercase text-slate-100">Configuração de Segurança</p>
+                    </div>
+                    <p className="text-[11px] text-slate-400">A estratégia <b>{selectedStrategy.name}</b> será aplicada automaticamente em nível de Campanha (CBO) para maximizar o ROAS.</p>
+                  </div>
                 </div>
               </div>
-              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-                <p className="text-sm font-bold flex items-center gap-2"><Zap className="h-4 w-4 text-primary" /> Dica do Mentor</p>
-                <p className="text-xs text-muted-foreground mt-1">A estratégia {selectedStrategy.name} funciona melhor com orçamentos acima de R$ {selectedStrategy.defaults.dailyBudgetCents/100} para garantir dados suficientes para a IA.</p>
+
+              <div className="p-6 rounded-2xl bg-primary/5 border-2 border-primary/20 relative overflow-hidden group">
+                <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform">
+                   <Zap className="h-24 w-24 text-primary" />
+                </div>
+                <p className="text-sm font-black flex items-center gap-2 mb-2"><Zap className="h-4 w-4 text-primary" /> INSIGHT DO MOTOR DE IA</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Para garantir a fase de aprendizado da Meta, recomendamos manter esse orçamento por no mínimo 7 dias sem alterações bruscas. 
+                  O motor de escala cuidará das otimizações automáticas.
+                </p>
               </div>
             </div>
           )}
 
           {step === 3 && (
-            <div className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-4">
-                  <Label className="text-sm font-bold flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-primary" /> Localização Detalhada
+            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+              <div className="grid gap-8 md:grid-cols-2">
+                <div className="space-y-6">
+                  <Label className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                    <Globe className="h-5 w-5" /> Geografia do Público
                   </Label>
-                  <div className="grid gap-3">
+                  <div className="grid gap-4 bg-muted/30 p-6 rounded-2xl border border-border">
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-state" className="text-xs">Estado</Label>
+                      <Label htmlFor="tut-state" className="text-[10px] font-bold uppercase text-muted-foreground">Estado / Região</Label>
                       <Select value={state} onValueChange={setState}>
-                        <SelectTrigger id="tut-state">
+                        <SelectTrigger id="tut-state" className="h-11">
                           <SelectValue placeholder="Selecione o Estado" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1171,80 +1268,113 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-city" className="text-xs">Cidade / Município</Label>
+                      <Label htmlFor="tut-city" className="text-[10px] font-bold uppercase text-muted-foreground">Cidade Específica</Label>
                       <Input 
                         id="tut-city" 
                         placeholder="Ex: São Paulo, Campinas..." 
                         value={city} 
                         onChange={(e) => setCity(e.target.value)}
+                        className="h-11"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <Label className="text-sm font-bold flex items-center gap-2">
-                    <Target className="h-4 w-4 text-primary" /> Interesses e Segmentação
+                <div className="space-y-6">
+                  <Label className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                    <Target className="h-5 w-5" /> Interesses e Comportamento
                   </Label>
-                  <div className="grid gap-3">
+                  <div className="grid gap-4 bg-muted/30 p-6 rounded-2xl border border-border">
                     <div className="grid gap-2">
-                      <Label htmlFor="tut-interests" className="text-xs">Interesses (Separados por vírgula)</Label>
+                      <Label htmlFor="tut-interests" className="text-[10px] font-bold uppercase text-muted-foreground">Palavras-chave (IA filtrará)</Label>
                       <Input 
                         id="tut-interests" 
                         placeholder="Ex: Marketing Digital, E-commerce, Moda..." 
                         value={interests}
                         onChange={(e) => setInterests(e.target.value)}
+                        className="h-11"
                       />
                     </div>
-                    <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                      <p className="text-[10px] text-blue-500 font-bold uppercase">IA Suggestion</p>
-                      <p className="text-[10px] text-muted-foreground">O motor de IA recomenda usar "Público Aberto" para a estratégia {selectedStrategy.name} se o orçamento for menor que R$ 100/dia.</p>
+                    <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                      <div className="flex items-center gap-2 mb-1">
+                         <Zap className="h-3 w-3 text-blue-500" />
+                         <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Recomendação IA</p>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">
+                        Para a estratégia <b>{selectedStrategy.name}</b>, o motor de IA sugere começar com "Público Aberto" para que o algoritmo do Meta encontre seus clientes mais rapidamente.
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-                <p className="text-xs text-muted-foreground">
-                  <span className="font-bold text-primary">Configuração Atual:</span> {state || "Brasil"} {city ? `> ${city}` : ""} {interests ? `| Interesses: ${interests}` : "| Público Aberto"}
-                </p>
+              <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                   <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Configuração do Público:</p>
+                   <p className="text-xs text-slate-100 font-bold">{state === 'ALL' ? 'Brasil Inteiro' : (state || 'Brasil')} {city ? `> ${city}` : ""} {interests ? `+ ${interests.split(',').length} Interesses` : "+ Público Aberto"}</p>
+                </div>
               </div>
             </div>
           )}
 
           {step === 4 && (
-            <div className="space-y-6">
-               <div className="flex items-center justify-between">
-                 <h3 className="font-bold">Selecione seus Criativos Winners</h3>
-                 <span className="text-xs text-muted-foreground">{selectedCreatives.length} selecionados</span>
+            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                 <div>
+                   <h3 className="text-xl font-black uppercase">Selecione seus Criativos Winners</h3>
+                   <p className="text-xs text-muted-foreground">Escolha os anúncios que já performam bem para escalar com segurança.</p>
+                 </div>
+                 <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold">
+                   {selectedCreatives.length} DE {creatives.length} SELECIONADOS
+                 </Badge>
                </div>
                
-               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                   {creatives.map(c => (
                     <div 
                       key={c.id} 
                       onClick={() => setSelectedCreatives(p => p.includes(c.id) ? p.filter(i => i !== c.id) : [...p, c.id])} 
-                      className={`relative cursor-pointer rounded-xl border-2 p-2 transition-all hover:shadow-md ${selectedCreatives.includes(c.id) ? 'border-primary bg-primary/5 shadow-inner' : 'border-border'}`}
+                      className={`group relative cursor-pointer rounded-2xl border-2 p-2 transition-all hover:shadow-2xl hover:-translate-y-1 ${selectedCreatives.includes(c.id) ? 'border-primary bg-primary/5 shadow-xl shadow-primary/10' : 'border-border grayscale hover:grayscale-0'}`}
                     >
-                      <div className="aspect-square mb-2 overflow-hidden rounded-lg bg-muted">
-                        <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover" />
+                      <div className="aspect-[4/5] mb-3 overflow-hidden rounded-xl bg-muted relative">
+                        <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
                         {c.video_id && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                            <Video className="h-8 w-8 text-white drop-shadow-lg" />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-60 group-hover:opacity-100 transition-opacity">
+                            <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
+                               <Video className="h-5 w-5 text-white" />
+                            </div>
                           </div>
                         )}
+                        <div className="absolute top-2 left-2 flex gap-1">
+                           <Badge className="bg-black/60 text-[8px] h-4">CTR 1.8%</Badge>
+                        </div>
                       </div>
-                      <p className="text-[10px] font-bold truncate uppercase">{c.name}</p>
+                      <p className="text-[10px] font-black truncate uppercase tracking-tighter">{c.name}</p>
                       {selectedCreatives.includes(c.id) && (
-                        <div className="absolute -top-2 -right-2 h-6 w-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center border-2 border-background">
-                          <CheckCircle2 className="h-4 w-4" />
+                        <div className="absolute -top-3 -right-3 h-8 w-8 bg-primary text-primary-foreground rounded-xl flex items-center justify-center border-4 border-background shadow-lg rotate-12 scale-110 animate-in zoom-in duration-300">
+                          <CheckCircle2 className="h-5 w-5" />
                         </div>
                       )}
                     </div>
                   ))}
-                  <div className="border-2 border-dashed rounded-xl p-2 flex flex-col items-center justify-center text-center gap-2 cursor-pointer hover:bg-muted/50 transition-colors h-[140px]">
-                     <Plus className="h-8 w-8 text-muted-foreground" />
-                     <p className="text-[10px] font-bold uppercase">Novo Criativo</p>
+                  <div className="border-4 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-4 cursor-pointer hover:bg-primary/5 hover:border-primary/50 transition-all aspect-[4/5] group">
+                     <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                        <Plus className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                     </div>
+                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Hospedar Mídia</p>
+                  </div>
+               </div>
+
+               <div className="p-6 rounded-2xl bg-slate-900 border-2 border-slate-800">
+                  <div className="flex items-center gap-3">
+                     <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Rocket className="h-5 w-5 text-primary" />
+                     </div>
+                     <div>
+                        <p className="text-sm font-bold text-slate-100">Pronto para a Escala Ultra</p>
+                        <p className="text-xs text-slate-400">Ao clicar em finalizar, o motor de IA criará a estrutura completa no seu Gerenciador de Anúncios.</p>
+                     </div>
                   </div>
                </div>
             </div>
@@ -1481,72 +1611,76 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
           </div>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase text-slate-500">Página do Facebook</Label>
-              <Select value={selectedPage} onValueChange={setSelectedPage}>
-                <SelectTrigger className="bg-slate-900 border-slate-800">
-                  <SelectValue placeholder="Selecione a Página" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
-                  {pages.map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <div className="space-y-6 py-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Página do Facebook (Emissor)</Label>
+                <Select value={selectedPage} onValueChange={setSelectedPage}>
+                  <SelectTrigger className="bg-slate-900 border-slate-800 h-11">
+                    <SelectValue placeholder="Selecione a Página" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
+                    {pages.map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Destino do Tráfego</Label>
+                <RadioGroup value={destination} onValueChange={(v: any) => setDestination(v)} className="grid grid-cols-2 gap-4">
+                   <div className={`flex items-center space-x-2 border p-3 rounded-lg cursor-pointer transition-all ${destination === 'WHATSAPP' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('WHATSAPP')}>
+                      <RadioGroupItem value="WHATSAPP" id="dest-wa" className="border-slate-400" />
+                      <Label htmlFor="dest-wa" className="cursor-pointer font-bold text-xs">WhatsApp</Label>
+                   </div>
+                   <div className={`flex items-center space-x-2 border p-3 rounded-lg cursor-pointer transition-all ${destination === 'SALES' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('SALES')}>
+                      <RadioGroupItem value="SALES" id="dest-sales" className="border-slate-400" />
+                      <Label htmlFor="dest-sales" className="cursor-pointer font-bold text-xs">Site / Vendas</Label>
+                   </div>
+                </RadioGroup>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-xs font-bold uppercase text-slate-500">Destino do Tráfego</Label>
-              <RadioGroup value={destination} onValueChange={(v: any) => setDestination(v)} className="flex gap-4 mt-2">
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="WHATSAPP" id="r1" />
-                  <Label htmlFor="r1" className="text-sm cursor-pointer">WhatsApp</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="SALES" id="r2" />
-                  <Label htmlFor="r2" className="text-sm cursor-pointer">Vendas/Site</Label>
-                </div>
-              </RadioGroup>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800">
-              <p className="text-[10px] uppercase font-bold text-slate-500 mb-1">Estratégia</p>
-              <p className="text-sm font-bold">{strategy.name}</p>
-            </div>
-            <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800">
-              <p className="text-[10px] uppercase font-bold text-slate-500 mb-1">Orçamento Diário Total</p>
-              <p className="text-sm font-bold text-[oklch(0.7_0.18_162)]">{formatBRL(totalBudget)}</p>
-            </div>
+            <Card className="bg-slate-900 border-slate-800 p-4 flex flex-col justify-between">
+               <div>
+                  <p className="text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Resumo da Estratégia</p>
+                  <div className="space-y-3">
+                     <div className="flex justify-between text-xs">
+                        <span className="text-slate-400">Total de Conjuntos:</span>
+                        <span className="font-bold text-slate-100">{adsetCount}</span>
+                     </div>
+                     <div className="flex justify-between text-xs">
+                        <span className="text-slate-400">Investimento Diário:</span>
+                        <span className="font-bold text-primary">{formatBRL(totalBudget)}</span>
+                     </div>
+                     <div className="flex justify-between text-xs">
+                        <span className="text-slate-400">Objetivo:</span>
+                        <span className="font-bold text-slate-100">{destination === 'WHATSAPP' ? 'Engajamento' : 'Vendas'}</span>
+                     </div>
+                  </div>
+               </div>
+               <div className="mt-6 pt-4 border-t border-slate-800">
+                  <p className="text-[9px] text-slate-500 uppercase font-bold">Público Estimado</p>
+                  <p className="text-xs text-slate-300 mt-1">
+                    {data.targeting?.geo_locations?.regions?.[0]?.name || "Todo o Brasil"} • 
+                    {data.targeting?.interests ? ` ${data.targeting.interests.length} Interesses` : " Aberto"}
+                  </p>
+               </div>
+            </Card>
           </div>
 
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase text-slate-500 flex items-center gap-2">
-              <Zap className="h-3 w-3" /> Ações Planejadas
-            </h4>
-            <div className="space-y-2">
-              <ActionItem icon={<CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} text={`Criar 1 Campanha: "[IA ULTRA] ${strategy.defaults.namePrefix || strategy.name}..."`} />
-              <ActionItem icon={<CheckCircle2 className="h-4 w-4 text-[oklch(0.7_0.18_162)]" />} text={`Criar ${adsetCount} Conjuntos de Anúncios (AdSets)`} />
-              <ActionItem icon={<MessageCircle className="h-4 w-4 text-green-400" />} text={`Destino: ${destination === "WHATSAPP" ? "WhatsApp (Conversas)" : "Site (Vendas)"}`} />
-              <ActionItem icon={<Clock className="h-4 w-4 text-blue-400" />} text={`Status Inicial: ${strategy.defaults.status === "ACTIVE" ? "ATIVO" : "PAUSADO"}`} />
-            </div>
-          </div>
-
-          {creatives && creatives.length > 0 && (
-            <div className="space-y-3">
-              <h4 className="text-xs font-bold uppercase text-slate-500">Criativos Selecionados ({creatives.length})</h4>
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                {creatives.map((c, i) => (
-                  <div key={i} className="h-16 w-16 flex-shrink-0 rounded-md overflow-hidden border border-slate-800">
-                    <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover" />
+             <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Criativos Selecionados ({creatives?.length})</Label>
+             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {creatives?.map((c, i) => (
+                  <div key={i} className="h-16 w-16 rounded-lg overflow-hidden border border-slate-800 flex-shrink-0">
+                    <img src={c.image_url || c.thumbnail_url} className="h-full w-full object-cover" />
                   </div>
                 ))}
-              </div>
-            </div>
-          )}
+             </div>
+          </div>
         </div>
 
         <DialogFooter className="gap-2">
