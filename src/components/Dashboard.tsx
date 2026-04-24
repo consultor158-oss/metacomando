@@ -433,11 +433,12 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
             <TableRow>
               <TableHead className="w-[40px]">Status</TableHead>
               <TableHead className="w-[300px]">Campanha / Objetivo</TableHead>
-              <TableHead>Entrega / Destino</TableHead>
-              <TableHead>Orçamento</TableHead>
               <TableHead>Investido</TableHead>
+              <TableHead>Vendas</TableHead>
               <TableHead>ROAS</TableHead>
               <TableHead>CPA</TableHead>
+              <TableHead>CTR</TableHead>
+              <TableHead>CPC</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -463,53 +464,29 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
                     <span className="text-[9px] text-muted-foreground font-mono">ID: {c.id}</span>
                   </div>
                 </TableCell>
+                <TableCell>{formatBRL(c.spend)}</TableCell>
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="text-xs font-medium flex items-center gap-1">
-                      {c.objective === "OUTCOME_ENGAGEMENT" ? (
-                        <><MessageCircle className="h-3 w-3 text-green-500" /> WhatsApp</>
-                      ) : (
-                        <><Globe className="h-3 w-3 text-blue-500" /> Site/Vendas</>
-                      )}
-                    </span>
-                    <span className="text-[9px] text-muted-foreground uppercase">Aprendizado</span>
+                    <span className="font-bold">{c.conversions || 0}</span>
+                    <span className="text-[9px] text-muted-foreground uppercase">Purchases</span>
                   </div>
                 </TableCell>
-                <TableCell>
-                  <div className="text-sm">
-                    {c.daily_budget ? (
-                      <div className="flex flex-col">
-                        <span>{formatBRL(parseInt(c.daily_budget) / 100)}</span>
-                        <span className="text-[9px] text-muted-foreground uppercase">Diário</span>
-                      </div>
-                    ) : c.lifetime_budget ? (
-                      <div className="flex flex-col">
-                        <span>{formatBRL(parseInt(c.lifetime_budget) / 100)}</span>
-                        <span className="text-[9px] text-muted-foreground uppercase">Vitalício</span>
-                      </div>
-                    ) : (
-                      "N/A"
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>{formatBRL(c.spend)}</TableCell>
                 <TableCell className={`font-bold ${c.roas >= 2.5 ? 'text-[oklch(0.7_0.18_162)]' : 'text-blue-500'}`}>
                   {c.roas.toFixed(2)}x
                 </TableCell>
                 <TableCell>{formatBRL(c.cpa)}</TableCell>
+                <TableCell>{c.ctr.toFixed(2)}%</TableCell>
+                <TableCell>{formatBRL(c.cpc)}</TableCell>
                 <TableCell className="text-right">
                    <div className="flex justify-end gap-1">
-                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingCampaign(c)}>
+                     <Button variant="ghost" size="icon" title="Edição Completa" className="h-8 w-8" onClick={() => setEditingCampaign(c)}>
                        <Edit2 className="h-3.5 w-3.5" />
                      </Button>
-                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDuplicate(c.id)}>
+                     <Button variant="ghost" size="icon" title="Duplicar" className="h-8 w-8" onClick={() => handleDuplicate(c.id)}>
                        <Copy className="h-3.5 w-3.5" />
                      </Button>
-                     <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(c.id)}>
+                     <Button variant="ghost" size="icon" title="Excluir" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(c.id)}>
                        <Trash2 className="h-3.5 w-3.5" />
-                     </Button>
-                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toast.info(`Relatório completo de ${c.name} em breve.`)}>
-                       <BarChart3 className="h-3.5 w-3.5" />
                      </Button>
                    </div>
                 </TableCell>
