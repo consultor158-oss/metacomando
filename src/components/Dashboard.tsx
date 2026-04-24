@@ -448,11 +448,28 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
                    />
                 </TableCell>
                 <TableCell className="cursor-pointer group" onClick={() => setEditingCampaign(c)}>
-                  <div className="font-medium truncate max-w-[280px] group-hover:text-primary transition-colors flex items-center gap-2">
+                  <div className="font-bold truncate max-w-[280px] group-hover:text-primary transition-colors flex items-center gap-2">
                     {c.name}
                     <Edit2 className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <div className="text-[10px] text-muted-foreground uppercase">{c.objective}</div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <Badge variant="secondary" className="text-[9px] h-4 px-1 uppercase leading-none">
+                      {c.objective?.replace("OUTCOME_", "") || "SALE"}
+                    </Badge>
+                    <span className="text-[9px] text-muted-foreground font-mono">ID: {c.id}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-medium flex items-center gap-1">
+                      {c.objective === "OUTCOME_ENGAGEMENT" ? (
+                        <><MessageCircle className="h-3 w-3 text-green-500" /> WhatsApp</>
+                      ) : (
+                        <><Globe className="h-3 w-3 text-blue-500" /> Site/Vendas</>
+                      )}
+                    </span>
+                    <span className="text-[9px] text-muted-foreground uppercase">Aprendizado</span>
+                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="text-sm">
