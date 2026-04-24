@@ -1353,6 +1353,17 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                         Evite segmentações muito nichadas que limitam a entrega.
                       </p>
                     </div>
+                    <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20">
+                      <div className="flex items-center gap-2 mb-1">
+                         <Users className="h-3 w-3 text-orange-500" />
+                         <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">Escala de Público</p>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        Ao escalar, teste <b>Lookalike de Compradores (LAL)</b> e <b>Públicos de Retenção</b>. 
+                        O motor Ultra recomenda que o público seja amplo o suficiente para permitir a otimização da IA.
+                      </p>
+                    </div>
+                    </div>
                   </div>
                 </div>
               </div>
