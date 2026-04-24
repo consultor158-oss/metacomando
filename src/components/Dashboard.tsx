@@ -427,8 +427,9 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[300px]">Nome da Campanha</TableHead>
+              <TableHead className="w-[40px]">Status</TableHead>
+              <TableHead className="w-[300px]">Campanha / Objetivo</TableHead>
+              <TableHead>Entrega / Destino</TableHead>
               <TableHead>Orçamento</TableHead>
               <TableHead>Investido</TableHead>
               <TableHead>ROAS</TableHead>
