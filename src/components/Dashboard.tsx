@@ -2345,7 +2345,6 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
                 />
               </div>
             </div>
-            </div>
 
             <Card className="bg-slate-900 border-slate-800 p-4 flex flex-col justify-between">
                <div>
