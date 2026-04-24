@@ -267,7 +267,7 @@ export const createFullScale = createServerFn({ method: "POST" })
       }
 
       // 1. Create Campaign
-      const campaignBody: Record<string, string> = {
+      const campaignBody: Record<string, any> = {
         name: data.name,
         objective: data.objective || "OUTCOME_SALES",
         status: data.status || "PAUSED",
