@@ -118,6 +118,8 @@ export function Dashboard() {
   const [view, setView] = useState<View>("overview");
   const [isWAModalOpen, setIsWAModalOpen] = useState(false);
   const [dryRunData, setDryRunData] = useState<{ strategy: ScaleStrategy; creatives?: any[] } | null>(null);
+  const [scalingCampaign, setScalingCampaign] = useState<string | null>(null);
+  const [tutorialStep, setTutorialStep] = useState(1);
   
   // Mock CRM State
   const [crmLeads, setCrmLeads] = useState([
@@ -374,17 +376,33 @@ export function Dashboard() {
             {view === "insta_organic" && <InstaOrganicTab />}
             {view === "scales" && (
               <div className="space-y-10">
-                <TutorialTab creatives={creativesData} onComplete={(data) => {
-                  setDryRunData(data);
-                }} />
-                <div className="border-t pt-10">
-                  <h3 className="text-xl font-bold mb-6">Outras Estratégias de Escala</h3>
-                  <ScalesTab onSelect={(s) => setDryRunData({ strategy: s })} />
-                </div>
+                <TutorialTab 
+                  creatives={creativesData} 
+                  scalingCampaign={scalingCampaign}
+                  onStepChange={setTutorialStep}
+                  onClearFilter={() => setScalingCampaign(null)}
+                  onComplete={(data) => {
+                    setDryRunData(data);
+                  }} 
+                />
+                {tutorialStep === 1 && (
+                  <div className="border-t pt-10">
+                    <h3 className="text-xl font-bold mb-6">Outras Estratégias de Escala</h3>
+                    <ScalesTab onSelect={(s) => setDryRunData({ strategy: s })} />
+                  </div>
+                )}
               </div>
             )}
             
-            {view === "creatives" && <CreativesTab creatives={creativesData} />}
+            {view === "creatives" && (
+              <CreativesTab 
+                creatives={creativesData} 
+                onEscalate={(camp) => {
+                  setScalingCampaign(camp);
+                  setView("scales");
+                }}
+              />
+            )}
             {view === "automation" && <AutomationTab />}
             {view === "settings" && <SettingsTab account={accountData} />}
             {view === "wa_reports" && <WAReportsTab />}
@@ -1185,7 +1203,7 @@ function ScalesTab({ onSelect }: { onSelect: (s: ScaleStrategy) => void }) {
 }
 
 
-function CreativesTab({ creatives }: { creatives: any[] }) {
+function CreativesTab({ creatives, onEscalate }: { creatives: any[], onEscalate?: (campaign: string) => void }) {
   const [selectedCreative, setSelectedCreative] = useState<any | null>(null);
   const [filter, setFilter] = useState("CARBON");
   const [view, setView] = useState<"folders" | "files">("folders");
@@ -1289,7 +1307,7 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
               ))}
             </SelectContent>
           </Select>
-          <Button size="sm" variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5">
+          <Button size="sm" variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5" onClick={() => onEscalate?.(filter)}>
             <Rocket className="h-3 w-3 text-primary" /> Escalar Criativos
           </Button>
           <label className="cursor-pointer">
@@ -1486,8 +1504,12 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
   );
 }
 
-function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: (data: any) => void }) {
+function TutorialTab({ creatives, scalingCampaign, onStepChange, onClearFilter, onComplete }: { creatives: any[], scalingCampaign?: string | null, onStepChange?: (step: number) => void, onClearFilter?: () => void, onComplete: (data: any) => void }) {
   const [step, setStep] = useState(1);
+  
+  useEffect(() => {
+    onStepChange?.(step);
+  }, [step, onStepChange]);
   const [selectedStrategy, setSelectedStrategy] = useState<ScaleStrategy>(SCALE_STRATEGIES[0]);
   const [name, setName] = useState("");
   const [budget, setBudget] = useState("50");
@@ -1539,7 +1561,12 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
     reader.readAsDataURL(file);
   };
 
-  const allCreatives = [...localCreatives, ...creatives];
+  const allCreatives = [...localCreatives, ...creatives].filter(c => {
+    if (!scalingCampaign || scalingCampaign === "TUDO" || scalingCampaign === "CARBON") return true;
+    if (localCreatives.some(lc => lc.id === c.id)) return true;
+    const campaignName = c.campaign_name || "";
+    return campaignName.includes(scalingCampaign);
+  });
   
   
   useEffect(() => {
@@ -1602,6 +1629,16 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
     <div className="space-y-8 max-w-4xl mx-auto">
       <div className="text-center space-y-4">
         <h2 className="text-4xl font-extrabold tracking-tight">Escala Guiada Passo a Passo</h2>
+        {scalingCampaign && scalingCampaign !== "TUDO" && (
+          <div className="flex justify-center items-center gap-2">
+            <Badge variant="secondary" className="px-4 py-1 text-xs font-bold bg-primary/10 text-primary border-primary/20">
+              Escalando: {scalingCampaign}
+            </Badge>
+            <Button variant="ghost" size="sm" onClick={onClearFilter} className="h-6 text-[10px] text-muted-foreground hover:text-primary">
+              Ver Todos
+            </Button>
+          </div>
+        )}
         <p className="text-muted-foreground text-lg">Siga o guia real extraído dos manuais de alta performance para dominar seus anúncios como um administrador profissional.</p>
         
         <div className="relative mt-12 mb-8 px-10">
