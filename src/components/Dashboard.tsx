@@ -1650,22 +1650,36 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
       return;
     }
 
+    const targeting: any = {
+      geo_locations: { countries: ["BR"] },
+      age_min: ageRange.split("-")[0] ? parseInt(ageRange.split("-")[0]) : 18,
+      genders: gender === 'ALL' ? undefined : (gender === 'MALE' ? [1] : [2])
+    };
+
+    if (region === 'ALL') {
+      targeting.geo_locations = { countries: ["BR"] }; // Defaulting to BR if ALL is chosen for better performance, or could be empty
+    } else if (['US', 'EU', 'LATAM', 'BR'].includes(region)) {
+      if (region === 'EU') targeting.geo_locations = { countries: ['GB', 'FR', 'DE', 'IT', 'ES'] };
+      else if (region === 'LATAM') targeting.geo_locations = { countries: ['BR', 'MX', 'AR', 'CO', 'CL'] };
+      else targeting.geo_locations = { countries: [region] };
+    } else {
+      // It's a region like SP
+      targeting.geo_locations = { regions: [{ key: region, name: region }] };
+    }
+
+    if (ageRange.includes("-")) {
+      const parts = ageRange.split("-");
+      if (parts[1] && !parts[1].includes("+")) {
+        targeting.age_max = parseInt(parts[1]);
+      }
+    }
+
     onComplete({
       strategy: selectedStrategy,
       creatives: selected,
       name,
       budget: Number(budget) * 100,
-      targeting: { 
-        geo_locations: { 
-          countries: region === 'ALL' ? undefined : [region],
-          regions: region !== 'ALL' && region !== 'BR' && region !== 'US' && region !== 'EU' && region !== 'LATAM' ? [{ key: region, name: region }] : undefined,
-          cities: city ? [{ key: city, name: city }] : undefined
-        },
-        interests: interests ? interests.split(",").map(i => i.trim()) : undefined,
-        age_min: ageRange.split("-")[0] ? parseInt(ageRange.split("-")[0]) : undefined,
-        age_max: ageRange.includes("+") ? undefined : (ageRange.split("-")[1] ? parseInt(ageRange.split("-")[1]) : undefined),
-        genders: gender === 'ALL' ? undefined : (gender === 'MALE' ? [1] : [2])
-      }
+      targeting
     });
   };
 
