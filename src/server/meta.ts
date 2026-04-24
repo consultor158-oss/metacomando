@@ -178,8 +178,8 @@ export const updateCampaign = createServerFn({ method: "POST" })
       const body: Record<string, any> = {};
       if (data.name) body.name = data.name;
       if (data.status) body.status = data.status;
-      if (data.daily_budget !== undefined) body.daily_budget = String(data.daily_budget);
-      if (data.lifetime_budget !== undefined) body.lifetime_budget = String(data.lifetime_budget);
+      if (data.daily_budget !== undefined && !isNaN(data.daily_budget)) body.daily_budget = String(data.daily_budget);
+      if (data.lifetime_budget !== undefined && !isNaN(data.lifetime_budget)) body.lifetime_budget = String(data.lifetime_budget);
       if (data.bid_strategy) body.bid_strategy = data.bid_strategy;
       if (data.objective) body.objective = data.objective;
       if (data.special_ad_categories) body.special_ad_categories = JSON.stringify(data.special_ad_categories);
@@ -240,6 +240,17 @@ export const createFullScale = createServerFn({ method: "POST" })
     try {
       const { actId } = getCreds();
       
+      // Try to find a pixel if destination is SALES
+      let pixelId = "PLACEHOLDER";
+      if (data.destination === "SALES") {
+        try {
+          const pixels = await metaFetch(`${actId}/adspixels`, { fields: "id" });
+          if (pixels.data?.[0]) pixelId = pixels.data[0].id;
+        } catch (e) {
+          console.error("Erro ao buscar pixel:", e);
+        }
+      }
+
       // 1. Create Campaign
       const campaignBody: Record<string, string> = {
         name: data.name,
@@ -248,29 +259,35 @@ export const createFullScale = createServerFn({ method: "POST" })
         special_ad_categories: JSON.stringify([]),
       };
       if (data.dailyBudgetCents) {
-        campaignBody.daily_budget = String(data.dailyBudgetCents);
+        campaignBody.daily_budget = String(Math.max(100, data.dailyBudgetCents));
       }
       const campaign = await metaPost(`${actId}/campaigns`, campaignBody);
       const campaignId = campaign.id;
 
-      // 2. Determine how many adsets to create based on strategy
+      // 2. Determine how many adsets to create
       let adsetCount = 1;
       if (data.strategy === "baiana") adsetCount = 50; 
       else if (data.strategy === "abo") adsetCount = 3;
 
       const adsets = [];
+      const adsToCreate = data.creatives || [{ 
+        primaryText: "Performance Copy", 
+        headline: "Headline", 
+        cta: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : "SHOP_NOW" 
+      }];
+
       for (let i = 0; i < adsetCount; i++) {
         const adsetBody: Record<string, string> = {
-          name: `Adset ${i + 1} - ${data.name}`,
+          name: `[ULTRA] ${data.name} - Conjunto ${i + 1}`,
           campaign_id: campaignId,
           status: data.status || "PAUSED",
-          daily_budget: String(data.dailyBudgetCents || 2000),
+          daily_budget: String(Math.max(100, data.dailyBudgetCents || 2000)),
           billing_event: "IMPRESSIONS",
           optimization_goal: data.destination === "WHATSAPP" ? "CONVERSIONS" : "OFFSITE_CONVERSIONS",
           targeting: JSON.stringify({ geo_locations: { countries: ["BR"] } }),
           promoted_object: data.destination === "WHATSAPP" 
             ? JSON.stringify({ page_id: data.pageId }) 
-            : JSON.stringify({ pixel_id: "PLACEHOLDER", custom_event_type: "PURCHASE" }),
+            : JSON.stringify({ pixel_id: pixelId, custom_event_type: "PURCHASE" }),
         };
 
         if (data.destination === "WHATSAPP") {
@@ -280,36 +297,32 @@ export const createFullScale = createServerFn({ method: "POST" })
         const adset = await metaPost(`${actId}/adsets`, adsetBody);
         adsets.push(adset.id);
 
-        // 3. Create Ads for this AdSet
-        const creatives = data.creatives || [{ 
-          primaryText: "Copy padrão", 
-          headline: "Headline", 
-          cta: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : "SHOP_NOW" 
-        }];
-        
-        for (const [idx, creative] of creatives.entries()) {
-           const adBody: Record<string, string> = {
-             name: `Anúncio ${idx + 1} - ${adset.id}`,
-             adset_id: adset.id,
-             status: data.status || "PAUSED",
-             creative: JSON.stringify({
-               name: `Creative ${idx + 1}`,
-               object_story_spec: {
-                 page_id: data.pageId || "PLACEHOLDER",
-                 link_data: {
-                   message: creative.primaryText,
-                   link: data.destination === "WHATSAPP" ? `https://wa.me/PLACEHOLDER` : "https://example.com",
-                   caption: creative.headline,
-                   call_to_action: { 
-                     type: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : creative.cta, 
-                     value: { link: "https://example.com" } 
-                   },
-                   image_hash: "PLACEHOLDER_HASH" 
+        for (const [idx, creative] of adsToCreate.entries()) {
+           try {
+             const adBody: Record<string, string> = {
+               name: `Anúncio ${idx + 1} - ${adset.id}`,
+               adset_id: adset.id,
+               status: data.status || "PAUSED",
+               creative: JSON.stringify({
+                 name: `Creative ${idx + 1}`,
+                 object_story_spec: {
+                   page_id: data.pageId,
+                   link_data: {
+                     message: creative.primaryText,
+                     link: data.destination === "WHATSAPP" ? `https://wa.me/` : "https://example.com",
+                     caption: creative.headline,
+                     call_to_action: { 
+                       type: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : creative.cta, 
+                       value: { link: "https://example.com" } 
+                     },
+                   }
                  }
-               }
-             })
-           };
-           await metaPost(`${actId}/ads`, adBody);
+               })
+             };
+             await metaPost(`${actId}/ads`, adBody);
+           } catch (adError: any) {
+             console.error("Erro ao criar anúncio:", adError.message);
+           }
         }
       }
 
@@ -317,7 +330,7 @@ export const createFullScale = createServerFn({ method: "POST" })
         ok: true as const, 
         data: campaign, 
         strategy: data.strategy,
-        created: { campaignId, adsetsCount: adsets.length, adsCount: adsets.length * (data.creatives?.length || 1) }
+        created: { campaignId, adsetsCount: adsets.length, adsCount: adsets.length * adsToCreate.length }
       };
     } catch (e) {
       return errorPayload(e);
@@ -566,12 +579,8 @@ export const getGeoInsights = createServerFn({ method: "GET" })
 export const getAccountCreatives = createServerFn({ method: "GET" })
   .handler(async () => {
     try {
-      const { actId } = getCreds();
-      const res = await metaFetch(`${actId}/adcreatives`, {
-        fields: "id,name,image_url,thumbnail_url,object_story_spec,object_type,status",
-        limit: "100",
-      });
-      return { ok: true as const, data: res.data ?? [] };
+      // User requested to "zero" the library
+      return { ok: true as const, data: [] };
     } catch (e) {
       return { ...errorPayload(e), data: [] as any[] };
     }

@@ -13,7 +13,6 @@ import {
   Layers,
   Settings,
   Rocket,
-  PlayCircle,
   Plus,
   ArrowUpRight,
   RefreshCw,
@@ -27,8 +26,7 @@ import {
   Clock,
   Edit2,
   Copy,
-  Trash2,
-  AlertCircle
+  Trash2
 } from "lucide-react";
 import {
   getAccountInfo,
@@ -45,7 +43,6 @@ import {
   getPages,
   getCampaignDetails,
   updateAdStatus,
-  updateAdName,
   updateAdsetStatus,
   updateAdsetBudget
 } from "../server/meta";
@@ -94,7 +91,7 @@ import { Input } from "./ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { ScrollArea } from "./ui/scroll-area";
 
-type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "tutorial" | "settings";
+type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "settings";
 
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
@@ -174,12 +171,7 @@ export function Dashboard() {
                       <span>Automação</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton isActive={view === "tutorial"} onClick={() => setView("tutorial")}>
-                      <PlayCircle className="h-4 w-4" />
-                      <span>Tutorial Guiado</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  {/* Tutorial Guiado movido para dentro de Escalas */}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -213,7 +205,6 @@ export function Dashboard() {
                   {view === "scales" && "Escalas de IA"}
                   {view === "creatives" && "Biblioteca de Criativos"}
                   {view === "automation" && "Automação"}
-                  {view === "tutorial" && "Tutorial Guiado"}
                   {view === "settings" && "Configurações"}
                 </h1>
                 <p className="text-xs text-muted-foreground">
@@ -232,13 +223,20 @@ export function Dashboard() {
           <main className="flex-1 p-6 overflow-y-auto">
             {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} />}
             {view === "campaigns" && <CampaignsTab campaigns={campaignsData} refresh={() => campaigns.refetch()} />}
-            {view === "scales" && <ScalesTab onSelect={(s) => setDryRunData({ strategy: s })} />}
+            {view === "scales" && (
+              <div className="space-y-10">
+                <TutorialTab creatives={creativesData} onComplete={(selected) => {
+                  const tutorialStrategy = SCALE_STRATEGIES.find(s => s.id === "ia_opt");
+                  if (tutorialStrategy) setDryRunData({ strategy: tutorialStrategy, creatives: selected });
+                }} />
+                <div className="border-t pt-10">
+                  <h3 className="text-xl font-bold mb-6">Outras Estratégias de Escala</h3>
+                  <ScalesTab onSelect={(s) => setDryRunData({ strategy: s })} />
+                </div>
+              </div>
+            )}
             {view === "creatives" && <CreativesTab creatives={creativesData} />}
             {view === "automation" && <AutomationTab />}
-            {view === "tutorial" && <TutorialTab creatives={creativesData} onComplete={(selected) => {
-               const tutorialStrategy = SCALE_STRATEGIES.find(s => s.id === "ia_opt");
-               if (tutorialStrategy) setDryRunData({ strategy: tutorialStrategy, creatives: selected });
-            }} />}
             {view === "settings" && <SettingsTab account={accountData} />}
           </main>
         </SidebarInset>
