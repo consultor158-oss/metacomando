@@ -1348,6 +1348,25 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                   <p className="text-sm text-muted-foreground leading-relaxed">{s.shortDesc}</p>
                 </div>
               ))}
+              <div className="mt-8 p-6 rounded-2xl border bg-muted/30">
+                <h4 className="text-sm font-bold uppercase mb-3 flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-primary" /> Checklist de Segurança para Escala
+                </h4>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <li className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary" /> Pixel com Match {">"} 85% verificado
+                  </li>
+                  <li className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary" /> API de Conversões Ativa e Saudável
+                  </li>
+                  <li className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary" /> Criativos validados em testes prévios
+                  </li>
+                  <li className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="h-1.5 w-1.5 rounded-full bg-primary" /> Oferta validada com ROAS {">"} 1.5x
+                  </li>
+                </ul>
+              </div>
             </div>
           )}
 
