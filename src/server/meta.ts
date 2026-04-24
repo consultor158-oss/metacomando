@@ -755,7 +755,7 @@ export const getCampaignDetails = createServerFn({ method: "GET" })
   .inputValidator((d: { campaignId: string; datePreset?: string }) => d)
   .handler(async ({ data }) => {
     try {
-      const { token } = getCreds();
+      // const { token } = getCreds(); // Removed unused token
       const datePreset = data.datePreset || "last_7d";
       // Campaign with full fields
       const campaign = await metaFetch(data.campaignId, {
