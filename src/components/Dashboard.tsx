@@ -1252,6 +1252,37 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
   const [interests, setInterests] = useState("");
   const [ageRange, setAgeRange] = useState("18-65+");
   const [gender, setGender] = useState("ALL");
+  const [localCreatives, setLocalCreatives] = useState<any[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    // Simulating upload
+    setTimeout(() => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const newCreative = {
+          id: `new_${Math.random().toString(36).substr(2, 9)}`,
+          name: file.name,
+          image_url: event.target?.result as string,
+          thumbnail_url: event.target?.result as string,
+          body: "Nova mídia hospedada",
+          title: "Headline"
+        };
+        setLocalCreatives(prev => [newCreative, ...prev]);
+        setSelectedCreatives(prev => [...prev, newCreative.id]);
+        setIsUploading(false);
+        toast.success("Mídia hospedada com sucesso!");
+      };
+      reader.readAsDataURL(file);
+    }, 1500);
+  };
+
+  const allCreatives = [...localCreatives, ...creatives];
+  
   
   useEffect(() => {
     if (selectedStrategy) {
@@ -1271,7 +1302,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
   const handleFinish = () => {
     onComplete({
       strategy: selectedStrategy,
-      creatives: creatives.filter(c => selectedCreatives.includes(c.id)),
+      creatives: allCreatives.filter(c => selectedCreatives.includes(c.id)),
       name,
       budget: Number(budget) * 100,
       targeting: { 
@@ -1571,12 +1602,12 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                    <p className="text-xs text-muted-foreground">Escolha os anúncios que já performam bem para escalar com segurança.</p>
                  </div>
                  <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold">
-                   {selectedCreatives.length} DE {creatives.length} SELECIONADOS
+                   {selectedCreatives.length} DE {allCreatives.length} SELECIONADOS
                  </Badge>
                </div>
                
                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                  {creatives.map((c: any) => (
+                  {allCreatives.map((c: any) => (
                     <div 
                       key={c.id} 
                       onClick={() => setSelectedCreatives(p => p.includes(c.id) ? p.filter(i => i !== c.id) : [...p, c.id])} 
@@ -1603,11 +1634,28 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                       )}
                     </div>
                   ))}
-                  <div className="border-4 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-4 cursor-pointer hover:bg-primary/5 hover:border-primary/50 transition-all aspect-[4/5] group">
-                     <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                        <Plus className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors" />
-                     </div>
-                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Hospedar Mídia</p>
+                  
+                  <div 
+                    onClick={() => document.getElementById('media-upload')?.click()}
+                    className="border-4 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-4 cursor-pointer hover:bg-primary/5 hover:border-primary/50 transition-all aspect-[4/5] group"
+                  >
+                     {isUploading ? (
+                       <RefreshCw className="h-8 w-8 text-primary animate-spin" />
+                     ) : (
+                       <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                          <Plus className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                       </div>
+                     )}
+                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">
+                       {isUploading ? "Hospedando..." : "Hospedar Mídia"}
+                     </p>
+                     <input 
+                       id="media-upload"
+                       type="file" 
+                       accept="image/*" 
+                       className="hidden" 
+                       onChange={handleFileUpload}
+                     />
                   </div>
                </div>
             </div>
@@ -1685,7 +1733,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                   <div className="p-6 rounded-3xl border bg-card/50">
                     <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">Criativos Selecionados ({selectedCreatives.length})</p>
                     <div className="grid grid-cols-2 gap-3">
-                       {creatives.filter(c => selectedCreatives.includes(c.id)).map((c: any) => (
+                       {allCreatives.filter(c => selectedCreatives.includes(c.id)).map((c: any) => (
                          <div key={c.id} className="aspect-square rounded-xl overflow-hidden border border-border">
                             <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover" />
                          </div>
