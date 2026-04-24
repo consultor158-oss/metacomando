@@ -513,18 +513,16 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
   const [budget, setBudget] = useState("");
   const [budgetType, setBudgetType] = useState<"daily" | "lifetime">("daily");
   const [status, setStatus] = useState<"ACTIVE" | "PAUSED" | "ARCHIVED">("PAUSED");
-  const [bidStrategy, setBidStrategy] = useState("");
-  const [objective, setObjective] = useState("");
-  const [buyingType, setBuyingType] = useState("");
-  const [specialAdCategories, setSpecialAdCategories] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState("config");
 
-  // Fetch full details
   const details = useQuery({
     queryKey: ["meta-campaign-details", campaign?.id],
     queryFn: () => getCampaignDetails({ data: { campaignId: campaign.id } }),
     enabled: !!campaign && isOpen
   });
+
+  const detailsData = details.data?.ok ? details.data : null;
 
   useEffect(() => {
     if (campaign) {
@@ -535,15 +533,8 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
       } else if (campaign.lifetime_budget) {
         setBudget((parseInt(campaign.lifetime_budget) / 100).toString());
         setBudgetType("lifetime");
-      } else {
-        setBudget("");
-        setBudgetType("daily");
       }
       setStatus(campaign.status || "PAUSED");
-      setBidStrategy(campaign.bid_strategy || "");
-      setObjective(campaign.objective || "");
-      setBuyingType(campaign.buying_type || "");
-      setSpecialAdCategories(campaign.special_ad_categories || ["NONE"]);
     }
   }, [campaign]);
 
@@ -551,6 +542,14 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
     if (!campaign) return;
     setSaving(true);
     const res = await updateCampaign({
+      data: {
+        campaignId: campaign.id,
+        name,
+        status: status as any,
+        dailyBudget: budgetType === "daily" ? parseInt(budget) * 100 : undefined,
+        lifetimeBudget: budgetType === "lifetime" ? parseInt(budget) * 100 : undefined,
+      }
+    });
       data: {
         campaignId: campaign.id,
         name,
