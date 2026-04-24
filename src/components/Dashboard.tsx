@@ -117,6 +117,34 @@ export function Dashboard() {
   const [view, setView] = useState<View>("overview");
   const [isWAModalOpen, setIsWAModalOpen] = useState(false);
   const [dryRunData, setDryRunData] = useState<{ strategy: ScaleStrategy; creatives?: any[] } | null>(null);
+  
+  // Mock CRM State
+  const [crmLeads, setCrmLeads] = useState([
+    { id: 1, name: "João Silva", value: 250, stage: "novo" },
+    { id: 2, name: "Maria Oliveira", value: 1200, stage: "novo" },
+    { id: 3, name: "Pedro Santos", value: 450, stage: "atendimento" },
+    { id: 4, name: "Ana Souza", value: 3000, stage: "pagamento" },
+    { id: 5, name: "Lucas Lima", value: 150, stage: "fechado" },
+  ]);
+
+  const addLead = (stage: string) => {
+    const name = prompt("Nome do Lead:");
+    const value = prompt("Valor (R$):");
+    if (name && value) {
+      setCrmLeads([...crmLeads, { 
+        id: Date.now(), 
+        name, 
+        value: parseFloat(value), 
+        stage 
+      }]);
+      toast.success("Lead adicionado com sucesso!");
+    }
+  };
+
+  const moveLead = (id: number, newStage: string) => {
+    setCrmLeads(crmLeads.map(l => l.id === id ? { ...l, stage: newStage } : l));
+    toast.info("Status do lead atualizado");
+  };
 
   const account = useQuery({ queryKey: ["meta-account"], queryFn: () => getAccountInfo() });
   const insights = useQuery({ queryKey: ["meta-insights"], queryFn: () => getAccountInsights({ data: { datePreset: "last_30d" } }) });
@@ -383,7 +411,7 @@ export function Dashboard() {
             {view === "ai_creatives" && <AICreativesTab />}
             {view === "ai_analysis" && <AIAnalysisTab />}
             {view === "ecommerce" && <EcommerceTab />}
-            {view === "crm" && <CRMTab />}
+            {view === "crm" && <CRMTab leads={crmLeads} onAdd={addLead} onMove={moveLead} />}
             {view === "teste" && (
               <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
                 <div className="p-8 rounded-2xl bg-primary/10 border border-primary/20 text-center animate-in fade-in zoom-in duration-500">
@@ -2452,30 +2480,44 @@ function InstaOrganicTab() {
 }
 
 function WAReportsTab() {
+  const [isSending, setIsSending] = useState(false);
+
+  const handleSendReport = () => {
+    setIsSending(true);
+    setTimeout(() => {
+      setIsSending(false);
+      toast.success("Relatório enviado para o seu WhatsApp!");
+    }, 2000);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Relatrios Automticos via WhatsApp</CardTitle>
+          <CardTitle>Relatórios Automáticos via WhatsApp</CardTitle>
           <CardDescription>Envie PDFs e resumos de performance direto para seu celular ou do cliente.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 border rounded-lg">
+          <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
             <div>
-              <p className="font-bold">Relatrio Dirio (Resumo)</p>
-              <p className="text-xs text-muted-foreground">Enviado todos os dias s 08:00</p>
+              <p className="font-bold">Relatório Diário (Resumo)</p>
+              <p className="text-xs text-muted-foreground">Enviado todos os dias às 08:00</p>
             </div>
-            <Switch defaultChecked />
+            <Switch defaultChecked onCheckedChange={(checked) => toast.info(`Relatório diário ${checked ? "ativado" : "desativado"}`)} />
           </div>
-          <div className="flex items-center justify-between p-4 border rounded-lg">
+          <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
             <div>
-              <p className="font-bold">Relatrio Semanal Consolidado</p>
+              <p className="font-bold">Relatório Semanal Consolidado</p>
               <p className="text-xs text-muted-foreground">Enviado toda segunda-feira</p>
             </div>
-            <Switch defaultChecked />
+            <Switch defaultChecked onCheckedChange={(checked) => toast.info(`Relatório semanal ${checked ? "ativado" : "desativado"}`)} />
           </div>
-          <Button className="w-full">
-            <MessageSquare className="mr-2 h-4 w-4" /> Enviar Relatrio Agora
+          <Button className="w-full h-11" onClick={handleSendReport} disabled={isSending}>
+            {isSending ? (
+              <><RefreshCw className="mr-2 h-4 w-4 animate-spin" /> Enviando...</>
+            ) : (
+              <><MessageSquare className="mr-2 h-4 w-4" /> Enviar Relatório Agora</>
+            )}
           </Button>
         </CardContent>
       </Card>
@@ -2598,17 +2640,32 @@ function WASupportTab() {
 }
 
 function AICreativesTab() {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [results, setResults] = useState<any[]>([]);
+
+  const handleGenerate = () => {
+    setIsGenerating(true);
+    setTimeout(() => {
+      setIsGenerating(false);
+      setResults([
+        { id: 1, type: "copy", content: "Transforme seus anúncios com o poder da Ultra IA. Resultados reais em 24h!" },
+        { id: 2, type: "image", content: "Banner Sugerido: Fundo tecnológico com elementos de alta velocidade." }
+      ]);
+      toast.success("Criativos gerados pela IA!");
+    }, 2500);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Gerao de Criativos com IA</CardTitle>
-          <CardDescription>Crie imagens e copies de alta converso em segundos.</CardDescription>
+          <CardTitle>Geração de Criativos com IA</CardTitle>
+          <CardDescription>Crie imagens e copies de alta conversão em segundos.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label>O que voc est vendendo?</Label>
+              <Label>O que você está vendendo?</Label>
               <Textarea placeholder="Ex: Curso de Marketing Digital para Iniciantes..." />
             </div>
             <div className="space-y-2">
@@ -2625,9 +2682,24 @@ function AICreativesTab() {
               </Select>
             </div>
           </div>
-          <Button className="w-full h-12 text-lg">
-            <Brain className="mr-2 h-5 w-5" /> Gerar Criativos Master
+          <Button className="w-full h-12 text-lg" onClick={handleGenerate} disabled={isGenerating}>
+            {isGenerating ? (
+              <><RefreshCw className="mr-2 h-5 w-5 animate-spin" /> Gerando com IA...</>
+            ) : (
+              <><Brain className="mr-2 h-5 w-5" /> Gerar Criativos Master</>
+            )}
           </Button>
+
+          {results.length > 0 && (
+            <div className="grid gap-4 mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {results.map(res => (
+                <div key={res.id} className="p-4 border rounded-lg bg-muted/30">
+                  <Badge className="mb-2">{res.type.toUpperCase()}</Badge>
+                  <p className="text-sm font-medium italic">{res.content}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -2635,37 +2707,66 @@ function AICreativesTab() {
 }
 
 function AIAnalysisTab() {
+  const [analyzing, setAnalyzing] = useState(false);
+
+  const handleAction = (msg: string) => {
+    setAnalyzing(true);
+    setTimeout(() => {
+      setAnalyzing(false);
+      toast.success(msg);
+    }, 1500);
+  };
+
   return (
     <div className="space-y-6">
       <Card className="border-primary/50 shadow-lg shadow-primary/10">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Brain className="h-6 w-6 text-primary animate-pulse" />
-            <CardTitle>Anlise de Performance IA</CardTitle>
+            <CardTitle>Análise de Performance IA</CardTitle>
           </div>
-          <CardDescription>Insights profundos sobre o que est funcionando e o que deve ser pausado.</CardDescription>
+          <CardDescription>Insights profundos sobre o que está funcionando e o que deve ser pausado.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+          <div className="p-4 bg-primary/10 rounded-lg border border-primary/20 relative overflow-hidden">
+             {analyzing && <div className="absolute inset-0 bg-background/50 flex items-center justify-center backdrop-blur-sm"><RefreshCw className="h-6 w-6 animate-spin text-primary" /></div>}
              <p className="text-sm font-bold flex items-center gap-2">
-               <Zap className="h-4 w-4 text-primary" /> Sugesto da IA:
+               <Zap className="h-4 w-4 text-primary" /> Sugestão da IA:
              </p>
              <p className="text-sm mt-2">
-               "Sua campanha 'Escala Baiana' est com CTR 25% acima da média, mas o checkout rate caiu. Sugiro simplificar a página de destino."
+               "Sua campanha 'Escala Baiana' está com CTR 25% acima da média, mas o checkout rate caiu. Sugiro simplificar a página de destino."
              </p>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
-             <div className="p-4 border rounded-lg">
+             <div className="p-4 border rounded-lg hover:border-primary/50 transition-colors">
                 <p className="text-xs font-bold uppercase text-muted-foreground">Oportunidade de Escala</p>
                 <p className="text-lg font-bold">Adset #4 - ROAS 4.2x</p>
-                <Button size="sm" className="mt-2">Aumentar Oramento</Button>
+                <Button 
+                  size="sm" 
+                  className="mt-2" 
+                  onClick={() => handleAction("Orçamento aumentado em 20% conforme sugestão da IA")}
+                  disabled={analyzing}
+                >
+                  Aumentar Orçamento
+                </Button>
              </div>
-             <div className="p-4 border rounded-lg">
+             <div className="p-4 border rounded-lg hover:border-destructive/50 transition-colors">
                 <p className="text-xs font-bold uppercase text-muted-foreground">Risco de Perda</p>
                 <p className="text-lg font-bold text-destructive">Criativo 'Video_V2' saturando</p>
-                <Button variant="outline" size="sm" className="mt-2 text-destructive">Pausar Agora</Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2 text-destructive hover:bg-destructive hover:text-white"
+                  onClick={() => handleAction("Anúncio pausado com sucesso")}
+                  disabled={analyzing}
+                >
+                  Pausar Agora
+                </Button>
              </div>
           </div>
+          <Button variant="ghost" className="w-full text-xs" onClick={() => handleAction("Análise completa enviada para seu e-mail")}>
+            Ver Relatório Detalhado Completo
+          </Button>
         </CardContent>
       </Card>
     </div>
@@ -2673,31 +2774,51 @@ function AIAnalysisTab() {
 }
 
 function EcommerceTab() {
+  const [connecting, setConnecting] = useState<string | null>(null);
+  const [connected, setConnected] = useState<string[]>([]);
+
+  const handleConnect = (platform: string) => {
+    setConnecting(platform);
+    setTimeout(() => {
+      setConnecting(null);
+      setConnected(prev => [...prev, platform]);
+      toast.success(`Conectado ao ${platform} com sucesso!`);
+    }, 2000);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Rastrear Vendas Ecommerce</CardTitle>
-          <CardDescription>Integrao direta com Shopify, WooCommerce e Hotmart.</CardDescription>
+          <CardDescription>Integração direta com Shopify, WooCommerce e Hotmart.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-4 border rounded-lg text-center hover:border-primary cursor-pointer transition-colors">
-                <ShoppingCart className="h-8 w-8 mx-auto mb-2" />
-                <p className="text-xs font-bold">Shopify</p>
-              </div>
-              <div className="p-4 border rounded-lg text-center hover:border-primary cursor-pointer transition-colors">
-                <Globe className="h-8 w-8 mx-auto mb-2" />
-                <p className="text-xs font-bold">WooCommerce</p>
-              </div>
-              <div className="p-4 border rounded-lg text-center hover:border-primary cursor-pointer transition-colors">
-                <Activity className="h-8 w-8 mx-auto mb-2" />
-                <p className="text-xs font-bold">Hotmart</p>
-              </div>
-              <div className="p-4 border rounded-lg text-center hover:border-primary cursor-pointer transition-colors">
-                <Plus className="h-8 w-8 mx-auto mb-2" />
-                <p className="text-xs font-bold">Outros</p>
-              </div>
+              {[
+                { name: "Shopify", icon: <ShoppingCart className="h-8 w-8" /> },
+                { name: "WooCommerce", icon: <Globe className="h-8 w-8" /> },
+                { name: "Hotmart", icon: <Activity className="h-8 w-8" /> },
+                { name: "Outros", icon: <Plus className="h-8 w-8" /> }
+              ].map(platform => (
+                <div 
+                  key={platform.name}
+                  onClick={() => !connected.includes(platform.name) && handleConnect(platform.name)}
+                  className={`p-4 border rounded-lg text-center cursor-pointer transition-all ${
+                    connected.includes(platform.name) 
+                      ? "border-green-500 bg-green-500/10" 
+                      : "hover:border-primary bg-muted/20"
+                  } ${connecting === platform.name ? "animate-pulse border-primary" : ""}`}
+                >
+                  <div className="mb-2 flex justify-center text-primary">
+                    {connecting === platform.name ? <RefreshCw className="h-8 w-8 animate-spin" /> : platform.icon}
+                  </div>
+                  <p className="text-xs font-bold">{platform.name}</p>
+                  {connected.includes(platform.name) && (
+                    <Badge variant="secondary" className="mt-2 bg-green-500 text-white border-0">ATIVO</Badge>
+                  )}
+                </div>
+              ))}
            </div>
         </CardContent>
       </Card>
@@ -2705,20 +2826,34 @@ function EcommerceTab() {
   );
 }
 
-function CRMTab() {
+function CRMTab({ leads, onAdd, onMove }: { leads: any[], onAdd: (s: string) => void, onMove: (id: number, s: string) => void }) {
+  const stages = [
+    { id: "novo", title: "Novo Lead", color: "bg-blue-500" },
+    { id: "atendimento", title: "Em Atendimento", color: "bg-yellow-500" },
+    { id: "pagamento", title: "Aguardando Pagto", color: "bg-purple-500" },
+    { id: "fechado", title: "Fechado", color: "bg-green-500" },
+  ];
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>CRM Interno</CardTitle>
-          <CardDescription>Gesto de pipeline e funil de vendas dos leads gerados.</CardDescription>
+          <CardDescription>Gestão de pipeline e funil de vendas dos leads gerados.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 overflow-x-auto pb-4">
-            <CRMPipeColumn title="Novo Lead" count={12} color="bg-blue-500" />
-            <CRMPipeColumn title="Em Atendimento" count={5} color="bg-yellow-500" />
-            <CRMPipeColumn title="Aguardando Pagto" count={3} color="bg-purple-500" />
-            <CRMPipeColumn title="Fechado" count={8} color="bg-green-500" />
+            {stages.map(stage => (
+              <CRMPipeColumn 
+                key={stage.id}
+                id={stage.id}
+                title={stage.title} 
+                leads={leads.filter(l => l.stage === stage.id)} 
+                color={stage.color} 
+                onAdd={() => onAdd(stage.id)}
+                onMove={onMove}
+              />
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -2726,18 +2861,41 @@ function CRMTab() {
   );
 }
 
-function CRMPipeColumn({ title, count, color }: { title: string, count: number, color: string }) {
+function CRMPipeColumn({ title, id, leads, color, onAdd, onMove }: { title: string, id: string, leads: any[], color: string, onAdd: () => void, onMove: (id: number, s: string) => void }) {
   return (
-    <div className="min-w-[250px] bg-muted/50 rounded-lg p-4 space-y-4">
+    <div className="min-w-[280px] bg-muted/50 rounded-lg p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h4 className="font-bold text-sm">{title}</h4>
-        <Badge variant="secondary">{count}</Badge>
+        <Badge variant="secondary">{leads.length}</Badge>
       </div>
-      <div className={`h-1 w-full ${color} rounded-full`} />
-      <div className="space-y-2">
-        <div className="p-3 bg-background rounded border text-xs shadow-sm">Joo Silva - R$ 250,00</div>
-        <div className="p-3 bg-background rounded border text-xs shadow-sm">Maria Oliveira - R$ 1.200,00</div>
-        <Button variant="ghost" className="w-full text-xs" size="sm">+ Adicionar</Button>
+      <div className={`h-1.5 w-full ${color} rounded-full`} />
+      <div className="space-y-3">
+        {leads.map(lead => (
+          <div 
+            key={lead.id} 
+            className="p-3 bg-background rounded-lg border text-xs shadow-sm space-y-2 group relative cursor-move hover:border-primary/50 transition-colors"
+          >
+            <div className="font-bold">{lead.name}</div>
+            <div className="text-muted-foreground">{formatBRL(lead.value)}</div>
+            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+               <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => onMove(lead.id, "novo")} title="Mover para Novo">
+                  <ChevronLeft className="h-3 w-3" />
+               </Button>
+               <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => onMove(lead.id, "atendimento")} title="Em Atendimento">
+                  <Activity className="h-3 w-3" />
+               </Button>
+               <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => onMove(lead.id, "pagamento")} title="Aguardando Pagamento">
+                  <DollarSign className="h-3 w-3" />
+               </Button>
+               <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => onMove(lead.id, "fechado")} title="Mover para Fechado">
+                  <CheckCircle2 className="h-3 w-3" />
+               </Button>
+            </div>
+          </div>
+        ))}
+        <Button variant="ghost" className="w-full text-xs h-9 border-dashed border hover:bg-background" size="sm" onClick={onAdd}>
+          <Plus className="h-3 w-3 mr-1" /> Adicionar Lead
+        </Button>
       </div>
     </div>
   );
