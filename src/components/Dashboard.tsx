@@ -1411,6 +1411,16 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                   O motor de escala cuidará das otimizações automáticas.
                 </p>
               </div>
+              <div className="grid grid-cols-2 gap-4 mt-6">
+                 <div className="p-4 rounded-xl border bg-muted/30">
+                   <p className="text-[9px] font-bold text-muted-foreground uppercase">Estratégia de Lance</p>
+                   <p className="text-sm font-bold mt-1">Volume Mais Alto (Automático)</p>
+                 </div>
+                 <div className="p-4 rounded-xl border bg-muted/30">
+                   <p className="text-[9px] font-bold text-muted-foreground uppercase">Atribuição (Window)</p>
+                   <p className="text-sm font-bold mt-1">7 dias clique / 1 dia visualização</p>
+                 </div>
+              </div>
             </div>
           )}
 
