@@ -1366,7 +1366,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                   </div>
                 </div>
 
-              <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
+                <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                    <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Configuração do Público:</p>
