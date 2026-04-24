@@ -1156,8 +1156,29 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
     { id: 1, title: "Estratégia", desc: "Como vamos escalar?" },
     { id: 2, title: "Configuração", desc: "Nome e Orçamento" },
     { id: 3, title: "Público", desc: "Região e Interesses" },
-    { id: 4, title: "Criativos", desc: "Seus melhores anúncios" }
+    { id: 4, title: "Criativos", desc: "Seus melhores anúncios" },
+    { id: 5, title: "Revisão", desc: "Confirme os detalhes" }
   ];
+
+  const handleFinish = () => {
+    onComplete({
+      strategy: selectedStrategy,
+      creatives: creatives.filter(c => selectedCreatives.includes(c.id)),
+      name,
+      budget: Number(budget) * 100,
+      targeting: { 
+        geo_locations: { 
+          countries: region === 'ALL' ? undefined : [region],
+          regions: region !== 'ALL' && region !== 'BR' && region !== 'US' && region !== 'EU' && region !== 'LATAM' ? [{ key: region, name: region }] : undefined,
+          cities: city ? [{ key: city, name: city }] : undefined
+        },
+        interests: interests ? interests.split(",").map(i => i.trim()) : undefined,
+        age_min: ageRange.split("-")[0] ? parseInt(ageRange.split("-")[0]) : undefined,
+        age_max: ageRange.includes("+") ? undefined : (ageRange.split("-")[1] ? parseInt(ageRange.split("-")[1]) : undefined),
+        genders: gender === 'ALL' ? undefined : (gender === 'MALE' ? [1] : [2])
+      }
+    });
+  };
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
@@ -1165,15 +1186,14 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
         <h2 className="text-4xl font-extrabold tracking-tight">Escala Guiada Passo a Passo</h2>
         <p className="text-muted-foreground text-lg">Siga o guia real para dominar seus anúncios como um administrador profissional.</p>
         
-        <div className="flex justify-center gap-4 mt-8 bg-muted/20 p-6 rounded-2xl border border-border/50">
+        <div className="flex justify-center gap-4 mt-8 bg-muted/20 p-6 rounded-2xl border border-border/50 overflow-x-auto pb-4">
           {steps.map(s => (
-            <div key={s.id} className="flex flex-col items-center gap-3 w-24">
+            <div key={s.id} className="flex flex-col items-center gap-3 min-w-[80px]">
               <div className={`h-12 w-12 rounded-2xl flex items-center justify-center font-bold transition-all ${step >= s.id ? 'bg-primary text-primary-foreground scale-110 shadow-lg shadow-primary/20 rotate-3' : 'bg-muted text-muted-foreground opacity-50'}`}>
                 {step > s.id ? <CheckCircle2 className="h-6 w-6" /> : s.id}
               </div>
               <div className="text-center">
                 <span className={`text-[10px] font-black uppercase tracking-widest block ${step === s.id ? 'text-primary' : 'text-muted-foreground'}`}>{s.title}</span>
-                <span className="text-[8px] text-muted-foreground line-clamp-1 hidden md:block">{s.desc}</span>
               </div>
             </div>
           ))}
@@ -1188,16 +1208,17 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                 {step === 2 && <Settings className="h-7 w-7" />}
                 {step === 3 && <Target className="h-7 w-7" />}
                 {step === 4 && <ImageIcon className="h-7 w-7" />}
+                {step === 5 && <Rocket className="h-7 w-7" />}
              </div>
              <div>
-               <p className="text-xs font-bold text-primary uppercase tracking-widest mb-1">Passo {step} de 4</p>
+               <p className="text-xs font-bold text-primary uppercase tracking-widest mb-1">Passo {step} de 5</p>
                <CardTitle className="text-2xl font-black">{steps[step-1].title}: {steps[step-1].desc}</CardTitle>
              </div>
           </div>
         </CardHeader>
         <CardContent className="p-10">
           {step === 1 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               {SCALE_STRATEGIES.map(s => (
                 <div 
                   key={s.id} 
@@ -1348,17 +1369,8 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                          <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Recomendação IA para Escala</p>
                       </div>
                       <p className="text-[10px] text-muted-foreground leading-relaxed">
-                        Para escala global, use <strong>Público Aberto (Broad)</strong> ou <strong>Lookalike 1%</strong>. 
+                        Para escala global, use Público Aberto (Broad) ou Lookalike 1%. 
                         O algoritmo da Meta encontra os melhores compradores automaticamente quando o criativo é forte. 
-                      </p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20">
-                      <div className="flex items-center gap-2 mb-1">
-                         <Users className="h-3 w-3 text-orange-500" />
-                         <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">Escala de Público</p>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground leading-relaxed">
-                        Ao escalar, teste <strong>Lookalike de Compradores (LAL)</strong> e <strong>Públicos de Retenção</strong>. 
                       </p>
                     </div>
                   </div>
@@ -1371,8 +1383,8 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Configuração do Público:</p>
                    <p className="text-xs text-slate-100 font-bold">
                      {region === 'ALL' ? 'Mundo Inteiro' : (region || 'Global')}
-                     {city ? ` ${city}` : ""}
-                     {interests ? ` + ${interests.split(',').length} Interesses` : " + Público Aberto"}
+                     {city ? ` • ${city}` : ""}
+                     {interests ? ` • +${interests.split(',').length} Interesses` : " • Público Aberto"}
                      {" • "}
                      {ageRange}
                      {" • "}
@@ -1430,18 +1442,94 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">Hospedar Mídia</p>
                   </div>
                </div>
+            </div>
+          )}
 
-               <div className="p-6 rounded-2xl bg-slate-900 border-2 border-slate-800">
-                  <div className="flex items-center gap-3">
-                     <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <Rocket className="h-5 w-5 text-primary" />
-                     </div>
-                     <div>
-                        <p className="text-sm font-bold text-slate-100">Pronto para a Escala Ultra</p>
-                        <p className="text-xs text-slate-400">Ao clicar em finalizar, o motor de IA criará a estrutura completa no seu Gerenciador de Anúncios.</p>
-                     </div>
+          {step === 5 && (
+            <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-2 space-y-6">
+                  <div className="p-8 rounded-3xl bg-slate-900 border-2 border-slate-800 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                      <Rocket className="h-32 w-32 text-primary" />
+                    </div>
+                    <div className="relative z-10 space-y-6">
+                      <div>
+                        <Badge className="mb-2 bg-primary/20 text-primary border-primary/30 uppercase font-black tracking-widest text-[10px]">REVISÃO FINAL</Badge>
+                        <h3 className="text-3xl font-black text-white">{name}</h3>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-8 pt-4 border-t border-slate-800">
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Estratégia</p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">{selectedStrategy.emoji}</span>
+                            <span className="text-xl font-bold text-slate-100">{selectedStrategy.name}</span>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Orçamento</p>
+                          <p className="text-2xl font-black text-[oklch(0.7_0.18_162)]">R$ {budget},00<span className="text-xs text-slate-400 font-medium ml-1">/dia</span></p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4 pt-4 border-t border-slate-800">
+                         <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-xl bg-slate-800 flex items-center justify-center">
+                               <Globe className="h-5 w-5 text-slate-400" />
+                            </div>
+                            <div>
+                               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Público e Geografia</p>
+                               <p className="text-sm text-slate-200 font-bold">
+                                  {region === 'ALL' ? 'Mundo Inteiro' : region} {city && `• ${city}`} • {ageRange} • {gender === 'ALL' ? 'Todos' : (gender === 'MALE' ? 'Homens' : 'Mulheres')}
+                               </p>
+                            </div>
+                         </div>
+                         <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-xl bg-slate-800 flex items-center justify-center">
+                               <Target className="h-5 w-5 text-slate-400" />
+                            </div>
+                            <div>
+                               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Interesses Sugeridos</p>
+                               <p className="text-sm text-slate-200 font-bold italic">{interests || "Público Aberto (Broad)"}</p>
+                            </div>
+                         </div>
+                      </div>
+                    </div>
                   </div>
-               </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-muted/30 border border-border">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3">Criativos Selecionados ({selectedCreatives.length})</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {creatives.filter(c => selectedCreatives.includes(c.id)).slice(0, 4).map(c => (
+                        <div key={c.id} className="aspect-square rounded-lg overflow-hidden bg-muted">
+                          <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                      {selectedCreatives.length > 4 && (
+                        <div className="aspect-square rounded-lg bg-primary/10 flex items-center justify-center border-2 border-dashed border-primary/30">
+                          <span className="text-xs font-black text-primary">+{selectedCreatives.length - 4}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 rounded-2xl bg-orange-500/10 border border-orange-500/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Zap className="h-4 w-4 text-orange-500" />
+                      <p className="text-[10px] font-black text-orange-500 uppercase">AVISO DE ESCALA</p>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed">
+                      {selectedStrategy.id === 'mortal' ? 
+                        "A Escala Mortal dobrará seu orçamento agressivamente. Certifique-se de ter limite no cartão e estoque disponível." :
+                        "O motor de IA criará a estrutura completa. Não altere os anúncios manualmente nas primeiras 48h."
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>
@@ -1454,38 +1542,20 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
             Voltar
           </Button>
           
-          {step < 4 ? (
+          {step < 5 ? (
             <Button 
               onClick={() => setStep(p => p + 1)}
               className="gap-2"
+              disabled={step === 4 && selectedCreatives.length === 0}
             >
-              Continuar <ChevronRight className="h-4 w-4" />
+              {step === 4 ? "Revisar Detalhes" : "Continuar"} <ChevronRight className="h-4 w-4" />
             </Button>
           ) : (
             <Button 
-              disabled={selectedCreatives.length === 0}
-              onClick={() => {
-                onComplete({
-                  strategy: selectedStrategy,
-                  creatives: creatives.filter(c => selectedCreatives.includes(c.id)),
-                  name,
-                  budget: Number(budget) * 100,
-                  targeting: { 
-                    geo_locations: { 
-                      countries: region === 'ALL' ? undefined : [region],
-                      regions: region !== 'ALL' && region !== 'BR' && region !== 'US' && region !== 'EU' && region !== 'LATAM' ? [{ key: region, name: region }] : undefined,
-                      cities: city ? [{ key: city, name: city }] : undefined
-                    },
-                    interests: interests ? interests.split(",").map(i => i.trim()) : undefined,
-                    age_min: ageRange.split("-")[0] ? parseInt(ageRange.split("-")[0]) : undefined,
-                    age_max: ageRange.includes("+") ? undefined : (ageRange.split("-")[1] ? parseInt(ageRange.split("-")[1]) : undefined),
-                    genders: gender === 'ALL' ? undefined : (gender === 'MALE' ? [1] : [2])
-                  }
-                });
-              }}
-              className="gap-2 bg-[oklch(0.7_0.18_162)] hover:bg-[oklch(0.6_0.18_162)] text-slate-950 font-bold"
+              onClick={handleFinish}
+              className="gap-2 bg-[oklch(0.7_0.18_162)] hover:bg-[oklch(0.6_0.18_162)] text-slate-950 font-black px-8 h-12 rounded-xl shadow-xl shadow-primary/20"
             >
-              Finalizar e Revisar Escala <Rocket className="h-4 w-4" />
+              Lançar Campanha de Escala <Rocket className="h-5 w-5" />
             </Button>
           )}
         </div>
