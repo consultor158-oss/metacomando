@@ -113,7 +113,7 @@ import { Textarea } from "./ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { ScrollArea } from "./ui/scroll-area";
 
-type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "settings" | "google_ads" | "insta_organic" | "wa_reports" | "wa_alerts" | "client_dash" | "lead_tracking" | "wa_support" | "ai_creatives" | "ai_analysis" | "ecommerce" | "crm";
+type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "settings" | "google_ads" | "insta_organic" | "wa_reports" | "wa_alerts" | "client_dash" | "lead_tracking" | "wa_support" | "ai_creatives" | "ai_analysis" | "ecommerce" | "crm" | "apis";
 
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
