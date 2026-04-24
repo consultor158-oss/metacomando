@@ -1488,8 +1488,12 @@ function CreativesTab({ creatives }: { creatives: any[] }) {
   );
 }
 
-function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: (data: any) => void }) {
+function TutorialTab({ creatives, scalingCampaign, onStepChange, onComplete }: { creatives: any[], scalingCampaign?: string | null, onStepChange?: (step: number) => void, onComplete: (data: any) => void }) {
   const [step, setStep] = useState(1);
+  
+  useEffect(() => {
+    onStepChange?.(step);
+  }, [step, onStepChange]);
   const [selectedStrategy, setSelectedStrategy] = useState<ScaleStrategy>(SCALE_STRATEGIES[0]);
   const [name, setName] = useState("");
   const [budget, setBudget] = useState("50");
