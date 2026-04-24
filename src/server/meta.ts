@@ -932,7 +932,10 @@ export const updateAdsetName = createServerFn({ method: "POST" })
   .inputValidator((d: { adsetId: string; name: string }) => d)
   .handler(async ({ data }) => {
     try {
-      const r = await metaPost(data.adsetId, { name: data.name });
+      const r = await metaPost(data.adsetId, { 
+        name: data.name,
+        is_adset_budget_sharing_enabled: false 
+      });
       return { ok: true as const, data: r };
     } catch (e) {
       return errorPayload(e);
