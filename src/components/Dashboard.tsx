@@ -749,7 +749,7 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
 
               <TabsContent value="creatives" className="mt-0">
                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                   {fullData?.ads?.map((ad: any) => (
+                   {fullCampaignData?.ads?.map((ad: any) => (
                      <Card key={ad.id} className="overflow-hidden border-2 hover:border-primary transition-colors cursor-pointer">
                         <div className="aspect-square relative">
                           <img 
