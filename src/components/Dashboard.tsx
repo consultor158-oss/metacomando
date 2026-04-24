@@ -2297,7 +2297,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
             video_id: c.video_id,
             primaryText: c.body || "Performance Copy",
             headline: c.name || c.title || "Headline",
-            cta: destination === "WHATSAPP" ? "MESSAGE_PAGE" : "SHOP_NOW"
+            cta: destination === "WHATSAPP" ? "SEND_MESSAGE" : "SHOP_NOW"
           }))
         }
       });
