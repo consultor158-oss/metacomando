@@ -160,7 +160,19 @@ export function Dashboard() {
                   <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "campaigns"} onClick={() => setView("campaigns")}>
                       <Layers className="h-4 w-4" />
-                      <span>Campanhas</span>
+                      <span>Gerenciar Meta Ads</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "google_ads"} onClick={() => setView("google_ads")}>
+                      <Globe className="h-4 w-4" />
+                      <span>Gerenciar Google Ads</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "insta_organic"} onClick={() => setView("insta_organic")}>
+                      <Smartphone className="h-4 w-4" />
+                      <span>Instagram Orgnico</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
@@ -174,13 +186,57 @@ export function Dashboard() {
             </SidebarGroup>
 
             <SidebarGroup>
-              <SidebarGroupLabel>Ferramentas</SidebarGroupLabel>
+              <SidebarGroupLabel>WhatsApp & Leads</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton isActive={view === "creatives"} onClick={() => setView("creatives")}>
+                    <SidebarMenuButton isActive={view === "wa_reports"} onClick={() => setView("wa_reports")}>
+                      <MessageSquare className="h-4 w-4" />
+                      <span>Relatrios no WhatsApp</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "wa_alerts"} onClick={() => setView("wa_alerts")}>
+                      <Bell className="h-4 w-4" />
+                      <span>Alertas de Saldo</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "lead_tracking"} onClick={() => setView("lead_tracking")}>
+                      <UserPlus className="h-4 w-4" />
+                      <span>Rastreamento de Leads</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "wa_support"} onClick={() => setView("wa_support")}>
+                      <MessageCircle className="h-4 w-4" />
+                      <span>Atendimento WhatsApp</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>Inteligncia & IA</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "ai_creatives"} onClick={() => setView("ai_creatives")}>
                       <ImageIcon className="h-4 w-4" />
-                      <span>Biblioteca de Criativos</span>
+                      <span>Criativos com IA</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "ai_analysis"} onClick={() => setView("ai_analysis")}>
+                      <Brain className="h-4 w-4" />
+                      <span>Anlise de Performance</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "creatives"} onClick={() => setView("creatives")}>
+                      <Folder className="h-4 w-4" />
+                      <span>Biblioteca de Ativos</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
@@ -189,7 +245,32 @@ export function Dashboard() {
                       <span>Automao</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                  {/* Tutorial Guiado movido para dentro de Escalas */}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>Vendas & CRM</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "ecommerce"} onClick={() => setView("ecommerce")}>
+                      <ShoppingCart className="h-4 w-4" />
+                      <span>Rastrear Ecommerce</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "crm"} onClick={() => setView("crm")}>
+                      <Users className="h-4 w-4" />
+                      <span>CRM Interno</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "client_dash"} onClick={() => setView("client_dash")}>
+                      <Share2 className="h-4 w-4" />
+                      <span>Compartilhar com Cliente</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -199,13 +280,13 @@ export function Dashboard() {
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={() => setIsWAModalOpen(true)} className="text-[oklch(0.7_0.18_162)] hover:text-[oklch(0.7_0.18_162)]">
                   <MessageCircle className="h-4 w-4" />
-                  <span>WhatsApp Config</span>
+                  <span>Configuraes WhatsApp</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton isActive={view === "settings"} onClick={() => setView("settings")}>
                   <Settings className="h-4 w-4" />
-                  <span>Configuraes</span>
+                  <span>Configuraes do Sistema</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -219,11 +300,22 @@ export function Dashboard() {
               <div>
                 <h1 className="text-lg font-semibold capitalize">
                   {view === "overview" && "Viso Geral"}
-                  {view === "campaigns" && "Campanhas"}
+                  {view === "campaigns" && "Gerenciar Meta Ads"}
+                  {view === "google_ads" && "Gerenciar Google Ads"}
+                  {view === "insta_organic" && "Instagram Orgnico"}
                   {view === "scales" && "Escalas de IA"}
-                  {view === "creatives" && "Biblioteca de Criativos"}
+                  {view === "creatives" && "Biblioteca de Ativos"}
                   {view === "automation" && "Automao"}
-                  {view === "settings" && "Configuraes"}
+                  {view === "settings" && "Configuraes do Sistema"}
+                  {view === "wa_reports" && "Relatrios no WhatsApp"}
+                  {view === "wa_alerts" && "Alertas de Saldo"}
+                  {view === "client_dash" && "Compartilhar com Cliente"}
+                  {view === "lead_tracking" && "Rastreamento de Leads"}
+                  {view === "wa_support" && "Atendimento WhatsApp"}
+                  {view === "ai_creatives" && "Gerao de Criativos IA"}
+                  {view === "ai_analysis" && "Anlise de Performance IA"}
+                  {view === "ecommerce" && "Rastrear Ecommerce"}
+                  {view === "crm" && "CRM Interno"}
                 </h1>
                 <p className="text-xs text-muted-foreground">
                   {accountData ? `Conta: ${accountData.name}` : "Carregando conta..."}
