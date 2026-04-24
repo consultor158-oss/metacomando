@@ -13,7 +13,6 @@ import {
   Layers,
   Settings,
   Rocket,
-  PlayCircle,
   Plus,
   ArrowUpRight,
   RefreshCw,
@@ -27,8 +26,7 @@ import {
   Clock,
   Edit2,
   Copy,
-  Trash2,
-  AlertCircle
+  Trash2
 } from "lucide-react";
 import {
   getAccountInfo,
@@ -45,7 +43,6 @@ import {
   getPages,
   getCampaignDetails,
   updateAdStatus,
-  updateAdName,
   updateAdsetStatus,
   updateAdsetBudget
 } from "../server/meta";
@@ -94,7 +91,7 @@ import { Input } from "./ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { ScrollArea } from "./ui/scroll-area";
 
-type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "tutorial" | "settings";
+type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "settings";
 
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
