@@ -329,6 +329,7 @@ export function Dashboard() {
                   {view === "ai_analysis" && "Anlise de Performance IA"}
                   {view === "ecommerce" && "Rastrear Ecommerce"}
                   {view === "crm" && "CRM Interno"}
+                  {view === "teste" && "TESTE"}
                 </h1>
                 <p className="text-xs text-muted-foreground">
                   {accountData ? `Conta: ${accountData.name}` : "Carregando conta..."}
