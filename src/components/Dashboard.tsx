@@ -50,7 +50,9 @@ import {
   getCampaignDetails,
   updateAdStatus,
   updateAdsetStatus,
-  updateAdsetBudget
+  updateAdsetBudget,
+  updateAdsetName,
+  updateAdName
 } from "../server/meta";
 import { WhatsAppModal } from "./WhatsAppModal";
 import { SCALE_STRATEGIES, ScaleStrategy } from "../lib/scales";
