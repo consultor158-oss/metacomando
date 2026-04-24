@@ -376,17 +376,32 @@ export function Dashboard() {
             {view === "insta_organic" && <InstaOrganicTab />}
             {view === "scales" && (
               <div className="space-y-10">
-                <TutorialTab creatives={creativesData} onComplete={(data) => {
-                  setDryRunData(data);
-                }} />
-                <div className="border-t pt-10">
-                  <h3 className="text-xl font-bold mb-6">Outras Estratégias de Escala</h3>
-                  <ScalesTab onSelect={(s) => setDryRunData({ strategy: s })} />
-                </div>
+                <TutorialTab 
+                  creatives={creativesData} 
+                  scalingCampaign={scalingCampaign}
+                  onStepChange={setTutorialStep}
+                  onComplete={(data) => {
+                    setDryRunData(data);
+                  }} 
+                />
+                {tutorialStep === 1 && (
+                  <div className="border-t pt-10">
+                    <h3 className="text-xl font-bold mb-6">Outras Estratégias de Escala</h3>
+                    <ScalesTab onSelect={(s) => setDryRunData({ strategy: s })} />
+                  </div>
+                )}
               </div>
             )}
             
-            {view === "creatives" && <CreativesTab creatives={creativesData} />}
+            {view === "creatives" && (
+              <CreativesTab 
+                creatives={creativesData} 
+                onEscalate={(camp) => {
+                  setScalingCampaign(camp);
+                  setView("scales");
+                }}
+              />
+            )}
             {view === "automation" && <AutomationTab />}
             {view === "settings" && <SettingsTab account={accountData} />}
             {view === "wa_reports" && <WAReportsTab />}
