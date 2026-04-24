@@ -178,8 +178,8 @@ export const updateCampaign = createServerFn({ method: "POST" })
       const body: Record<string, any> = {};
       if (data.name) body.name = data.name;
       if (data.status) body.status = data.status;
-      if (data.daily_budget !== undefined) body.daily_budget = String(data.daily_budget);
-      if (data.lifetime_budget !== undefined) body.lifetime_budget = String(data.lifetime_budget);
+      if (data.daily_budget !== undefined && !isNaN(data.daily_budget)) body.daily_budget = String(data.daily_budget);
+      if (data.lifetime_budget !== undefined && !isNaN(data.lifetime_budget)) body.lifetime_budget = String(data.lifetime_budget);
       if (data.bid_strategy) body.bid_strategy = data.bid_strategy;
       if (data.objective) body.objective = data.objective;
       if (data.special_ad_categories) body.special_ad_categories = JSON.stringify(data.special_ad_categories);
