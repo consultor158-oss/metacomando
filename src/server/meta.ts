@@ -315,6 +315,7 @@ export const createFullScale = createServerFn({ method: "POST" })
         }
         
         // Sempre enviar is_adset_budget_sharing_enabled como false para evitar erros de campo obrigatório no Meta
+        // Nota: Alguns relatos indicam que o Meta pode exigir o valor explicitamente em certas versões da API
         adsetBody.is_adset_budget_sharing_enabled = false;
 
         if (data.destination === "WHATSAPP") {
