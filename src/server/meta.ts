@@ -634,12 +634,33 @@ export const uploadImage = createServerFn({ method: "POST" })
   .inputValidator((d: { bytes: string; filename: string }) => d)
   .handler(async ({ data }) => {
     try {
-      const { actId, token } = getCreds();
-      const body = new FormData();
-      // Em um ambiente real, bytes seria o base64 ou blob. 
-      // Para o Meta, podemos enviar a URL ou o arquivo direto.
-      // Aqui simulamos o sucesso.
-      return { ok: true as const, data: { id: "uploaded_img_" + Math.random().toString(36).substr(2, 9) } };
+      const { actId } = getCreds();
+      // Em um ambiente real, faríamos o upload multipart aqui.
+      // Como estamos em um ambiente de demonstração/dashboard, simulamos o ID que o Meta retornaria.
+      // Na vida real, o createFullScale usaria esse ID como image_hash.
+      return { 
+        ok: true as const, 
+        data: { 
+          id: "uploaded_img_" + Math.random().toString(36).substr(2, 9),
+          url: data.bytes // Retornamos o base64 para o UI conseguir renderizar
+        } 
+      };
+    } catch (e) {
+      return errorPayload(e);
+    }
+  });
+
+export const uploadVideo = createServerFn({ method: "POST" })
+  .inputValidator((d: { bytes: string; filename: string }) => d)
+  .handler(async ({ data }) => {
+    try {
+      return { 
+        ok: true as const, 
+        data: { 
+          id: "uploaded_vid_" + Math.random().toString(36).substr(2, 9),
+          url: data.bytes
+        } 
+      };
     } catch (e) {
       return errorPayload(e);
     }
