@@ -2276,8 +2276,10 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
   if (!data) return null;
 
   const { strategy, creatives } = data;
-  const adsetCount = strategy.id === "baiana" ? 50 : strategy.id === "abo" ? 3 : 1;
-  const totalBudget = (strategy.defaults.dailyBudgetCents * adsetCount) / 100;
+  const adsetCount = strategy.defaults?.adsetCount || 1;
+  const totalBudget = strategy.defaults?.isCBO 
+    ? (data.budget || strategy.defaults.dailyBudgetCents) / 100 
+    : ((data.budget || strategy.defaults.dailyBudgetCents) * adsetCount) / 100;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
