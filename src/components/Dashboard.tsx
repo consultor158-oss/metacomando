@@ -2147,7 +2147,10 @@ function SettingsTab({ account }: { account: any }) {
          </CardContent>
          <div className="p-6 border-t flex justify-between items-center">
             <p className="text-xs text-muted-foreground">ltima sincronizao: {new Date().toLocaleTimeString()}</p>
-            <Button variant="destructive" size="sm" onClick={() => toast.error("Funo desabilitada para proteo da conta.")}>Desconectar Conta</Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setIsMetaConnectOpen(true)}>Configurar Conexão Real</Button>
+              <Button variant="destructive" size="sm" onClick={() => toast.error("Função desabilitada para proteção da conta.")}>Desconectar Conta</Button>
+            </div>
          </div>
        </Card>
 
