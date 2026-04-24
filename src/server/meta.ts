@@ -202,7 +202,10 @@ export const updateBudget = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; dailyBudgetCents: number; type: "campaign" | "adset" }) => d)
   .handler(async ({ data }) => {
     try {
-      const result = await metaPost(data.id, { daily_budget: String(data.dailyBudgetCents) });
+      const result = await metaPost(data.id, { 
+        daily_budget: String(data.dailyBudgetCents),
+        ...(data.type === "adset" ? { is_adset_budget_sharing_enabled: "false" } : {})
+      });
       return { ok: true as const, data: result };
     } catch (e) {
       return errorPayload(e);
