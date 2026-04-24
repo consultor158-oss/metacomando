@@ -8,6 +8,7 @@ import {
   MessageCircle,
   ShieldCheck,
   ChevronRight,
+  ChevronLeft,
   LayoutDashboard,
   BarChart3,
   Layers,
@@ -29,7 +30,9 @@ import {
   Trash2,
   Globe,
   Users,
-  Video
+  Video,
+  Folder,
+  Save
 } from "lucide-react";
 import {
   getAccountInfo,
