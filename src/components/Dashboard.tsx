@@ -373,6 +373,17 @@ export function Dashboard() {
             {view === "ai_analysis" && <AIAnalysisTab />}
             {view === "ecommerce" && <EcommerceTab />}
             {view === "crm" && <CRMTab />}
+            {view === "teste" && (
+              <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
+                <div className="p-8 rounded-2xl bg-primary/10 border border-primary/20 text-center animate-in fade-in zoom-in duration-500">
+                  <Activity className="h-16 w-16 text-primary mx-auto mb-4" />
+                  <h2 className="text-2xl font-bold">Aba de Teste</h2>
+                  <p className="text-muted-foreground max-w-md">
+                    Se você está vendo esta mensagem, significa que a nova aba "TESTE" foi criada e hospedada com sucesso!
+                  </p>
+                </div>
+              </div>
+            )}
           </main>
         </SidebarInset>
 
