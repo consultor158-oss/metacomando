@@ -2168,6 +2168,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
   const [isActivating, setIsActivating] = useState(false);
   const [selectedPage, setSelectedPage] = useState<string>("");
   const [destination, setDestination] = useState<"WHATSAPP" | "SALES">("WHATSAPP");
+  const [destinationUrl, setDestinationUrl] = useState<string>("");
 
   useEffect(() => {
     if (pages.length > 0 && !selectedPage) {
