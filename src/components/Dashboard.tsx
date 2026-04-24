@@ -1694,47 +1694,6 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
               </div>
             </div>
           )}
-                               <p className="text-sm text-slate-200 font-bold italic">{interests || "Público Aberto (Broad)"}</p>
-                            </div>
-                         </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="p-4 rounded-2xl bg-muted/30 border border-border">
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3">Criativos Selecionados ({selectedCreatives.length})</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {creatives.filter(c => selectedCreatives.includes(c.id)).slice(0, 4).map(c => (
-                        <div key={c.id} className="aspect-square rounded-lg overflow-hidden bg-muted">
-                          <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover" />
-                        </div>
-                      ))}
-                      {selectedCreatives.length > 4 && (
-                        <div className="aspect-square rounded-lg bg-primary/10 flex items-center justify-center border-2 border-dashed border-primary/30">
-                          <span className="text-xs font-black text-primary">+{selectedCreatives.length - 4}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="p-4 rounded-2xl bg-orange-500/10 border border-orange-500/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Zap className="h-4 w-4 text-orange-500" />
-                      <p className="text-[10px] font-black text-orange-500 uppercase">AVISO DE ESCALA</p>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed">
-                      {selectedStrategy.id === 'mortal' ? 
-                        "A Escala Mortal dobrará seu orçamento agressivamente. Certifique-se de ter limite no cartão e estoque disponível." :
-                        "O motor de IA criará a estrutura completa. Não altere os anúncios manualmente nas primeiras 48h."
-                      }
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </CardContent>
         <div className="p-6 border-t bg-muted/20 flex justify-between items-center">
           <Button 
