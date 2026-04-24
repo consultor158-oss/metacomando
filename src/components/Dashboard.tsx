@@ -112,7 +112,7 @@ import { Textarea } from "./ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { ScrollArea } from "./ui/scroll-area";
 
-type View = "overview" | "campaigns" | "scales" | "scale_test" | "creatives" | "automation" | "settings" | "google_ads" | "insta_organic" | "wa_reports" | "wa_alerts" | "client_dash" | "lead_tracking" | "wa_support" | "ai_creatives" | "ai_analysis" | "ecommerce" | "crm";
+type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "settings" | "google_ads" | "insta_organic" | "wa_reports" | "wa_alerts" | "client_dash" | "lead_tracking" | "wa_support" | "ai_creatives" | "ai_analysis" | "ecommerce" | "crm";
 
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
@@ -210,12 +210,6 @@ export function Dashboard() {
                     <SidebarMenuButton isActive={view === "scales"} onClick={() => setView("scales")}>
                       <Rocket className="h-4 w-4" />
                       <span>Escalas IA</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton isActive={view === "scale_test"} onClick={() => setView("scale_test")}>
-                      <Activity className="h-4 w-4" />
-                      <span>Teste de Escala Real</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -394,7 +388,7 @@ export function Dashboard() {
                 </div>
               </div>
             )}
-            {view === "scale_test" && <ScaleTestTab campaigns={campaignsData} />}
+            
             {view === "creatives" && <CreativesTab creatives={creativesData} />}
             {view === "automation" && <AutomationTab />}
             {view === "settings" && <SettingsTab account={accountData} />}
