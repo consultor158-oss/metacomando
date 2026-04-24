@@ -1281,7 +1281,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
     <div className="space-y-8 max-w-4xl mx-auto">
       <div className="text-center space-y-4">
         <h2 className="text-4xl font-extrabold tracking-tight">Escala Guiada Passo a Passo</h2>
-        <p className="text-muted-foreground text-lg">Siga o guia real para dominar seus anúncios como um administrador profissional.</p>
+        <p className="text-muted-foreground text-lg">Siga o guia real extraído dos manuais de alta performance para dominar seus anúncios como um administrador profissional.</p>
         
         <div className="relative mt-12 mb-8 px-10">
           <div className="absolute top-6 left-10 right-10 h-1 bg-muted rounded-full">
