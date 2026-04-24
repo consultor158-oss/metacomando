@@ -301,7 +301,7 @@ export const createFullScale = createServerFn({ method: "POST" })
            // Note: interests require specific IDs from Meta, we fallback to broad targeting if names are provided as strings
         }
         
-        const adsetBody: Record<string, string> = {
+        const adsetBody: Record<string, any> = {
           name: `[ULTRA] ${data.name} - Conjunto ${i + 1}`,
           campaign_id: campaignId,
           status: data.status || "PAUSED",
