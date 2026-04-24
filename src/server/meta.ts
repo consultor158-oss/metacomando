@@ -346,25 +346,24 @@ export const createFullScale = createServerFn({ method: "POST" })
                }
 
                if (creative.video_id) {
-                 objectStorySpec.video_data = {
-                   video_id: creative.video_id,
-                   image_url: creative.image_url,
-                   title: creative.headline,
-                   message: creative.primaryText,
-                   call_to_action: { type: ctaType, value: ctaValue }
-                 };
-               } else {
-                 const linkData: any = {
-                   message: creative.primaryText,
-                   link: data.destination === "WHATSAPP" ? `https://www.facebook.com/${data.pageId}` : (data.destinationUrl || "https://example.com"),
-                   caption: creative.headline,
-                   call_to_action: { type: ctaType, value: ctaValue },
-                 };
-                 if (creative.image_url && !creative.image_url.startsWith("data:")) {
-                   linkData.picture = creative.image_url;
-                 }
-                 objectStorySpec.link_data = linkData;
-               }
+                objectStorySpec.video_data = {
+                  video_id: creative.video_id,
+                  image_url: creative.image_url,
+                  message: creative.primaryText,
+                  call_to_action: { type: ctaType, value: ctaValue }
+                };
+              } else {
+                const linkData: any = {
+                  message: creative.primaryText,
+                  link: data.destination === "WHATSAPP" ? `https://www.facebook.com/${data.pageId}` : (data.destinationUrl || "https://example.com"),
+                  name: creative.headline,
+                  call_to_action: { type: ctaType, value: ctaValue },
+                };
+                if (creative.image_url && !creative.image_url.startsWith("data:")) {
+                  linkData.picture = creative.image_url;
+                }
+                objectStorySpec.link_data = linkData;
+              }
                adBody.creative = JSON.stringify({
                  name: `Creative ${idx + 1} - ${Date.now()}`,
                  object_story_spec: objectStorySpec
