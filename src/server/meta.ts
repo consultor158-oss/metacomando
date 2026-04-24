@@ -328,17 +328,24 @@ export const createFullScale = createServerFn({ method: "POST" })
                    }
                  };
                 } else {
-                  objectStorySpec.link_data = {
+                  const linkData: any = {
                     message: creative.primaryText,
                     link: data.destinationUrl || "https://example.com",
                     caption: creative.headline,
-                    image_hash: creative.id?.startsWith("new_") ? creative.id.replace("new_", "") : creative.id,
-                    picture: creative.image_url,
                     call_to_action: { 
                       type: data.destination === "WHATSAPP" ? "MESSAGE_PAGE" : creative.cta, 
                       value: { link: data.destinationUrl || "https://example.com" } 
                     },
                   };
+
+                  // Only add image_hash if it looks like a valid hash (and isn't the "new_" prefix)
+                  if (creative.id && !creative.id.startsWith("new_")) {
+                    linkData.image_hash = creative.id;
+                  } else if (creative.image_url && !creative.image_url.startsWith("data:")) {
+                    linkData.picture = creative.image_url;
+                  }
+                  
+                  objectStorySpec.link_data = linkData;
                 }
 
                adBody.creative = JSON.stringify({
@@ -350,6 +357,8 @@ export const createFullScale = createServerFn({ method: "POST" })
              await metaPost(`${actId}/ads`, adBody);
            } catch (adError: any) {
              console.error("Erro ao criar anúncio:", adError.message);
+             // Re-throw if we want the whole operation to fail, or just continue
+             throw adError; 
            }
         }
       }
