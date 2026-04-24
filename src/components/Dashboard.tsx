@@ -1629,10 +1629,16 @@ function TutorialTab({ creatives, scalingCampaign, onStepChange, onComplete }: {
       <div className="text-center space-y-4">
         <h2 className="text-4xl font-extrabold tracking-tight">Escala Guiada Passo a Passo</h2>
         {scalingCampaign && scalingCampaign !== "TUDO" && (
-          <div className="flex justify-center">
+          <div className="flex justify-center items-center gap-2">
             <Badge variant="secondary" className="px-4 py-1 text-xs font-bold bg-primary/10 text-primary border-primary/20">
               Escalando: {scalingCampaign}
             </Badge>
+            <Button variant="ghost" size="sm" onClick={() => {
+              // We need to clear it in the parent
+              window.dispatchEvent(new CustomEvent('clear-scale-filter'));
+            }} className="h-6 text-[10px] text-muted-foreground hover:text-primary">
+              Ver Todos
+            </Button>
           </div>
         )}
         <p className="text-muted-foreground text-lg">Siga o guia real extraído dos manuais de alta performance para dominar seus anúncios como um administrador profissional.</p>
