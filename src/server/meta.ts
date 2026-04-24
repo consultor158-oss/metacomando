@@ -331,7 +331,7 @@ export const createFullScale = createServerFn({ method: "POST" })
 
         for (const [idx, creative] of adsToCreate.entries()) {
            try {
-             let adBody: Record<string, string> = {
+             let adBody: Record<string, any> = {
                name: `Anúncio ${idx + 1} - ${adset.id}`,
                adset_id: adset.id,
                status: data.status || "PAUSED",
