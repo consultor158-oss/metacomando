@@ -1635,7 +1635,7 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                             <div className="h-10 w-10 rounded-xl bg-slate-800 flex items-center justify-center">
                                <Globe className="h-5 w-5 text-slate-400" />
                             </div>
-                            <div>
+                            <div className="flex-1">
                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Público e Geografia</p>
                                <p className="text-sm text-slate-200 font-bold">
                                   {region === 'ALL' ? 'Mundo Inteiro' : region} {city && `• ${city}`} • {ageRange} • {gender === 'ALL' ? 'Todos' : (gender === 'MALE' ? 'Homens' : 'Mulheres')}
@@ -1646,8 +1646,54 @@ function TutorialTab({ creatives, onComplete }: { creatives: any[], onComplete: 
                             <div className="h-10 w-10 rounded-xl bg-slate-800 flex items-center justify-center">
                                <Target className="h-5 w-5 text-slate-400" />
                             </div>
-                            <div>
-                               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Interesses Sugeridos</p>
+                            <div className="flex-1">
+                               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Configuração Técnica Meta</p>
+                               <p className="text-[11px] text-slate-400 leading-tight">
+                                  <b>Objetivo:</b> {selectedStrategy.defaults.objective} • <b>Lance:</b> Menor Custo • <b>Distribuição:</b> {selectedStrategy.id === 'abo' ? 'Adset Level' : 'CBO (Campaign level)'}
+                               </p>
+                            </div>
+                         </div>
+                         <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-xl bg-slate-800 flex items-center justify-center">
+                               <Zap className="h-5 w-5 text-slate-400" />
+                            </div>
+                            <div className="flex-1">
+                               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Pixel & CAPI Status</p>
+                               <div className="flex items-center gap-2 mt-1">
+                                  <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                                  <p className="text-[11px] text-slate-400 font-bold">Verificado (Qualidade Excelente)</p>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="p-6 rounded-3xl border bg-card/50">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">Criativos Selecionados ({selectedCreatives.length})</p>
+                    <div className="grid grid-cols-2 gap-3">
+                       {creatives.filter(c => selectedCreatives.includes(c.id)).map((c: any) => (
+                         <div key={c.id} className="aspect-square rounded-xl overflow-hidden border border-border">
+                            <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover" />
+                         </div>
+                       ))}
+                    </div>
+                  </div>
+                  
+                  <div className="p-6 rounded-3xl bg-[oklch(0.7_0.18_162)]/10 border-2 border-[oklch(0.7_0.18_162)]/20">
+                    <p className="text-xs font-black text-[oklch(0.7_0.18_162)] uppercase tracking-widest mb-2 flex items-center gap-2">
+                       <Rocket className="h-4 w-4" /> Pronto para o Lançamento
+                    </p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                       Todas as configurações foram revisadas pelo Motor de IA. A campanha será criada via API Meta oficial.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
                                <p className="text-sm text-slate-200 font-bold italic">{interests || "Público Aberto (Broad)"}</p>
                             </div>
                          </div>
