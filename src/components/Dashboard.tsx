@@ -228,9 +228,8 @@ export function Dashboard() {
             {view === "campaigns" && <CampaignsTab campaigns={campaignsData} refresh={() => campaigns.refetch()} />}
             {view === "scales" && (
               <div className="space-y-10">
-                <TutorialTab creatives={creativesData} onComplete={(selected) => {
-                  const tutorialStrategy = SCALE_STRATEGIES.find(s => s.id === "ia_opt");
-                  if (tutorialStrategy) setDryRunData({ strategy: tutorialStrategy, creatives: selected });
+                <TutorialTab creatives={creativesData} onComplete={(data) => {
+                  setDryRunData(data);
                 }} />
                 <div className="border-t pt-10">
                   <h3 className="text-xl font-bold mb-6">Outras Estratégias de Escala</h3>
