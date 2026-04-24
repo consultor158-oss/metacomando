@@ -9,6 +9,8 @@ export type ScaleStrategy = {
     dailyBudgetCents: number;
     namePrefix: string;
     status: "ACTIVE" | "PAUSED";
+    isCBO?: boolean;
+    adsetCount?: number;
   };
   color: string;
   creativeCount?: number; // Adicionado para tutorial guiado
@@ -22,7 +24,7 @@ export const SCALE_STRATEGIES: ScaleStrategy[] = [
     shortDesc: "Orçamento por adset manual. Granular, ideal para testes; +20-30%/dia em winners.",
     fullDesc:
       "Adset Budget Optimization: você define o orçamento de cada adset manualmente. Ideal para testes A/B granulares de público/criativo. Quando um adset prova ROI ≥ 2, escale +20–30%/dia.",
-    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 5000, namePrefix: "ABO", status: "ACTIVE" },
+    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 5000, namePrefix: "ABO", status: "ACTIVE", isCBO: false, adsetCount: 3 },
     color: "from-blue-500 to-cyan-500",
     creativeCount: 5,
   },
@@ -33,7 +35,7 @@ export const SCALE_STRATEGIES: ScaleStrategy[] = [
     shortDesc: "IA aloca verba na campanha. Escala até 10x; +20% a cada 3 dias após 50 conv.",
     fullDesc:
       "Campaign Budget Optimization: a IA do Meta distribui o orçamento entre adsets. Use quando já houver pelo menos 50 conversões. Escale +20% a cada 3 dias mantendo ROAS alto.",
-    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 15000, namePrefix: "CBO", status: "ACTIVE" },
+    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 15000, namePrefix: "CBO", status: "ACTIVE", isCBO: true, adsetCount: 3 },
     color: "from-purple-500 to-pink-500",
     creativeCount: 3,
   },
@@ -44,7 +46,7 @@ export const SCALE_STRATEGIES: ScaleStrategy[] = [
     shortDesc: "1 campanha / 1 adset / 1 anúncio. Cold start; duplique winners.",
     fullDesc:
       "Estrutura mínima para validar criativo. Ideal para cold start de novas contas/produtos. Quando o anúncio bater meta, duplique e teste variações.",
-    defaults: { objective: "OUTCOME_ENGAGEMENT", dailyBudgetCents: 2000, namePrefix: "111", status: "ACTIVE" },
+    defaults: { objective: "OUTCOME_ENGAGEMENT", dailyBudgetCents: 2000, namePrefix: "111", status: "ACTIVE", isCBO: false, adsetCount: 1 },
     color: "from-emerald-500 to-teal-500",
     creativeCount: 1,
   },
@@ -55,9 +57,9 @@ export const SCALE_STRATEGIES: ScaleStrategy[] = [
     shortDesc: "50 criativos a R$7/set (ROI≥2); escale 250 sets R$1750–2500/dia.",
     fullDesc:
       "Estratégia de volume: subir 50 criativos a R$7/adset; manter os que ROI ≥ 2 e replicar até 250 adsets, atingindo R$1.750–2.500/dia. +200 adsets em 5 minutos via API.",
-    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 700, namePrefix: "BAIANA", status: "PAUSED" },
+    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 700, namePrefix: "BAIANA", status: "PAUSED", isCBO: false, adsetCount: 50 },
     color: "from-orange-500 to-red-500",
-    creativeCount: 10, // Reduzido de 50 para 10 no UI por simplicidade, mas mantendo a lógica de "vários"
+    creativeCount: 10,
   },
   {
     id: "russa",
@@ -66,7 +68,7 @@ export const SCALE_STRATEGIES: ScaleStrategy[] = [
     shortDesc: "+20-30%/dia conservador; públicos narrow, ABO em CBO.",
     fullDesc:
       "Escala lenta e segura: +20–30% por dia mantendo o ROAS estável. Combine públicos narrow dentro de CBO ou use ABO. Boa para contas recém-recuperadas.",
-    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 10000, namePrefix: "RUSSA", status: "ACTIVE" },
+    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 10000, namePrefix: "RUSSA", status: "ACTIVE", isCBO: true, adsetCount: 5 },
     color: "from-sky-500 to-indigo-500",
     creativeCount: 3,
   },
@@ -77,7 +79,7 @@ export const SCALE_STRATEGIES: ScaleStrategy[] = [
     shortDesc: "+20-30%/dia (regra 20%), CBO, ROAS estável 7 dias.",
     fullDesc:
       "Aumenta orçamento da mesma campanha em incrementos de 20–30%/dia. Use somente quando ROAS estiver estável por 7 dias. Funciona melhor em CBO.",
-    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 20000, namePrefix: "VERT", status: "ACTIVE" },
+    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 20000, namePrefix: "VERT", status: "ACTIVE", isCBO: true, adsetCount: 1 },
     color: "from-green-500 to-emerald-500",
     creativeCount: 2,
   },
@@ -88,7 +90,7 @@ export const SCALE_STRATEGIES: ScaleStrategy[] = [
     shortDesc: "Adicionar adsets/criativos; diagonal para volume.",
     fullDesc:
       "Em vez de aumentar verba, replique adsets winners para novos públicos/criativos. Aumenta volume sem instabilizar o aprendizado.",
-    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 5000, namePrefix: "HORIZ", status: "ACTIVE" },
+    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 5000, namePrefix: "HORIZ", status: "ACTIVE", isCBO: false, adsetCount: 10 },
     color: "from-yellow-500 to-amber-500",
     creativeCount: 3,
   },
@@ -99,7 +101,7 @@ export const SCALE_STRATEGIES: ScaleStrategy[] = [
     shortDesc: "24h agressivo R$200–500 amplos; kill losers.",
     fullDesc:
       "Estratégia de teste agressiva por 24h: orçamentos R$200–500 com públicos amplos. Avalia rápido; pausa losers no dia seguinte.",
-    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 30000, namePrefix: "BITCAMP", status: "ACTIVE" },
+    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 30000, namePrefix: "BITCAMP", status: "ACTIVE", isCBO: false, adsetCount: 10 },
     color: "from-rose-500 to-pink-500",
     creativeCount: 5,
   },
@@ -110,7 +112,7 @@ export const SCALE_STRATEGIES: ScaleStrategy[] = [
     shortDesc: "+20%/3-4 dias; ROAS>2.5x freq<3; otimização de públicos.",
     fullDesc:
       "Escala matemática: aumentar +20% a cada 3–4 dias se ROAS > 2.5x e frequência < 3. Combina otimização de públicos lookalike e exclusões.",
-    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 25000, namePrefix: "ANDRO", status: "ACTIVE" },
+    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 25000, namePrefix: "ANDRO", status: "ACTIVE", isCBO: false, adsetCount: 5 },
     color: "from-violet-500 to-fuchsia-500",
     creativeCount: 4,
   },
@@ -121,7 +123,7 @@ export const SCALE_STRATEGIES: ScaleStrategy[] = [
     shortDesc: "Escala via motor de recomendações IA. +20% em winners reais.",
     fullDesc:
       "Nossa IA analisa ROAS, CTR e CVR para identificar vencedores reais. O 'SUBIR' executa a escala via API duplicando sets/campanhas com orçamentos otimizados e verificação de saúde anti-perda.",
-    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 15000, namePrefix: "IA_OPT", status: "ACTIVE" },
+    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 15000, namePrefix: "IA_OPT", status: "ACTIVE", isCBO: true, adsetCount: 3 },
     color: "from-blue-600 to-indigo-600",
     creativeCount: 3,
   },
@@ -132,7 +134,7 @@ export const SCALE_STRATEGIES: ScaleStrategy[] = [
     shortDesc: "Escala agressiva máxima; dobra orçamento a cada 12h se ROAS > 3.0.",
     fullDesc:
       "A estratégia mais agressiva: dobra o orçamento a cada 12 horas enquanto o ROAS estiver acima de 3.0. Ideal para quem já validou tudo e quer escala exponencial.",
-    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 50000, namePrefix: "MORTAL", status: "ACTIVE" },
+    defaults: { objective: "OUTCOME_SALES", dailyBudgetCents: 50000, namePrefix: "MORTAL", status: "ACTIVE", isCBO: true, adsetCount: 1 },
     color: "from-gray-900 to-red-900",
     creativeCount: 5,
   },
