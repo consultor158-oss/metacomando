@@ -3264,64 +3264,229 @@ function CRMPipeColumn({ title, id, leads, color, onAdd, onMove }: { title: stri
 }
 
 function ApisTab({ onConnect }: { onConnect: () => void }) {
+  const [apis, setApis] = useState<CustomApi[]>([]);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [testingId, setTestingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setApis(loadCustomApis());
+  }, []);
+
+  const refresh = () => setApis(loadCustomApis());
+
+  const handleRemove = (id: string) => {
+    removeCustomApi(id);
+    refresh();
+    toast.success("Conexão removida");
+  };
+
+  const handleTest = async (api: CustomApi) => {
+    setTestingId(api.id);
+    const res = await testCustomApi(api);
+    setTestingId(null);
+    if (res.ok) {
+      toast.success(`Conexão OK! Status: ${res.status}`);
+    } else {
+      toast.error(`Falha na conexão: ${res.error || "Status " + res.status}`);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
-          <CardTitle>Conexões de APIs</CardTitle>
-          <CardDescription>Gerencie suas conexões externas e chaves de API para operar por dentro da plataforma.</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Conexões de APIs</CardTitle>
+            <CardDescription>Gerencie suas conexões externas para automação de imagens, vídeos e dados.</CardDescription>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onConnect}>
+               <ShieldCheck className="h-4 w-4 mr-2" /> Meta Ads Real
+            </Button>
+            <Button onClick={() => setIsAddOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" /> Nova API
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card className="border-dashed">
-              <CardContent className="pt-6 text-center space-y-4">
-                <div className="flex justify-center">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                    <Code className="h-6 w-6" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-bold">Nova Integração API</h3>
-                  <p className="text-sm text-muted-foreground">Conecte sua API personalizada para automatizar processos.</p>
-                </div>
-                 <Button variant="outline" className="w-full" onClick={onConnect}>
-                   <Plus className="h-4 w-4 mr-2" /> Conectar Meta Ads "Real"
-                 </Button>
-              </CardContent>
-            </Card>
-
-            <div className="space-y-4">
-              <div className="p-4 border rounded-lg flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded bg-muted flex items-center justify-center">
-                    <Globe className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">Webhook Principal</p>
-                    <p className="text-xs text-muted-foreground">https://api.metaultra.com/webhook/...</p>
-                  </div>
-                </div>
-                <Badge>Ativo</Badge>
-              </div>
-              <div className="p-4 border rounded-lg flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded bg-muted flex items-center justify-center">
-                    <Zap className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">Integração VSL</p>
-                    <p className="text-xs text-muted-foreground">Conectado via Token</p>
-                  </div>
-                </div>
-                <Badge variant="outline">Pendente</Badge>
-              </div>
+          {apis.length === 0 ? (
+            <div className="text-center py-10 border rounded-lg border-dashed">
+              <Code className="h-10 w-10 mx-auto text-muted-foreground mb-4 opacity-20" />
+              <p className="text-muted-foreground">Nenhuma API personalizada cadastrada.</p>
+              <Button variant="link" onClick={() => setIsAddOpen(true)}>Clique aqui para adicionar sua primeira</Button>
             </div>
-          </div>
+          ) : (
+            <div className="grid gap-4">
+              {apis.map((api) => (
+                <div key={api.id} className="p-4 border rounded-lg flex items-center justify-between bg-card/50 hover:bg-card transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded bg-primary/10 flex items-center justify-center text-primary">
+                      {api.name.toLowerCase().includes("video") ? <Video className="h-5 w-5" /> : api.name.toLowerCase().includes("imag") ? <ImageIcon className="h-5 w-5" /> : <Globe className="h-5 w-5" />}
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm">{api.name}</p>
+                      <p className="text-xs text-muted-foreground truncate max-w-[300px]">{api.baseUrl}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={() => handleTest(api)} 
+                      disabled={testingId === api.id}
+                    >
+                      {testingId === api.id ? <RefreshCw className="h-3 w-3 animate-spin mr-2" /> : <Zap className="h-3 w-3 mr-2 text-yellow-500" />}
+                      Testar
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => handleRemove(api.id)} className="text-destructive">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      <AddApiDialog 
+        isOpen={isAddOpen} 
+        onClose={() => setIsAddOpen(false)} 
+        onAdded={refresh} 
+      />
     </div>
   );
 }
+
+function AddApiDialog({ isOpen, onClose, onAdded }: { isOpen: boolean, onClose: () => void, onAdded: () => void }) {
+  const [name, setName] = useState("");
+  const [baseUrl, setBaseUrl] = useState("");
+  const [authType, setAuthType] = useState<"none" | "bearer" | "header" | "query">("bearer");
+  const [authKey, setAuthKey] = useState("");
+  const [authValue, setAuthValue] = useState("");
+  const [defaultPath, setDefaultPath] = useState("");
+
+  const applyPreset = (type: "openai" | "heygen" | "custom_video" | "pika") => {
+    if (type === "openai") {
+      setName("OpenAI (DALL-E 3)");
+      setBaseUrl("https://api.openai.com/v1");
+      setAuthType("bearer");
+      setDefaultPath("images/generations");
+    } else if (type === "heygen") {
+      setName("HeyGen Video API");
+      setBaseUrl("https://api.heygen.com/v1");
+      setAuthType("header");
+      setAuthKey("X-Api-Key");
+      setDefaultPath("video/status");
+    } else if (type === "pika") {
+      setName("Pika Art API");
+      setBaseUrl("https://api.pika.art/v1");
+      setAuthType("bearer");
+      setDefaultPath("jobs");
+    } else if (type === "custom_video") {
+      setName("API de Vídeo Personalizada");
+      setBaseUrl("https://api.meuservico.com");
+      setAuthType("bearer");
+    }
+  };
+
+  const handleSave = () => {
+    if (!name || !baseUrl) {
+      toast.error("Nome e URL Base são obrigatórios");
+      return;
+    }
+    addCustomApi({
+      name,
+      baseUrl,
+      authType,
+      authKey: authType === "header" || authType === "query" ? authKey : undefined,
+      authValue,
+      defaultPath
+    });
+    toast.success("API cadastrada com sucesso!");
+    onAdded();
+    onClose();
+    // Reset form
+    setName(""); setBaseUrl(""); setAuthValue(""); setAuthKey(""); setDefaultPath("");
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Nova Integração API</DialogTitle>
+          <DialogDescription>Configure uma nova fonte de dados ou serviço de IA.</DialogDescription>
+        </DialogHeader>
+
+        <div className="py-4 space-y-6">
+          <div className="space-y-2">
+            <Label>Presets Rápidos</Label>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => applyPreset("openai")}>
+                <ImageIcon className="h-3 w-3 mr-2" /> DALL-E (Imagens)
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => applyPreset("heygen")}>
+                <Video className="h-3 w-3 mr-2" /> HeyGen (Vídeo IA)
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => applyPreset("pika")}>
+                <Video className="h-3 w-3 mr-2" /> Pika.art (Vídeo)
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Nome da Conexão</Label>
+              <Input placeholder="Ex: OpenAI Prod" value={name} onChange={e => setName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Caminho de Teste (Path)</Label>
+              <Input placeholder="Ex: /v1/models" value={defaultPath} onChange={e => setDefaultPath(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>URL Base</Label>
+            <Input placeholder="https://api.exemplo.com" value={baseUrl} onChange={e => setBaseUrl(e.target.value)} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Tipo de Autenticação</Label>
+              <Select value={authType} onValueChange={(v: any) => setAuthType(v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Nenhuma</SelectItem>
+                  <SelectItem value="bearer">Bearer Token</SelectItem>
+                  <SelectItem value="header">Custom Header</SelectItem>
+                  <SelectItem value="query">Query Parameter</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {(authType === "header" || authType === "query") && (
+              <div className="space-y-2">
+                <Label>Nome do Campo/Header</Label>
+                <Input placeholder="X-API-Key" value={authKey} onChange={e => setAuthKey(e.target.value)} />
+              </div>
+            )}
+            <div className="space-y-2 col-span-2">
+              <Label>Valor do Token / Key</Label>
+              <Input type="password" placeholder="sk-..." value={authValue} onChange={e => setAuthValue(e.target.value)} />
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button onClick={handleSave}>Salvar Conexão</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 function Heart({ className }: { className?: string }) {
   return (
