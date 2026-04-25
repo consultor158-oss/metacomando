@@ -1574,9 +1574,10 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
   useEffect(() => {
     if (campaignDetails.data?.ok) {
       const c = campaignDetails.data.data.campaign;
-      const as = campaignDetails.data.data.adsets?.[0];
+      const adsets = campaignDetails.data.data.adsets || [];
+      const as = adsets[0];
       
-      setName(c.name || "");
+      setName(`[COPIA] ${c.name || ""}`);
       if (c.daily_budget) setBudget((parseInt(c.daily_budget) / 100).toString());
       else if (c.lifetime_budget) setBudget((parseInt(c.lifetime_budget) / 100).toString());
       
@@ -1584,9 +1585,16 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
       setBuyingType(c.buying_type || "AUCTION");
       setSpecialAdCategories(c.special_ad_categories || []);
       
+      // Se a campanha original for CBO, tentamos identificar a melhor estratégia
+      if (c.bid_strategy === "LOWEST_COST_WITHOUT_CAP" || c.daily_budget) {
+        const matchingStrategy = SCALE_STRATEGIES.find(s => s.defaults.isCBO && s.defaults.objective === c.objective);
+        if (matchingStrategy) setSelectedStrategy(matchingStrategy);
+      }
+
       if (as) {
         if (as.targeting?.geo_locations?.countries?.includes("BR")) setRegion("BR");
         else if (as.targeting?.geo_locations?.countries?.includes("US")) setRegion("US");
+        else if (as.targeting?.geo_locations?.regions?.[0]?.key) setRegion(as.targeting.geo_locations.regions[0].key);
         
         setAgeRange(`${as.targeting?.age_min || 18}-${as.targeting?.age_max || "65+"}`);
         
@@ -1602,7 +1610,7 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
         }
       }
 
-      toast.info("Dados da campanha carregados no tutorial");
+      toast.info("Configuração da campanha analisada e clonada com sucesso");
     }
   }, [campaignDetails.data]);
 
