@@ -391,7 +391,17 @@ export function Dashboard() {
 
           <main className="flex-1 p-6 overflow-y-auto">
             {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} />}
-            {view === "campaigns" && <CampaignsTab campaigns={campaignsData} refresh={() => campaigns.refetch()} />}
+            {view === "campaigns" && (
+              <CampaignsTab 
+                campaigns={campaignsData} 
+                refresh={() => campaigns.refetch()} 
+                onScale={(id) => {
+                  setScalingCampaign(id);
+                  setView("scales");
+                }}
+              />
+            )}
+
             {view === "google_ads" && <GoogleAdsTab />}
             {view === "insta_organic" && <InstaOrganicTab />}
             {view === "scales" && (
@@ -574,7 +584,7 @@ function FunnelStep({ label, count, pct, color }: { label: string, count: number
   );
 }
 
-function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () => void }) {
+function CampaignsTab({ campaigns, refresh, onScale }: { campaigns: any[], refresh: () => void, onScale: (id: string) => void }) {
   const [updating, setUpdating] = useState<string | null>(null);
   const [editingCampaign, setEditingCampaign] = useState<any | null>(null);
 
@@ -676,7 +686,11 @@ function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () =>
                 <TableCell>{formatBRL(c.cpc)}</TableCell>
                 <TableCell className="text-right">
                    <div className="flex justify-end gap-1">
+                     <Button variant="ghost" size="icon" title="Escala Guiada" className="h-8 w-8 text-primary hover:bg-primary/10" onClick={() => onScale(c.id)}>
+                       <Rocket className="h-3.5 w-3.5" />
+                     </Button>
                      <Button variant="ghost" size="icon" title="Edio Completa" className="h-8 w-8" onClick={() => setEditingCampaign(c)}>
+
                        <Edit2 className="h-3.5 w-3.5" />
                      </Button>
                      <Button variant="ghost" size="icon" title="Duplicar" className="h-8 w-8" onClick={() => handleDuplicate(c.id)}>
@@ -1531,21 +1545,68 @@ function CreativesTab({ creatives, onEscalate }: { creatives: any[], onEscalate?
 
 function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFilter, onComplete }: { scalingCampaign?: string | null, creatives?: any[], onStepChange?: (step: number) => void, onClearFilter?: () => void, onComplete: (data: any) => void }) {
   const [step, setStep] = useState(1);
-  
-  useEffect(() => {
-    onStepChange?.(step);
-  }, [step, onStepChange]);
   const [selectedStrategy, setSelectedStrategy] = useState<ScaleStrategy>(SCALE_STRATEGIES[0]);
   const [name, setName] = useState("");
   const [budget, setBudget] = useState("50");
+  const [objective, setObjective] = useState("OUTCOME_SALES");
+  const [buyingType, setBuyingType] = useState("AUCTION");
+  const [specialAdCategories, setSpecialAdCategories] = useState<string[]>([]);
   const [selectedCreatives, setSelectedCreatives] = useState<string[]>([]);
-  const [region, setRegion] = useState("ALL");
+  const [region, setRegion] = useState("BR");
   const [city, setCity] = useState("");
   const [interests, setInterests] = useState("");
   const [ageRange, setAgeRange] = useState("18-65+");
   const [gender, setGender] = useState("ALL");
+  const [languages, setLanguages] = useState("");
+  const [placements, setPlacements] = useState<"AUTOMATIC" | "MANUAL">("AUTOMATIC");
   const [localCreatives, setLocalCreatives] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+
+  const campaignDetails = useQuery({
+    queryKey: ["meta-campaign-details-tutorial", scalingCampaign],
+    queryFn: () => getCampaignDetails({ data: { campaignId: scalingCampaign! } }),
+    enabled: !!scalingCampaign && scalingCampaign.length > 5 // Simple check for ID-like string
+  });
+
+  useEffect(() => {
+    if (campaignDetails.data?.ok) {
+      const c = campaignDetails.data.data.campaign;
+      const as = campaignDetails.data.data.adsets?.[0];
+      
+      setName(c.name || "");
+      if (c.daily_budget) setBudget((parseInt(c.daily_budget) / 100).toString());
+      else if (c.lifetime_budget) setBudget((parseInt(c.lifetime_budget) / 100).toString());
+      
+      setObjective(c.objective || "OUTCOME_SALES");
+      setBuyingType(c.buying_type || "AUCTION");
+      setSpecialAdCategories(c.special_ad_categories || []);
+      
+      if (as) {
+        if (as.targeting?.geo_locations?.countries?.includes("BR")) setRegion("BR");
+        else if (as.targeting?.geo_locations?.countries?.includes("US")) setRegion("US");
+        
+        setAgeRange(`${as.targeting?.age_min || 18}-${as.targeting?.age_max || "65+"}`);
+        
+        const g = as.targeting?.genders;
+        if (g?.length === 1) {
+          setGender(g[0] === 1 ? "MALE" : "FEMALE");
+        } else {
+          setGender("ALL");
+        }
+
+        if (as.targeting?.flexible_spec?.[0]?.interests) {
+          setInterests(as.targeting.flexible_spec[0].interests.map((i: any) => i.name).join(", "));
+        }
+      }
+
+      toast.info("Dados da campanha carregados no tutorial");
+    }
+  }, [campaignDetails.data]);
+
+  useEffect(() => {
+    onStepChange?.(step);
+  }, [step, onStepChange]);
+
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1648,8 +1709,14 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
       creatives: selected,
       name,
       budget: Number(budget) * 100,
-      targeting
+      objective,
+      buyingType,
+      specialAdCategories,
+      targeting,
+      languages,
+      placements
     });
+
   };
 
   return (
@@ -1780,6 +1847,37 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
                   <Input id="tut-name" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: [IA] Escala de Verão" className="h-12 text-lg font-bold border-2 focus:border-primary" />
                 </div>
                 
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid gap-2">
+                    <Label className="text-[10px] font-bold uppercase text-muted-foreground">Objetivo de Marketing</Label>
+                    <Select value={objective} onValueChange={setObjective}>
+                      <SelectTrigger className="h-11">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="OUTCOME_SALES">Vendas (Sales)</SelectItem>
+                        <SelectItem value="OUTCOME_LEADS">Cadastros (Leads)</SelectItem>
+                        <SelectItem value="OUTCOME_ENGAGEMENT">Engajamento</SelectItem>
+                        <SelectItem value="OUTCOME_TRAFFIC">Tráfego</SelectItem>
+                        <SelectItem value="OUTCOME_AWARENESS">Reconhecimento</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label className="text-[10px] font-bold uppercase text-muted-foreground">Tipo de Compra</Label>
+                    <Select value={buyingType} onValueChange={setBuyingType}>
+                      <SelectTrigger className="h-11">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="AUCTION">Leilão (Auction)</SelectItem>
+                        <SelectItem value="RESERVATION">Reserva</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                
                 <div className="grid md:grid-cols-2 gap-8">
                   <div className="grid gap-3">
                     <Label htmlFor="tut-budget" className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Orçamento Diário (R$)</Label>
@@ -1905,16 +2003,30 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
                         className="h-11"
                       />
                     </div>
-                    <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                      <div className="flex items-center gap-2 mb-1">
-                         <Zap className="h-3 w-3 text-blue-500" />
-                         <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Recomendação IA para Escala</p>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground leading-relaxed">
-                        Para escala global, use Público Aberto (Broad) ou Lookalike 1%. 
-                        O algoritmo da Meta encontra os melhores compradores automaticamente quando o criativo é forte. 
-                      </p>
+                    <div className="grid gap-2">
+                      <Label htmlFor="tut-languages" className="text-[10px] font-bold uppercase text-muted-foreground">Idiomas</Label>
+                      <Input 
+                        id="tut-languages" 
+                        placeholder="Ex: Português, Inglês, Espanhol..." 
+                        value={languages}
+                        onChange={(e) => setLanguages(e.target.value)}
+                        className="h-11"
+                      />
                     </div>
+                    <div className="grid gap-2 pt-2">
+                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Posicionamentos</Label>
+                      <RadioGroup value={placements} onValueChange={(v: any) => setPlacements(v)} className="flex gap-4">
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="AUTOMATIC" id="r1" />
+                          <Label htmlFor="r1" className="text-xs">Advantage+ (Automático)</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="MANUAL" id="r2" />
+                          <Label htmlFor="r2" className="text-xs">Manual</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
                   </div>
                 </div>
               </div>
@@ -2053,9 +2165,13 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
                             <div className="flex-1">
                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Configuração Técnica Meta</p>
                                <p className="text-[11px] text-slate-400 leading-tight">
-                                  <b>Objetivo:</b> {selectedStrategy.defaults.objective} • <b>Lance:</b> Menor Custo • <b>Distribuição:</b> {selectedStrategy.id === 'abo' ? 'Adset Level' : 'CBO (Campaign level)'} • <b>Advantage+ Audience:</b> ATIVADO (Sinalização 1/1)
+                                  <b>Objetivo:</b> {objective} • <b>Compra:</b> {buyingType} • <b>Distribuição:</b> {selectedStrategy.id === 'abo' ? 'Adset Level' : 'CBO (Campaign level)'}
+                               </p>
+                               <p className="text-[11px] text-slate-400 leading-tight mt-1">
+                                  <b>Idiomas:</b> {languages || 'Todos'} • <b>Posicionamento:</b> {placements === 'AUTOMATIC' ? 'Advantage+ (Automático)' : 'Manual'}
                                </p>
                             </div>
+
                          </div>
                          <div className="flex items-center gap-4">
                             <div className="h-10 w-10 rounded-xl bg-slate-800 flex items-center justify-center">
