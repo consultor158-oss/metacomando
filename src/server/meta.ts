@@ -349,7 +349,7 @@ export const createFullScale = createServerFn({ method: "POST" })
 
           if (data.destination === "WHATSAPP") {
             adsetBody.destination_type = "WHATSAPP";
-            adsetBody.promoted_object = JSON.stringify({ page_id: data.pageId });
+            adsetBody.promoted_object = { page_id: data.pageId };
           } else {
             adsetBody.destination_type = "WEBSITE";
             if (pixelId && pixelId !== "PLACEHOLDER") {
