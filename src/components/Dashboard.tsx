@@ -2053,7 +2053,7 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
                             <div className="flex-1">
                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Configuração Técnica Meta</p>
                                <p className="text-[11px] text-slate-400 leading-tight">
-                                  <b>Objetivo:</b> {selectedStrategy.defaults.objective} • <b>Lance:</b> Menor Custo • <b>Distribuição:</b> {selectedStrategy.id === 'abo' ? 'Adset Level' : 'CBO (Campaign level)'}
+                                  <b>Objetivo:</b> {selectedStrategy.defaults.objective} • <b>Lance:</b> Menor Custo • <b>Distribuição:</b> {selectedStrategy.id === 'abo' ? 'Adset Level' : 'CBO (Campaign level)'} • <b>Advantage+ Audience:</b> ATIVADO (Sinalização 1/1)
                                </p>
                             </div>
                          </div>
