@@ -1827,6 +1827,37 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
                   <Input id="tut-name" value={name} onChange={e => setName(e.target.value)} placeholder="Ex: [IA] Escala de Verão" className="h-12 text-lg font-bold border-2 focus:border-primary" />
                 </div>
                 
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid gap-2">
+                    <Label className="text-[10px] font-bold uppercase text-muted-foreground">Objetivo de Marketing</Label>
+                    <Select value={objective} onValueChange={setObjective}>
+                      <SelectTrigger className="h-11">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="OUTCOME_SALES">Vendas (Sales)</SelectItem>
+                        <SelectItem value="OUTCOME_LEADS">Cadastros (Leads)</SelectItem>
+                        <SelectItem value="OUTCOME_ENGAGEMENT">Engajamento</SelectItem>
+                        <SelectItem value="OUTCOME_TRAFFIC">Tráfego</SelectItem>
+                        <SelectItem value="OUTCOME_AWARENESS">Reconhecimento</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label className="text-[10px] font-bold uppercase text-muted-foreground">Tipo de Compra</Label>
+                    <Select value={buyingType} onValueChange={setBuyingType}>
+                      <SelectTrigger className="h-11">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="AUCTION">Leilão (Auction)</SelectItem>
+                        <SelectItem value="RESERVATION">Reserva</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                
                 <div className="grid md:grid-cols-2 gap-8">
                   <div className="grid gap-3">
                     <Label htmlFor="tut-budget" className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Orçamento Diário (R$)</Label>
