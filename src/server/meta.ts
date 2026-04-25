@@ -369,8 +369,8 @@ export const createFullScale = createServerFn({ method: "POST" })
                  status: data.status || "PAUSED",
                };
 
-               if (creative.id && !creative.id.startsWith("new_") && !creative.id.startsWith("uploaded_")) {
-                 adBody.creative = JSON.stringify({ creative_id: creative.id });
+                if (creative.id && !creative.id.startsWith("new_") && !creative.id.startsWith("uploaded_")) {
+                  adBody.creative = { creative_id: creative.id };
                } else {
                  const objectStorySpec: any = { page_id: data.pageId };
                  const ctaType = data.destination === "WHATSAPP" ? "SEND_MESSAGE" : (creative.cta || "SHOP_NOW");
