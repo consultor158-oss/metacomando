@@ -212,7 +212,7 @@ export const updateCampaign = createServerFn({ method: "POST" })
       if (data.lifetime_budget !== undefined && !isNaN(data.lifetime_budget)) body.lifetime_budget = String(data.lifetime_budget);
       if (data.bid_strategy) body.bid_strategy = data.bid_strategy;
       if (data.objective) body.objective = data.objective;
-      if (data.special_ad_categories) body.special_ad_categories = JSON.stringify(data.special_ad_categories);
+      if (data.special_ad_categories) body.special_ad_categories = data.special_ad_categories;
       if (data.buying_type) body.buying_type = data.buying_type;
       
       const result = await metaPost(data.campaignId, body);
