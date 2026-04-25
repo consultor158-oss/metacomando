@@ -584,7 +584,7 @@ function FunnelStep({ label, count, pct, color }: { label: string, count: number
   );
 }
 
-function CampaignsTab({ campaigns, refresh }: { campaigns: any[], refresh: () => void }) {
+function CampaignsTab({ campaigns, refresh, onScale }: { campaigns: any[], refresh: () => void, onScale: (id: string) => void }) {
   const [updating, setUpdating] = useState<string | null>(null);
   const [editingCampaign, setEditingCampaign] = useState<any | null>(null);
 
