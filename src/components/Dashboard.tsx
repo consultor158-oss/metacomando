@@ -1531,21 +1531,68 @@ function CreativesTab({ creatives, onEscalate }: { creatives: any[], onEscalate?
 
 function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFilter, onComplete }: { scalingCampaign?: string | null, creatives?: any[], onStepChange?: (step: number) => void, onClearFilter?: () => void, onComplete: (data: any) => void }) {
   const [step, setStep] = useState(1);
-  
-  useEffect(() => {
-    onStepChange?.(step);
-  }, [step, onStepChange]);
   const [selectedStrategy, setSelectedStrategy] = useState<ScaleStrategy>(SCALE_STRATEGIES[0]);
   const [name, setName] = useState("");
   const [budget, setBudget] = useState("50");
+  const [objective, setObjective] = useState("OUTCOME_SALES");
+  const [buyingType, setBuyingType] = useState("AUCTION");
+  const [specialAdCategories, setSpecialAdCategories] = useState<string[]>([]);
   const [selectedCreatives, setSelectedCreatives] = useState<string[]>([]);
-  const [region, setRegion] = useState("ALL");
+  const [region, setRegion] = useState("BR");
   const [city, setCity] = useState("");
   const [interests, setInterests] = useState("");
   const [ageRange, setAgeRange] = useState("18-65+");
   const [gender, setGender] = useState("ALL");
+  const [languages, setLanguages] = useState("");
+  const [placements, setPlacements] = useState<"AUTOMATIC" | "MANUAL">("AUTOMATIC");
   const [localCreatives, setLocalCreatives] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+
+  const campaignDetails = useQuery({
+    queryKey: ["meta-campaign-details-tutorial", scalingCampaign],
+    queryFn: () => getCampaignDetails({ data: { campaignId: scalingCampaign! } }),
+    enabled: !!scalingCampaign && scalingCampaign.length > 5 // Simple check for ID-like string
+  });
+
+  useEffect(() => {
+    if (campaignDetails.data?.ok) {
+      const c = campaignDetails.data.data.campaign;
+      const as = campaignDetails.data.data.adsets?.[0];
+      
+      setName(c.name || "");
+      if (c.daily_budget) setBudget((parseInt(c.daily_budget) / 100).toString());
+      else if (c.lifetime_budget) setBudget((parseInt(c.lifetime_budget) / 100).toString());
+      
+      setObjective(c.objective || "OUTCOME_SALES");
+      setBuyingType(c.buying_type || "AUCTION");
+      setSpecialAdCategories(c.special_ad_categories || []);
+      
+      if (as) {
+        if (as.targeting?.geo_locations?.countries?.includes("BR")) setRegion("BR");
+        else if (as.targeting?.geo_locations?.countries?.includes("US")) setRegion("US");
+        
+        setAgeRange(`${as.targeting?.age_min || 18}-${as.targeting?.age_max || "65+"}`);
+        
+        const g = as.targeting?.genders;
+        if (g?.length === 1) {
+          setGender(g[0] === 1 ? "MALE" : "FEMALE");
+        } else {
+          setGender("ALL");
+        }
+
+        if (as.targeting?.flexible_spec?.[0]?.interests) {
+          setInterests(as.targeting.flexible_spec[0].interests.map((i: any) => i.name).join(", "));
+        }
+      }
+
+      toast.info("Dados da campanha carregados no tutorial");
+    }
+  }, [campaignDetails.data]);
+
+  useEffect(() => {
+    onStepChange?.(step);
+  }, [step, onStepChange]);
+
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
