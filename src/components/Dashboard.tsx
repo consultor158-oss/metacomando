@@ -2700,39 +2700,56 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
               </div>
             </div>
 
-            <Card className="bg-slate-900 border-slate-800 p-4 flex flex-col justify-between">
-               <div>
-                  <p className="text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Resumo da Estratégia</p>
-                  <div className="space-y-3">
-                     <div className="flex justify-between text-xs">
-                        <span className="text-slate-400">Total de Conjuntos:</span>
-                        <span className="font-bold text-slate-100">{adsetCount}</span>
-                     </div>
-                      <div className="flex justify-between text-xs">
-                         <span className="text-slate-400">Investimento {strategy.defaults?.isCBO ? "na Campanha" : "por Conjunto"}:</span>
-                         <span className="font-bold text-primary">{formatBRL((data.budget || strategy.defaults.dailyBudgetCents) / 100)}</span>
+            <Card className="bg-slate-900 border-slate-800 p-4 flex flex-col">
+               <p className="text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Estrutura Visual (Árvore)</p>
+               <div className="space-y-4 font-mono text-[10px]">
+                  <div className="flex items-center gap-2 text-primary">
+                    <Folder className="h-3 w-3" />
+                    <span>📦 Campanha: {data.name || "Nova Campanha"}</span>
+                  </div>
+                  {Array.from({ length: adsetCount }).map((_, i) => (
+                    <div key={i} className="ml-4 space-y-2 border-l border-slate-700 pl-4 py-1">
+                      <div className="flex items-center gap-2 text-blue-400">
+                        <Layers className="h-3 w-3" />
+                        <span>📂 Conjunto {i + 1}: {strategy.name}</span>
                       </div>
-                      {!strategy.defaults?.isCBO && (
-                        <div className="flex justify-between text-xs">
-                           <span className="text-slate-400">Investimento Total Diário:</span>
-                           <span className="font-bold text-slate-100">{formatBRL(totalBudget)}</span>
-                        </div>
-                      )}
-                     <div className="flex justify-between text-xs">
-                        <span className="text-slate-400">Objetivo:</span>
-                        <span className="font-bold text-slate-100">{destination === 'WHATSAPP' ? 'Engajamento' : 'Vendas'}</span>
+                      <div className="ml-4 space-y-1 border-l border-slate-800 pl-4">
+                        {creatives?.map((c, j) => (
+                          <div key={j} className="flex items-center gap-2 text-slate-400">
+                            <ImageIcon className="h-3 w-3" />
+                            <span>🖼️ Anúncio {j + 1}: {c.name || c.title}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+               </div>
+               
+               <div className="mt-auto pt-4">
+                  <div className="space-y-2">
+                     <div className="flex justify-between text-[10px]">
+                        <span className="text-slate-400">Investimento Total:</span>
+                        <span className="font-bold text-primary">{formatBRL(totalBudget)}</span>
                      </div>
                   </div>
                </div>
-               <div className="mt-6 pt-4 border-t border-slate-800">
-                  <p className="text-[9px] text-slate-500 uppercase font-bold">Pblico Estimado</p>
-                  <p className="text-xs text-slate-300 mt-1">
-                    {data.targeting?.geo_locations?.regions?.[0]?.name || data.targeting?.geo_locations?.countries?.[0] || "Global"}  
-                    {data.targeting?.interests ? ` ${data.targeting.interests.length} Interesses` : " Aberto"}
-                  </p>
-               </div>
             </Card>
           </div>
+
+          {creationLogs.length > 0 && (
+            <div className="space-y-2 bg-black/50 p-4 rounded-xl border border-slate-800">
+               <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                 <Activity className="h-3 w-3" /> Log de Execução Real-Time
+               </p>
+               <div className="space-y-1 max-h-32 overflow-y-auto scrollbar-hide">
+                  {creationLogs.map((log, i) => (
+                    <p key={i} className="text-[10px] font-mono text-slate-300">
+                      {log.startsWith('ERRO') ? <span className="text-destructive">● {log}</span> : <span className="text-green-500">✔ {log}</span>}
+                    </p>
+                  ))}
+               </div>
+            </div>
+          )}
 
           <div className="space-y-3">
              <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Criativos Selecionados ({creatives?.length})</Label>
