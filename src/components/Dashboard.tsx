@@ -69,6 +69,7 @@ import {
   testMetaConnection
 } from "../server/meta";
 import { WhatsAppModal } from "./WhatsAppModal";
+import { loadCustomApis, addCustomApi, removeCustomApi, testCustomApi, type CustomApi } from "../lib/customApis";
 import { SCALE_STRATEGIES, ScaleStrategy } from "../lib/scales";
 import { formatBRL, formatNumber, formatPct } from "../lib/format";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./ui/card";
