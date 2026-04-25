@@ -1601,7 +1601,7 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
         setSelectedCreatives(toSelect);
       }
     }
-  }, [selectedStrategy, creatives.length, localCreatives.length]);
+  }, [selectedStrategy, creatives.length, localCreatives.length, allCreatives.length]);
 
   const steps = [
     { id: 1, title: "Estratégia", desc: "Como vamos escalar?" },
