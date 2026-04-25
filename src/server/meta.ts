@@ -338,7 +338,7 @@ export const createFullScale = createServerFn({ method: "POST" })
             status: data.status || "PAUSED",
             billing_event: "IMPRESSIONS",
             optimization_goal: data.destination === "WHATSAPP" ? "CONVERSATIONS" : (pixelId && pixelId !== "PLACEHOLDER" ? "OFFSITE_CONVERSIONS" : "LINK_CLICKS"),
-            targeting: JSON.stringify(cleanTargeting),
+            targeting: cleanTargeting,
           };
 
           if (!isCBO) {
