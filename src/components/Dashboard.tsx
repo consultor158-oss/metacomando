@@ -1682,14 +1682,20 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
       setName(`Campanha ${selectedStrategy.name} - ${new Date().toLocaleDateString()}`);
       setBudget((selectedStrategy.defaults.dailyBudgetCents / 100).toString());
       
-      // Auto-select recommended number of creatives
+      // Auto-select recommended number of creatives - prioritizing top performance if available
       if (allCreatives.length > 0) {
+        const sorted = [...allCreatives].sort((a, b) => (b.roas || 0) - (a.roas || 0));
         const count = selectedStrategy.creativeCount || 1;
-        const toSelect = allCreatives.slice(0, count).map(c => c.id);
+        const toSelect = sorted.slice(0, count).map(c => c.id);
         setSelectedCreatives(toSelect);
+        
+        // Se estiver escalando uma campanha, foca nela inicialmente
+        if (scalingCampaign) {
+          setCreativeFilter("campaign");
+        }
       }
     }
-  }, [selectedStrategy, creatives.length, localCreatives.length, allCreatives.length]);
+  }, [selectedStrategy, creatives.length, localCreatives.length, allCreatives.length, scalingCampaign]);
 
   const steps = [
     { id: 1, title: "Estratégia", desc: "Como vamos escalar?" },
