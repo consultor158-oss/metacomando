@@ -400,10 +400,10 @@ export const createFullScale = createServerFn({ method: "POST" })
                    }
                    objectStorySpec.link_data = linkData;
                  }
-                 adBody.creative = JSON.stringify({
-                   name: `Creative ${idx + 1} - ${Date.now()}`,
-                   object_story_spec: objectStorySpec
-                 });
+                adBody.creative = {
+                  name: `Creative ${idx + 1} - ${Date.now()}`,
+                  object_story_spec: objectStorySpec
+                };
                }
                const ad = await metaPost(`${actId}/ads`, adBody);
                return { ok: true, id: ad.id };
