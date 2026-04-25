@@ -1561,6 +1561,8 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
   const [placements, setPlacements] = useState<"AUTOMATIC" | "MANUAL">("AUTOMATIC");
   const [localCreatives, setLocalCreatives] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [adConfigs, setAdConfigs] = useState<Record<string, { headline: string, body: string, callToAction: string }>>({});
+
 
   const campaignDetails = useQuery({
     queryKey: ["meta-campaign-details-tutorial", scalingCampaign],
