@@ -212,7 +212,7 @@ export const updateCampaign = createServerFn({ method: "POST" })
       if (data.lifetime_budget !== undefined && !isNaN(data.lifetime_budget)) body.lifetime_budget = String(data.lifetime_budget);
       if (data.bid_strategy) body.bid_strategy = data.bid_strategy;
       if (data.objective) body.objective = data.objective;
-      if (data.special_ad_categories) body.special_ad_categories = JSON.stringify(data.special_ad_categories);
+      if (data.special_ad_categories) body.special_ad_categories = data.special_ad_categories;
       if (data.buying_type) body.buying_type = data.buying_type;
       
       const result = await metaPost(data.campaignId, body);
@@ -300,7 +300,7 @@ export const createFullScale = createServerFn({ method: "POST" })
         name: data.name,
         objective: data.objective || "OUTCOME_SALES",
         status: data.status || "PAUSED",
-        special_ad_categories: JSON.stringify([]),
+        special_ad_categories: [],
       };
 
       if (isCBO) {
@@ -338,7 +338,7 @@ export const createFullScale = createServerFn({ method: "POST" })
             status: data.status || "PAUSED",
             billing_event: "IMPRESSIONS",
             optimization_goal: data.destination === "WHATSAPP" ? "CONVERSATIONS" : (pixelId && pixelId !== "PLACEHOLDER" ? "OFFSITE_CONVERSIONS" : "LINK_CLICKS"),
-            targeting: JSON.stringify(cleanTargeting),
+            targeting: cleanTargeting,
           };
 
           if (!isCBO) {
@@ -349,11 +349,11 @@ export const createFullScale = createServerFn({ method: "POST" })
 
           if (data.destination === "WHATSAPP") {
             adsetBody.destination_type = "WHATSAPP";
-            adsetBody.promoted_object = JSON.stringify({ page_id: data.pageId });
+            adsetBody.promoted_object = { page_id: data.pageId };
           } else {
             adsetBody.destination_type = "WEBSITE";
             if (pixelId && pixelId !== "PLACEHOLDER") {
-              adsetBody.promoted_object = JSON.stringify({ pixel_id: pixelId, custom_event_type: "PURCHASE" });
+              adsetBody.promoted_object = { pixel_id: pixelId, custom_event_type: "PURCHASE" };
             }
           }
 
@@ -369,42 +369,47 @@ export const createFullScale = createServerFn({ method: "POST" })
                  status: data.status || "PAUSED",
                };
 
-               if (creative.id && !creative.id.startsWith("new_") && !creative.id.startsWith("uploaded_")) {
-                 adBody.creative = JSON.stringify({ creative_id: creative.id });
-               } else {
-                 const objectStorySpec: any = { page_id: data.pageId };
-                 const ctaType = data.destination === "WHATSAPP" ? "SEND_MESSAGE" : (creative.cta || "SHOP_NOW");
-                 const ctaValue: any = {};
-                 if (data.destination === "WHATSAPP") {
-                   ctaValue.app_destination = "WHATSAPP";
-                 } else {
-                   ctaValue.link = data.destinationUrl || "https://example.com";
-                 }
+                const isExistingCreative = creative.id && /^\d+$/.test(creative.id) && !creative.id.startsWith("hash_");
+                
+                if (isExistingCreative) {
+                  adBody.creative = { creative_id: creative.id };
+                } else {
+                  const objectStorySpec: any = { page_id: data.pageId };
+                  const ctaType = data.destination === "WHATSAPP" ? "SEND_MESSAGE" : (creative.cta || "SHOP_NOW");
+                  const ctaValue: any = {};
+                  if (data.destination === "WHATSAPP") {
+                    ctaValue.app_destination = "WHATSAPP";
+                  } else {
+                    ctaValue.link = data.destinationUrl || "https://example.com";
+                  }
 
-                 if (creative.video_id) {
-                   objectStorySpec.video_data = {
-                     video_id: creative.video_id,
-                     image_url: creative.image_url,
-                     message: creative.primaryText,
-                     call_to_action: { type: ctaType, value: ctaValue }
-                   };
-                 } else {
-                   const linkData: any = {
-                     message: creative.primaryText,
-                     link: data.destination === "WHATSAPP" ? `https://www.facebook.com/${data.pageId}` : (data.destinationUrl || "https://example.com"),
-                     name: creative.headline,
-                     call_to_action: { type: ctaType, value: ctaValue },
-                   };
-                   if (creative.image_url && !creative.image_url.startsWith("data:")) {
-                     linkData.picture = creative.image_url;
-                   }
-                   objectStorySpec.link_data = linkData;
-                 }
-                 adBody.creative = JSON.stringify({
-                   name: `Creative ${idx + 1} - ${Date.now()}`,
-                   object_story_spec: objectStorySpec
-                 });
-               }
+                  if (creative.video_id && !creative.video_id.startsWith("uploaded_")) {
+                    objectStorySpec.video_data = {
+                      video_id: creative.video_id,
+                      image_url: creative.image_url,
+                      message: creative.primaryText,
+                      call_to_action: { type: ctaType, value: ctaValue }
+                    };
+                  } else {
+                    const linkData: any = {
+                      message: creative.primaryText,
+                      link: data.destination === "WHATSAPP" ? `https://www.facebook.com/${data.pageId}` : (data.destinationUrl || "https://example.com"),
+                      name: creative.headline,
+                      call_to_action: { type: ctaType, value: ctaValue },
+                    };
+                    
+                    if (creative.id && creative.id.startsWith("hash_")) {
+                      linkData.image_hash = creative.id.replace("hash_", "");
+                    } else if (creative.image_url && !creative.image_url.startsWith("data:")) {
+                      linkData.picture = creative.image_url;
+                    }
+                    objectStorySpec.link_data = linkData;
+                  }
+                  adBody.creative = {
+                    name: `Creative ${idx + 1} - ${Date.now()}`,
+                    object_story_spec: objectStorySpec
+                  };
+                }
                const ad = await metaPost(`${actId}/ads`, adBody);
                return { ok: true, id: ad.id };
              } catch (adError: any) {
@@ -462,7 +467,7 @@ export const duplicateCampaign = createServerFn({ method: "POST" })
         objective: src.objective || "OUTCOME_SALES",
         buying_type: src.buying_type || "AUCTION",
         status: data.status || "PAUSED",
-        special_ad_categories: JSON.stringify(src.special_ad_categories || []),
+        special_ad_categories: src.special_ad_categories || [],
       };
 
       // budget: usa o sobrescrito; senão herda da origem
@@ -690,15 +695,23 @@ export const uploadImage = createServerFn({ method: "POST" })
   .inputValidator((d: { bytes: string; filename: string }) => d)
   .handler(async ({ data }) => {
     try {
-      // const { actId } = getCreds(); // Removed unused actId
-      // Em um ambiente real, faríamos o upload multipart aqui.
-      // Como estamos em um ambiente de demonstração/dashboard, simulamos o ID que o Meta retornaria.
-      // Na vida real, o createFullScale usaria esse ID como image_hash.
+      const { actId } = getCreds();
+      // Remove data:image/...;base64, prefix if present
+      const base64Data = data.bytes.includes(",") ? data.bytes.split(",")[1] : data.bytes;
+      
+      const res = await metaPost(`${actId}/adimages`, {
+        bytes: base64Data,
+        name: data.filename
+      });
+      
+      // Meta returns { images: { filename: { hash: "..." } } }
+      const hash = Object.values(res.images || {})[0] as any;
+      
       return { 
         ok: true as const, 
         data: { 
-          id: "uploaded_img_" + Math.random().toString(36).substr(2, 9),
-          url: data.bytes // Retornamos o base64 para o UI conseguir renderizar
+          id: "hash_" + hash.hash,
+          url: data.bytes
         } 
       };
     } catch (e) {
