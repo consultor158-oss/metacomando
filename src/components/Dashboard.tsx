@@ -1695,8 +1695,14 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
       creatives: selected,
       name,
       budget: Number(budget) * 100,
-      targeting
+      objective,
+      buyingType,
+      specialAdCategories,
+      targeting,
+      languages,
+      placements
     });
+
   };
 
   return (
