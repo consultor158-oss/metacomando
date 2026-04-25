@@ -1529,7 +1529,7 @@ function CreativesTab({ creatives, onEscalate }: { creatives: any[], onEscalate?
   );
 }
 
-function TutorialTab({ scalingCampaign, onStepChange, onClearFilter, onComplete }: { scalingCampaign?: string | null, onStepChange?: (step: number) => void, onClearFilter?: () => void, onComplete: (data: any) => void }) {
+function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFilter, onComplete }: { scalingCampaign?: string | null, creatives?: any[], onStepChange?: (step: number) => void, onClearFilter?: () => void, onComplete: (data: any) => void }) {
   const [step, setStep] = useState(1);
   
   useEffect(() => {
