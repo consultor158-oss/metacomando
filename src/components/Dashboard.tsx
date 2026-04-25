@@ -1708,7 +1708,10 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
 
     onComplete({
       strategy: selectedStrategy,
-      creatives: selected,
+      creatives: selected.map(c => ({
+        ...c,
+        config: adConfigs[c.id] || { headline: c.title, body: c.body, callToAction: "LEARN_MORE" }
+      })),
       name,
       budget: Number(budget) * 100,
       objective,
@@ -1718,8 +1721,8 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
       languages,
       placements
     });
-
   };
+
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
