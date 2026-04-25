@@ -391,7 +391,17 @@ export function Dashboard() {
 
           <main className="flex-1 p-6 overflow-y-auto">
             {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} />}
-            {view === "campaigns" && <CampaignsTab campaigns={campaignsData} refresh={() => campaigns.refetch()} />}
+            {view === "campaigns" && (
+              <CampaignsTab 
+                campaigns={campaignsData} 
+                refresh={() => campaigns.refetch()} 
+                onScale={(id) => {
+                  setScalingCampaign(id);
+                  setView("scales");
+                }}
+              />
+            )}
+
             {view === "google_ads" && <GoogleAdsTab />}
             {view === "insta_organic" && <InstaOrganicTab />}
             {view === "scales" && (
