@@ -2564,6 +2564,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
   const [destination, setDestination] = useState<"WHATSAPP" | "SALES">("WHATSAPP");
   const [destinationUrl, setDestinationUrl] = useState<string>("");
   const [isBudgetSharingEnabled, setIsBudgetSharingEnabled] = useState(false);
+  const [creationLogs, setCreationLogs] = useState<string[]>([]);
 
   useEffect(() => {
     if (pages.length > 0 && !selectedPage) {
@@ -2577,6 +2578,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
       return;
     }
     setIsActivating(true);
+    setCreationLogs(["Iniciando criação da estrutura..."]);
     try {
       const res = await createFullScale({
         data: {
@@ -2602,13 +2604,17 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
       });
 
       if (res.ok) {
+        if (res.logs) setCreationLogs(res.logs);
         toast.success(`Estratégia ${data.strategy.name} ativada com sucesso via API!`);
-        onClose();
+        // Wait a bit to show logs before closing
+        setTimeout(() => onClose(), 3000);
       } else {
         toast.error("Erro ao ativar escala: " + res.error);
+        setCreationLogs(prev => [...prev, `ERRO: ${res.error}`]);
       }
     } catch (e: any) {
-      toast.error("Erro na conexo: " + e.message);
+      toast.error("Erro na conexão: " + e.message);
+      setCreationLogs(prev => [...prev, `ERRO DE CONEXÃO: ${e.message}`]);
     } finally {
       setIsActivating(false);
     }
