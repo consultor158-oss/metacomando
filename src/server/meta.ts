@@ -705,7 +705,7 @@ export const uploadImage = createServerFn({ method: "POST" })
       return { 
         ok: true as const, 
         data: { 
-          id: hash.hash,
+          id: "hash_" + hash.hash,
           url: data.bytes
         } 
       };
