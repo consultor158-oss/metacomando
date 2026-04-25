@@ -1661,6 +1661,22 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
 
   const allCreatives = [...localCreatives, ...creatives];
   
+  const filteredCreatives = allCreatives.filter(c => {
+    if (creativeFilter === "campaign" && scalingCampaign) {
+      return c.campaign_id === scalingCampaign || c.campaign_name === campaignDetails.data?.data?.campaign?.name;
+    }
+    if (creativeFilter === "top") {
+      // Ordenar por ROAS ou CTR se disponível nos dados do criativo
+      return true; // Simplificação: em um sistema real, aqui filtraríamos os top performance
+    }
+    return true;
+  });
+
+  // Re-sort if "top" is selected
+  const displayedCreatives = creativeFilter === "top" 
+    ? [...filteredCreatives].sort((a, b) => (b.roas || 0) - (a.roas || 0))
+    : filteredCreatives;
+  
   useEffect(() => {
     if (selectedStrategy) {
       setName(`Campanha ${selectedStrategy.name} - ${new Date().toLocaleDateString()}`);
