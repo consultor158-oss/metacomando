@@ -300,7 +300,7 @@ export const createFullScale = createServerFn({ method: "POST" })
         name: data.name,
         objective: data.objective || "OUTCOME_SALES",
         status: data.status || "PAUSED",
-        special_ad_categories: JSON.stringify([]),
+        special_ad_categories: [],
       };
 
       if (isCBO) {
