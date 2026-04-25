@@ -1587,15 +1587,21 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
     reader.readAsDataURL(file);
   };
 
-  const allCreatives = [...localCreatives];
-  
+  const allCreatives = [...localCreatives, ...creatives];
   
   useEffect(() => {
     if (selectedStrategy) {
       setName(`Campanha ${selectedStrategy.name} - ${new Date().toLocaleDateString()}`);
       setBudget((selectedStrategy.defaults.dailyBudgetCents / 100).toString());
+      
+      // Auto-select recommended number of creatives
+      if (allCreatives.length > 0) {
+        const count = selectedStrategy.creativeCount || 1;
+        const toSelect = allCreatives.slice(0, count).map(c => c.id);
+        setSelectedCreatives(toSelect);
+      }
     }
-  }, [selectedStrategy]);
+  }, [selectedStrategy, creatives.length]);
 
   const steps = [
     { id: 1, title: "Estratégia", desc: "Como vamos escalar?" },
