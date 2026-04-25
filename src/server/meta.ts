@@ -353,7 +353,7 @@ export const createFullScale = createServerFn({ method: "POST" })
           } else {
             adsetBody.destination_type = "WEBSITE";
             if (pixelId && pixelId !== "PLACEHOLDER") {
-              adsetBody.promoted_object = JSON.stringify({ pixel_id: pixelId, custom_event_type: "PURCHASE" });
+              adsetBody.promoted_object = { pixel_id: pixelId, custom_event_type: "PURCHASE" };
             }
           }
 
