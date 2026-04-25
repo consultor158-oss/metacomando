@@ -467,7 +467,7 @@ export const duplicateCampaign = createServerFn({ method: "POST" })
         objective: src.objective || "OUTCOME_SALES",
         buying_type: src.buying_type || "AUCTION",
         status: data.status || "PAUSED",
-        special_ad_categories: JSON.stringify(src.special_ad_categories || []),
+        special_ad_categories: src.special_ad_categories || [],
       };
 
       // budget: usa o sobrescrito; senão herda da origem
