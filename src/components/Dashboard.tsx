@@ -2087,14 +2087,40 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
                     <p className="text-xs text-muted-foreground">Selecione as mídias e configure as headlines para cada anúncio individualmente.</p>
                   </div>
                   <div className="flex items-center gap-3">
+                    <div className="flex bg-muted p-1 rounded-lg border border-border">
+                       <Button 
+                         variant={creativeFilter === 'all' ? 'secondary' : 'ghost'} 
+                         size="sm" 
+                         className="h-7 text-[10px] font-bold px-3"
+                         onClick={() => setCreativeFilter('all')}
+                       >
+                         TODOS
+                       </Button>
+                       <Button 
+                         variant={creativeFilter === 'campaign' ? 'secondary' : 'ghost'} 
+                         size="sm" 
+                         className="h-7 text-[10px] font-bold px-3"
+                         onClick={() => setCreativeFilter('campaign')}
+                       >
+                         DA CAMPANHA
+                       </Button>
+                       <Button 
+                         variant={creativeFilter === 'top' ? 'secondary' : 'ghost'} 
+                         size="sm" 
+                         className="h-7 text-[10px] font-bold px-3"
+                         onClick={() => setCreativeFilter('top')}
+                       >
+                         TOP PERFORMANCE
+                       </Button>
+                    </div>
                     <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold uppercase text-[10px] tracking-widest">
-                      {selectedCreatives.length} ADICIONADOS
+                      {selectedCreatives.length} SELECIONADOS
                     </Badge>
                   </div>
                </div>
 
                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {allCreatives.map((c: any) => (
+                  {displayedCreatives.map((c: any) => (
                     <div 
                       key={c.id} 
                       onClick={() => {
@@ -2124,13 +2150,19 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
                              <Video className="h-4 w-4 text-white" />
                           </div>
                         )}
+                        {selectedCreatives.includes(c.id) && (
+                          <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-primary flex items-center justify-center shadow-lg animate-in zoom-in">
+                             <CheckCircle2 className="h-3 w-3 text-white" />
+                          </div>
+                        )}
+                        {c.roas && (
+                           <Badge className="absolute bottom-2 left-2 bg-[oklch(0.7_0.18_162)] text-black text-[9px] font-bold">ROAS {c.roas}x</Badge>
+                        )}
                       </div>
-                      <p className="text-[8px] font-black truncate uppercase tracking-tighter text-center">{c.name}</p>
-                      {selectedCreatives.includes(c.id) && (
-                        <div className="absolute -top-2 -right-2 h-6 w-6 bg-primary text-primary-foreground rounded-lg flex items-center justify-center shadow-lg animate-in zoom-in">
-                          <CheckCircle2 className="h-3 w-3" />
-                        </div>
-                      )}
+                      <div className="px-1 truncate">
+                        <p className="text-[10px] font-bold text-foreground truncate text-center">{c.name || c.title}</p>
+                        <p className="text-[8px] text-muted-foreground truncate text-center">{c.campaign_name || "Biblioteca"}</p>
+                      </div>
                     </div>
                   ))}
                   
