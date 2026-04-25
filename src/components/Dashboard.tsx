@@ -398,6 +398,7 @@ export function Dashboard() {
               <div className="space-y-10">
                 <TutorialTab 
                   scalingCampaign={scalingCampaign}
+                  creatives={creativesData}
                   onStepChange={setTutorialStep}
                   onClearFilter={() => setScalingCampaign(null)}
                   onComplete={(data) => {
