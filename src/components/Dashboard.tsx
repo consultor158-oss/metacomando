@@ -686,7 +686,11 @@ function CampaignsTab({ campaigns, refresh, onScale }: { campaigns: any[], refre
                 <TableCell>{formatBRL(c.cpc)}</TableCell>
                 <TableCell className="text-right">
                    <div className="flex justify-end gap-1">
+                     <Button variant="ghost" size="icon" title="Escala Guiada" className="h-8 w-8 text-primary hover:bg-primary/10" onClick={() => onScale(c.id)}>
+                       <Rocket className="h-3.5 w-3.5" />
+                     </Button>
                      <Button variant="ghost" size="icon" title="Edio Completa" className="h-8 w-8" onClick={() => setEditingCampaign(c)}>
+
                        <Edit2 className="h-3.5 w-3.5" />
                      </Button>
                      <Button variant="ghost" size="icon" title="Duplicar" className="h-8 w-8" onClick={() => handleDuplicate(c.id)}>
