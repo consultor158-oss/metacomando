@@ -690,15 +690,23 @@ export const uploadImage = createServerFn({ method: "POST" })
   .inputValidator((d: { bytes: string; filename: string }) => d)
   .handler(async ({ data }) => {
     try {
-      // const { actId } = getCreds(); // Removed unused actId
-      // Em um ambiente real, faríamos o upload multipart aqui.
-      // Como estamos em um ambiente de demonstração/dashboard, simulamos o ID que o Meta retornaria.
-      // Na vida real, o createFullScale usaria esse ID como image_hash.
+      const { actId } = getCreds();
+      // Remove data:image/...;base64, prefix if present
+      const base64Data = data.bytes.includes(",") ? data.bytes.split(",")[1] : data.bytes;
+      
+      const res = await metaPost(`${actId}/adimages`, {
+        bytes: base64Data,
+        name: data.filename
+      });
+      
+      // Meta returns { images: { filename: { hash: "..." } } }
+      const hash = Object.values(res.images || {})[0] as any;
+      
       return { 
         ok: true as const, 
         data: { 
-          id: "uploaded_img_" + Math.random().toString(36).substr(2, 9),
-          url: data.bytes // Retornamos o base64 para o UI conseguir renderizar
+          id: hash.hash,
+          url: data.bytes
         } 
       };
     } catch (e) {
