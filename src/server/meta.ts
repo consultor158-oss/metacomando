@@ -369,42 +369,47 @@ export const createFullScale = createServerFn({ method: "POST" })
                  status: data.status || "PAUSED",
                };
 
-                if (creative.id && !creative.id.startsWith("new_") && !creative.id.startsWith("uploaded_")) {
+                const isExistingCreative = creative.id && /^\d+$/.test(creative.id) && !creative.id.startsWith("hash_");
+                
+                if (isExistingCreative) {
                   adBody.creative = { creative_id: creative.id };
-               } else {
-                 const objectStorySpec: any = { page_id: data.pageId };
-                 const ctaType = data.destination === "WHATSAPP" ? "SEND_MESSAGE" : (creative.cta || "SHOP_NOW");
-                 const ctaValue: any = {};
-                 if (data.destination === "WHATSAPP") {
-                   ctaValue.app_destination = "WHATSAPP";
-                 } else {
-                   ctaValue.link = data.destinationUrl || "https://example.com";
-                 }
+                } else {
+                  const objectStorySpec: any = { page_id: data.pageId };
+                  const ctaType = data.destination === "WHATSAPP" ? "SEND_MESSAGE" : (creative.cta || "SHOP_NOW");
+                  const ctaValue: any = {};
+                  if (data.destination === "WHATSAPP") {
+                    ctaValue.app_destination = "WHATSAPP";
+                  } else {
+                    ctaValue.link = data.destinationUrl || "https://example.com";
+                  }
 
-                 if (creative.video_id) {
-                   objectStorySpec.video_data = {
-                     video_id: creative.video_id,
-                     image_url: creative.image_url,
-                     message: creative.primaryText,
-                     call_to_action: { type: ctaType, value: ctaValue }
-                   };
-                 } else {
-                   const linkData: any = {
-                     message: creative.primaryText,
-                     link: data.destination === "WHATSAPP" ? `https://www.facebook.com/${data.pageId}` : (data.destinationUrl || "https://example.com"),
-                     name: creative.headline,
-                     call_to_action: { type: ctaType, value: ctaValue },
-                   };
-                   if (creative.image_url && !creative.image_url.startsWith("data:")) {
-                     linkData.picture = creative.image_url;
-                   }
-                   objectStorySpec.link_data = linkData;
-                 }
-                adBody.creative = {
-                  name: `Creative ${idx + 1} - ${Date.now()}`,
-                  object_story_spec: objectStorySpec
-                };
-               }
+                  if (creative.video_id && !creative.video_id.startsWith("uploaded_")) {
+                    objectStorySpec.video_data = {
+                      video_id: creative.video_id,
+                      image_url: creative.image_url,
+                      message: creative.primaryText,
+                      call_to_action: { type: ctaType, value: ctaValue }
+                    };
+                  } else {
+                    const linkData: any = {
+                      message: creative.primaryText,
+                      link: data.destination === "WHATSAPP" ? `https://www.facebook.com/${data.pageId}` : (data.destinationUrl || "https://example.com"),
+                      name: creative.headline,
+                      call_to_action: { type: ctaType, value: ctaValue },
+                    };
+                    
+                    if (creative.id && creative.id.startsWith("hash_")) {
+                      linkData.image_hash = creative.id.replace("hash_", "");
+                    } else if (creative.image_url && !creative.image_url.startsWith("data:")) {
+                      linkData.picture = creative.image_url;
+                    }
+                    objectStorySpec.link_data = linkData;
+                  }
+                  adBody.creative = {
+                    name: `Creative ${idx + 1} - ${Date.now()}`,
+                    object_story_spec: objectStorySpec
+                  };
+                }
                const ad = await metaPost(`${actId}/ads`, adBody);
                return { ok: true, id: ad.id };
              } catch (adError: any) {
