@@ -398,6 +398,7 @@ export function Dashboard() {
               <div className="space-y-10">
                 <TutorialTab 
                   scalingCampaign={scalingCampaign}
+                  creatives={creativesData}
                   onStepChange={setTutorialStep}
                   onClearFilter={() => setScalingCampaign(null)}
                   onComplete={(data) => {
@@ -1528,7 +1529,7 @@ function CreativesTab({ creatives, onEscalate }: { creatives: any[], onEscalate?
   );
 }
 
-function TutorialTab({ scalingCampaign, onStepChange, onClearFilter, onComplete }: { scalingCampaign?: string | null, onStepChange?: (step: number) => void, onClearFilter?: () => void, onComplete: (data: any) => void }) {
+function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFilter, onComplete }: { scalingCampaign?: string | null, creatives?: any[], onStepChange?: (step: number) => void, onClearFilter?: () => void, onComplete: (data: any) => void }) {
   const [step, setStep] = useState(1);
   
   useEffect(() => {
@@ -1586,15 +1587,21 @@ function TutorialTab({ scalingCampaign, onStepChange, onClearFilter, onComplete 
     reader.readAsDataURL(file);
   };
 
-  const allCreatives = [...localCreatives];
-  
+  const allCreatives = [...localCreatives, ...creatives];
   
   useEffect(() => {
     if (selectedStrategy) {
       setName(`Campanha ${selectedStrategy.name} - ${new Date().toLocaleDateString()}`);
       setBudget((selectedStrategy.defaults.dailyBudgetCents / 100).toString());
+      
+      // Auto-select recommended number of creatives
+      if (allCreatives.length > 0) {
+        const count = selectedStrategy.creativeCount || 1;
+        const toSelect = allCreatives.slice(0, count).map(c => c.id);
+        setSelectedCreatives(toSelect);
+      }
     }
-  }, [selectedStrategy]);
+  }, [selectedStrategy, creatives.length, localCreatives.length, allCreatives.length]);
 
   const steps = [
     { id: 1, title: "Estratégia", desc: "Como vamos escalar?" },
@@ -2046,7 +2053,7 @@ function TutorialTab({ scalingCampaign, onStepChange, onClearFilter, onComplete 
                             <div className="flex-1">
                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Configuração Técnica Meta</p>
                                <p className="text-[11px] text-slate-400 leading-tight">
-                                  <b>Objetivo:</b> {selectedStrategy.defaults.objective} • <b>Lance:</b> Menor Custo • <b>Distribuição:</b> {selectedStrategy.id === 'abo' ? 'Adset Level' : 'CBO (Campaign level)'}
+                                  <b>Objetivo:</b> {selectedStrategy.defaults.objective} • <b>Lance:</b> Menor Custo • <b>Distribuição:</b> {selectedStrategy.id === 'abo' ? 'Adset Level' : 'CBO (Campaign level)'} • <b>Advantage+ Audience:</b> ATIVADO (Sinalização 1/1)
                                </p>
                             </div>
                          </div>
