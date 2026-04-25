@@ -2052,43 +2052,55 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
           )}
 
           {step === 4 && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                  <div>
                     <h3 className="text-xl font-black uppercase">Anexe os Criativos da Nova Campanha</h3>
-                    <p className="text-xs text-muted-foreground">Cada campanha deve ter seus próprios criativos exclusivos.</p>
+                    <p className="text-xs text-muted-foreground">Selecione as mídias e configure as headlines para cada anúncio individualmente.</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold">
-                      {selectedCreatives.length} CRIATIVOS ADICIONADOS
+                    <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold uppercase text-[10px] tracking-widest">
+                      {selectedCreatives.length} ADICIONADOS
                     </Badge>
                   </div>
                </div>
 
-               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {allCreatives.map((c: any) => (
                     <div 
                       key={c.id} 
-                      onClick={() => setSelectedCreatives(p => p.includes(c.id) ? p.filter(i => i !== c.id) : [...p, c.id])} 
-                      className={`group relative cursor-pointer rounded-2xl border-2 p-2 transition-all hover:shadow-2xl hover:-translate-y-1 ${selectedCreatives.includes(c.id) ? 'border-primary bg-primary/5 shadow-xl shadow-primary/10' : 'border-border grayscale hover:grayscale-0'}`}
+                      onClick={() => {
+                        const isSelected = selectedCreatives.includes(c.id);
+                        if (isSelected) {
+                          setSelectedCreatives(p => p.filter(i => i !== c.id));
+                        } else {
+                          setSelectedCreatives(p => [...p, c.id]);
+                          if (!adConfigs[c.id]) {
+                            setAdConfigs(prev => ({
+                              ...prev,
+                              [c.id]: { 
+                                headline: c.title || "Headline de Alta Conversão", 
+                                body: c.body || "Sua oferta irresistível aqui...",
+                                callToAction: "LEARN_MORE"
+                              }
+                            }));
+                          }
+                        }
+                      }} 
+                      className={`group relative cursor-pointer rounded-2xl border-2 p-1.5 transition-all hover:shadow-xl ${selectedCreatives.includes(c.id) ? 'border-primary bg-primary/5' : 'border-border grayscale hover:grayscale-0'}`}
                     >
-                      <div className="aspect-[4/5] mb-3 overflow-hidden rounded-xl bg-muted relative">
+                      <div className="aspect-square mb-2 overflow-hidden rounded-xl bg-muted relative">
                         <img src={c.image_url || c.thumbnail_url} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
                         {c.video_id && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-60 group-hover:opacity-100 transition-opacity">
-                            <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
-                               <Video className="h-5 w-5 text-white" />
-                            </div>
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                             <Video className="h-4 w-4 text-white" />
                           </div>
                         )}
-                        <div className="absolute top-2 left-2 flex gap-1">
-                           <Badge className="bg-black/60 text-[8px] h-4">CTR 1.8%</Badge>
-                        </div>
                       </div>
-                      <p className="text-[10px] font-black truncate uppercase tracking-tighter">{c.name}</p>
+                      <p className="text-[8px] font-black truncate uppercase tracking-tighter text-center">{c.name}</p>
                       {selectedCreatives.includes(c.id) && (
-                        <div className="absolute -top-3 -right-3 h-8 w-8 bg-primary text-primary-foreground rounded-xl flex items-center justify-center border-4 border-background shadow-lg rotate-12 scale-110 animate-in zoom-in duration-300">
-                          <CheckCircle2 className="h-5 w-5" />
+                        <div className="absolute -top-2 -right-2 h-6 w-6 bg-primary text-primary-foreground rounded-lg flex items-center justify-center shadow-lg animate-in zoom-in">
+                          <CheckCircle2 className="h-3 w-3" />
                         </div>
                       )}
                     </div>
@@ -2096,29 +2108,152 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
                   
                   <div 
                     onClick={() => document.getElementById('media-upload')?.click()}
-                    className="border-4 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-4 cursor-pointer hover:bg-primary/5 hover:border-primary/50 transition-all aspect-[4/5] group"
+                    className="border-2 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 cursor-pointer hover:bg-primary/5 hover:border-primary/50 transition-all aspect-square group"
                   >
-                     {isUploading ? (
-                       <RefreshCw className="h-8 w-8 text-primary animate-spin" />
-                     ) : (
-                       <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                          <Plus className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors" />
-                       </div>
-                     )}
-                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">
-                       {isUploading ? "Hospedando..." : "Hospedar Mídia"}
-                     </p>
-                     <input 
-                       id="media-upload"
-                       type="file" 
-                       accept="image/*" 
-                       className="hidden" 
-                       onChange={handleFileUpload}
-                     />
+                     {isUploading ? <RefreshCw className="h-5 w-5 text-primary animate-spin" /> : <Plus className="h-6 w-6 text-muted-foreground group-hover:text-primary" />}
+                     <p className="text-[8px] font-black uppercase text-muted-foreground">Mídia</p>
+                     <input id="media-upload" type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
                   </div>
                </div>
+
+               {selectedCreatives.length > 0 && (
+                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-8 border-t">
+                    <div className="lg:col-span-2 space-y-8">
+                       <div className="flex items-center gap-3 mb-4">
+                         <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                            <Edit2 className="h-4 w-4 text-primary" />
+                         </div>
+                         <h4 className="font-black uppercase tracking-widest text-sm">Configuração de Texto por Anúncio</h4>
+                       </div>
+                       
+                       <ScrollArea className="h-[400px] pr-4">
+                        <div className="space-y-6">
+                          {allCreatives.filter(c => selectedCreatives.includes(c.id)).map((c: any) => (
+                            <div key={`edit-${c.id}`} className="p-6 rounded-2xl border-2 bg-muted/20 space-y-4">
+                               <div className="flex items-center gap-4 border-b pb-4 mb-4">
+                                  <div className="h-12 w-12 rounded-lg overflow-hidden border">
+                                     <img src={c.image_url || c.thumbnail_url} className="h-full w-full object-cover" />
+                                  </div>
+                                  <div>
+                                     <p className="text-[10px] font-black uppercase text-muted-foreground">Configurando Anúncio:</p>
+                                     <p className="text-xs font-bold">{c.name}</p>
+                                  </div>
+                               </div>
+                               
+                               <div className="grid gap-4">
+                                  <div className="grid gap-2">
+                                     <Label className="text-[10px] font-bold uppercase">Headline (Título do Anúncio)</Label>
+                                     <Input 
+                                        value={adConfigs[c.id]?.headline || ""} 
+                                        onChange={(e) => setAdConfigs(prev => ({ ...prev, [c.id]: { ...prev[c.id], headline: e.target.value } }))}
+                                        placeholder="Ex: 50% de Desconto Somente Hoje!"
+                                        className="h-10 text-sm"
+                                     />
+                                  </div>
+                                  <div className="grid gap-2">
+                                     <Label className="text-[10px] font-bold uppercase">Texto Principal (Copy)</Label>
+                                     <Textarea 
+                                        value={adConfigs[c.id]?.body || ""} 
+                                        onChange={(e) => setAdConfigs(prev => ({ ...prev, [c.id]: { ...prev[c.id], body: e.target.value } }))}
+                                        placeholder="Descreva sua oferta irresistível..."
+                                        className="min-h-[100px] text-sm"
+                                     />
+                                  </div>
+                                  <div className="grid gap-2">
+                                     <Label className="text-[10px] font-bold uppercase">Botão de Ação (CTA)</Label>
+                                     <Select 
+                                        value={adConfigs[c.id]?.callToAction || "LEARN_MORE"} 
+                                        onValueChange={(v) => setAdConfigs(prev => ({ ...prev, [c.id]: { ...prev[c.id], callToAction: v } }))}
+                                     >
+                                        <SelectTrigger className="h-10 text-xs">
+                                           <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                           <SelectItem value="LEARN_MORE">Saiba Mais</SelectItem>
+                                           <SelectItem value="SHOP_NOW">Comprar Agora</SelectItem>
+                                           <SelectItem value="ORDER_NOW">Encomendar Agora</SelectItem>
+                                           <SelectItem value="SIGN_UP">Cadastrar-se</SelectItem>
+                                           <SelectItem value="GET_OFFER">Obter Oferta</SelectItem>
+                                           <SelectItem value="MESSAGE_PAGE">Enviar Mensagem</SelectItem>
+                                        </SelectContent>
+                                     </Select>
+                                  </div>
+                               </div>
+                            </div>
+                          ))}
+                        </div>
+                       </ScrollArea>
+                    </div>
+
+                    <div className="space-y-6">
+                       <div className="flex items-center gap-3">
+                         <div className="h-8 w-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                            <Brain className="h-4 w-4 text-orange-500" />
+                         </div>
+                         <h4 className="font-black uppercase tracking-widest text-sm">Cola de Alta Conversão</h4>
+                       </div>
+                       
+                       <div className="p-6 rounded-2xl bg-orange-500/5 border-2 border-orange-500/10 space-y-6">
+                          <div>
+                             <p className="text-[10px] font-black uppercase text-orange-500 mb-2 tracking-tighter">Fórmula da Headline:</p>
+                             <div className="p-3 bg-white/50 rounded-xl border text-[11px] leading-relaxed italic">
+                                "[Ganho Desejado] + [Tempo Curto] + [Sem Objeção]"
+                                <br/><span className="text-[9px] text-muted-foreground not-italic mt-1 block">Ex: Como lucrar 5k em 30 dias sem investir em anúncios.</span>
+                             </div>
+                          </div>
+                          
+                          <div>
+                             <p className="text-[10px] font-black uppercase text-orange-500 mb-2 tracking-tighter">Checklist do Anúncio:</p>
+                             <ul className="space-y-2">
+                                <li className="flex gap-2 items-start text-[11px]">
+                                   <div className="h-4 w-4 rounded bg-green-500/20 flex items-center justify-center mt-0.5"><CheckCircle2 className="h-3 w-3 text-green-600" /></div>
+                                   <span><b>Atenção:</b> Os primeiros 3 seg são cruciais.</span>
+                                </li>
+                                <li className="flex gap-2 items-start text-[11px]">
+                                   <div className="h-4 w-4 rounded bg-green-500/20 flex items-center justify-center mt-0.5"><CheckCircle2 className="h-3 w-3 text-green-600" /></div>
+                                   <span><b>Desejo:</b> Fale do benefício, não da feature.</span>
+                                </li>
+                                <li className="flex gap-2 items-start text-[11px]">
+                                   <div className="h-4 w-4 rounded bg-green-500/20 flex items-center justify-center mt-0.5"><CheckCircle2 className="h-3 w-3 text-green-600" /></div>
+                                   <span><b>Ação:</b> Diga exatamente o que fazer.</span>
+                                </li>
+                             </ul>
+                          </div>
+
+                          <div className="pt-4 border-t border-orange-500/10">
+                             <p className="text-[10px] font-black uppercase text-muted-foreground mb-3">Preview Mobile:</p>
+                             <div className="rounded-3xl border-4 border-slate-900 bg-white shadow-2xl overflow-hidden aspect-[9/16] relative max-w-[200px] mx-auto scale-90 origin-top">
+                                <div className="p-2 border-b flex items-center gap-2">
+                                   <div className="h-6 w-6 rounded-full bg-slate-200" />
+                                   <div className="flex-1 space-y-1">
+                                      <div className="h-2 w-12 bg-slate-200 rounded" />
+                                      <div className="h-1.5 w-8 bg-slate-100 rounded" />
+                                   </div>
+                                </div>
+                                <div className="aspect-square bg-slate-100 flex items-center justify-center">
+                                   <ImageIcon className="h-8 w-8 text-slate-300" />
+                                </div>
+                                <div className="p-3 space-y-2">
+                                   <div className="h-2 w-full bg-slate-200 rounded" />
+                                   <div className="h-2 w-2/3 bg-slate-200 rounded" />
+                                   <div className="h-8 w-full bg-primary/20 rounded-lg flex items-center justify-center mt-4">
+                                      <div className="h-2 w-12 bg-primary/40 rounded" />
+                                   </div>
+                                </div>
+                                <div className="absolute inset-x-0 bottom-0 p-2 bg-slate-50 border-t flex justify-between">
+                                   <div className="h-3 w-3 bg-slate-200 rounded-full" />
+                                   <div className="h-3 w-3 bg-slate-200 rounded-full" />
+                                   <div className="h-3 w-3 bg-slate-200 rounded-full" />
+                                </div>
+                             </div>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+               )}
             </div>
           )}
+
 
           {step === 5 && (
             <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
