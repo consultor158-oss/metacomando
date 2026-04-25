@@ -1561,6 +1561,7 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
   const [placements, setPlacements] = useState<"AUTOMATIC" | "MANUAL">("AUTOMATIC");
   const [localCreatives, setLocalCreatives] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [creativeFilter, setCreativeFilter] = useState<"all" | "campaign" | "top">("all");
   const [adConfigs, setAdConfigs] = useState<Record<string, { headline: string, body: string, callToAction: string }>>({});
 
 
@@ -1573,9 +1574,10 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
   useEffect(() => {
     if (campaignDetails.data?.ok) {
       const c = campaignDetails.data.data.campaign;
-      const as = campaignDetails.data.data.adsets?.[0];
+      const adsets = campaignDetails.data.data.adsets || [];
+      const as = adsets[0];
       
-      setName(c.name || "");
+      setName(`[COPIA] ${c.name || ""}`);
       if (c.daily_budget) setBudget((parseInt(c.daily_budget) / 100).toString());
       else if (c.lifetime_budget) setBudget((parseInt(c.lifetime_budget) / 100).toString());
       
@@ -1583,9 +1585,16 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
       setBuyingType(c.buying_type || "AUCTION");
       setSpecialAdCategories(c.special_ad_categories || []);
       
+      // Se a campanha original for CBO, tentamos identificar a melhor estratégia
+      if (c.bid_strategy === "LOWEST_COST_WITHOUT_CAP" || c.daily_budget) {
+        const matchingStrategy = SCALE_STRATEGIES.find(s => s.defaults.isCBO && s.defaults.objective === c.objective);
+        if (matchingStrategy) setSelectedStrategy(matchingStrategy);
+      }
+
       if (as) {
         if (as.targeting?.geo_locations?.countries?.includes("BR")) setRegion("BR");
         else if (as.targeting?.geo_locations?.countries?.includes("US")) setRegion("US");
+        else if (as.targeting?.geo_locations?.regions?.[0]?.key) setRegion(as.targeting.geo_locations.regions[0].key);
         
         setAgeRange(`${as.targeting?.age_min || 18}-${as.targeting?.age_max || "65+"}`);
         
@@ -1601,7 +1610,7 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
         }
       }
 
-      toast.info("Dados da campanha carregados no tutorial");
+      toast.info("Configuração da campanha analisada e clonada com sucesso");
     }
   }, [campaignDetails.data]);
 
@@ -1652,19 +1661,41 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
 
   const allCreatives = [...localCreatives, ...creatives];
   
+  const filteredCreatives = allCreatives.filter(c => {
+    if (creativeFilter === "campaign" && scalingCampaign) {
+      return c.campaign_id === scalingCampaign || c.campaign_name === campaignDetails.data?.data?.campaign?.name;
+    }
+    if (creativeFilter === "top") {
+      // Ordenar por ROAS ou CTR se disponível nos dados do criativo
+      return true; // Simplificação: em um sistema real, aqui filtraríamos os top performance
+    }
+    return true;
+  });
+
+  // Re-sort if "top" is selected
+  const displayedCreatives = creativeFilter === "top" 
+    ? [...filteredCreatives].sort((a, b) => (b.roas || 0) - (a.roas || 0))
+    : filteredCreatives;
+  
   useEffect(() => {
     if (selectedStrategy) {
       setName(`Campanha ${selectedStrategy.name} - ${new Date().toLocaleDateString()}`);
       setBudget((selectedStrategy.defaults.dailyBudgetCents / 100).toString());
       
-      // Auto-select recommended number of creatives
+      // Auto-select recommended number of creatives - prioritizing top performance if available
       if (allCreatives.length > 0) {
+        const sorted = [...allCreatives].sort((a, b) => (b.roas || 0) - (a.roas || 0));
         const count = selectedStrategy.creativeCount || 1;
-        const toSelect = allCreatives.slice(0, count).map(c => c.id);
+        const toSelect = sorted.slice(0, count).map(c => c.id);
         setSelectedCreatives(toSelect);
+        
+        // Se estiver escalando uma campanha, foca nela inicialmente
+        if (scalingCampaign) {
+          setCreativeFilter("campaign");
+        }
       }
     }
-  }, [selectedStrategy, creatives.length, localCreatives.length, allCreatives.length]);
+  }, [selectedStrategy, creatives.length, localCreatives.length, allCreatives.length, scalingCampaign]);
 
   const steps = [
     { id: 1, title: "Estratégia", desc: "Como vamos escalar?" },
@@ -2062,14 +2093,40 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
                     <p className="text-xs text-muted-foreground">Selecione as mídias e configure as headlines para cada anúncio individualmente.</p>
                   </div>
                   <div className="flex items-center gap-3">
+                    <div className="flex bg-muted p-1 rounded-lg border border-border">
+                       <Button 
+                         variant={creativeFilter === 'all' ? 'secondary' : 'ghost'} 
+                         size="sm" 
+                         className="h-7 text-[10px] font-bold px-3"
+                         onClick={() => setCreativeFilter('all')}
+                       >
+                         TODOS
+                       </Button>
+                       <Button 
+                         variant={creativeFilter === 'campaign' ? 'secondary' : 'ghost'} 
+                         size="sm" 
+                         className="h-7 text-[10px] font-bold px-3"
+                         onClick={() => setCreativeFilter('campaign')}
+                       >
+                         DA CAMPANHA
+                       </Button>
+                       <Button 
+                         variant={creativeFilter === 'top' ? 'secondary' : 'ghost'} 
+                         size="sm" 
+                         className="h-7 text-[10px] font-bold px-3"
+                         onClick={() => setCreativeFilter('top')}
+                       >
+                         TOP PERFORMANCE
+                       </Button>
+                    </div>
                     <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold uppercase text-[10px] tracking-widest">
-                      {selectedCreatives.length} ADICIONADOS
+                      {selectedCreatives.length} SELECIONADOS
                     </Badge>
                   </div>
                </div>
 
                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {allCreatives.map((c: any) => (
+                  {displayedCreatives.map((c: any) => (
                     <div 
                       key={c.id} 
                       onClick={() => {
@@ -2099,13 +2156,19 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
                              <Video className="h-4 w-4 text-white" />
                           </div>
                         )}
+                        {selectedCreatives.includes(c.id) && (
+                          <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-primary flex items-center justify-center shadow-lg animate-in zoom-in">
+                             <CheckCircle2 className="h-3 w-3 text-white" />
+                          </div>
+                        )}
+                        {c.roas && (
+                           <Badge className="absolute bottom-2 left-2 bg-[oklch(0.7_0.18_162)] text-black text-[9px] font-bold">ROAS {c.roas}x</Badge>
+                        )}
                       </div>
-                      <p className="text-[8px] font-black truncate uppercase tracking-tighter text-center">{c.name}</p>
-                      {selectedCreatives.includes(c.id) && (
-                        <div className="absolute -top-2 -right-2 h-6 w-6 bg-primary text-primary-foreground rounded-lg flex items-center justify-center shadow-lg animate-in zoom-in">
-                          <CheckCircle2 className="h-3 w-3" />
-                        </div>
-                      )}
+                      <div className="px-1 truncate">
+                        <p className="text-[10px] font-bold text-foreground truncate text-center">{c.name || c.title}</p>
+                        <p className="text-[8px] text-muted-foreground truncate text-center">{c.campaign_name || "Biblioteca"}</p>
+                      </div>
                     </div>
                   ))}
                   
@@ -2507,6 +2570,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
   const [destination, setDestination] = useState<"WHATSAPP" | "SALES">("WHATSAPP");
   const [destinationUrl, setDestinationUrl] = useState<string>("");
   const [isBudgetSharingEnabled, setIsBudgetSharingEnabled] = useState(false);
+  const [creationLogs, setCreationLogs] = useState<string[]>([]);
 
   useEffect(() => {
     if (pages.length > 0 && !selectedPage) {
@@ -2520,6 +2584,7 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
       return;
     }
     setIsActivating(true);
+    setCreationLogs(["Iniciando criação da estrutura..."]);
     try {
       const res = await createFullScale({
         data: {
@@ -2545,13 +2610,17 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
       });
 
       if (res.ok) {
+        if (res.logs) setCreationLogs(res.logs);
         toast.success(`Estratégia ${data.strategy.name} ativada com sucesso via API!`);
-        onClose();
+        // Wait a bit to show logs before closing
+        setTimeout(() => onClose(), 3000);
       } else {
         toast.error("Erro ao ativar escala: " + res.error);
+        setCreationLogs(prev => [...prev, `ERRO: ${res.error}`]);
       }
     } catch (e: any) {
-      toast.error("Erro na conexo: " + e.message);
+      toast.error("Erro na conexão: " + e.message);
+      setCreationLogs(prev => [...prev, `ERRO DE CONEXÃO: ${e.message}`]);
     } finally {
       setIsActivating(false);
     }
@@ -2637,39 +2706,56 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
               </div>
             </div>
 
-            <Card className="bg-slate-900 border-slate-800 p-4 flex flex-col justify-between">
-               <div>
-                  <p className="text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Resumo da Estratégia</p>
-                  <div className="space-y-3">
-                     <div className="flex justify-between text-xs">
-                        <span className="text-slate-400">Total de Conjuntos:</span>
-                        <span className="font-bold text-slate-100">{adsetCount}</span>
-                     </div>
-                      <div className="flex justify-between text-xs">
-                         <span className="text-slate-400">Investimento {strategy.defaults?.isCBO ? "na Campanha" : "por Conjunto"}:</span>
-                         <span className="font-bold text-primary">{formatBRL((data.budget || strategy.defaults.dailyBudgetCents) / 100)}</span>
+            <Card className="bg-slate-900 border-slate-800 p-4 flex flex-col">
+               <p className="text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Estrutura Visual (Árvore)</p>
+               <div className="space-y-4 font-mono text-[10px]">
+                  <div className="flex items-center gap-2 text-primary">
+                    <Folder className="h-3 w-3" />
+                    <span>📦 Campanha: {data.name || "Nova Campanha"}</span>
+                  </div>
+                  {Array.from({ length: adsetCount }).map((_, i) => (
+                    <div key={i} className="ml-4 space-y-2 border-l border-slate-700 pl-4 py-1">
+                      <div className="flex items-center gap-2 text-blue-400">
+                        <Layers className="h-3 w-3" />
+                        <span>📂 Conjunto {i + 1}: {strategy.name}</span>
                       </div>
-                      {!strategy.defaults?.isCBO && (
-                        <div className="flex justify-between text-xs">
-                           <span className="text-slate-400">Investimento Total Diário:</span>
-                           <span className="font-bold text-slate-100">{formatBRL(totalBudget)}</span>
-                        </div>
-                      )}
-                     <div className="flex justify-between text-xs">
-                        <span className="text-slate-400">Objetivo:</span>
-                        <span className="font-bold text-slate-100">{destination === 'WHATSAPP' ? 'Engajamento' : 'Vendas'}</span>
+                      <div className="ml-4 space-y-1 border-l border-slate-800 pl-4">
+                        {creatives?.map((c, j) => (
+                          <div key={j} className="flex items-center gap-2 text-slate-400">
+                            <ImageIcon className="h-3 w-3" />
+                            <span>🖼️ Anúncio {j + 1}: {c.name || c.title}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+               </div>
+               
+               <div className="mt-auto pt-4">
+                  <div className="space-y-2">
+                     <div className="flex justify-between text-[10px]">
+                        <span className="text-slate-400">Investimento Total:</span>
+                        <span className="font-bold text-primary">{formatBRL(totalBudget)}</span>
                      </div>
                   </div>
                </div>
-               <div className="mt-6 pt-4 border-t border-slate-800">
-                  <p className="text-[9px] text-slate-500 uppercase font-bold">Pblico Estimado</p>
-                  <p className="text-xs text-slate-300 mt-1">
-                    {data.targeting?.geo_locations?.regions?.[0]?.name || data.targeting?.geo_locations?.countries?.[0] || "Global"}  
-                    {data.targeting?.interests ? ` ${data.targeting.interests.length} Interesses` : " Aberto"}
-                  </p>
-               </div>
             </Card>
           </div>
+
+          {creationLogs.length > 0 && (
+            <div className="space-y-2 bg-black/50 p-4 rounded-xl border border-slate-800">
+               <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                 <Activity className="h-3 w-3" /> Log de Execução Real-Time
+               </p>
+               <div className="space-y-1 max-h-32 overflow-y-auto scrollbar-hide">
+                  {creationLogs.map((log, i) => (
+                    <p key={i} className="text-[10px] font-mono text-slate-300">
+                      {log.startsWith('ERRO') ? <span className="text-destructive">● {log}</span> : <span className="text-green-500">✔ {log}</span>}
+                    </p>
+                  ))}
+               </div>
+            </div>
+          )}
 
           <div className="space-y-3">
              <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Criativos Selecionados ({creatives?.length})</Label>
