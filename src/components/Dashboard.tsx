@@ -1983,16 +1983,30 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
                         className="h-11"
                       />
                     </div>
-                    <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                      <div className="flex items-center gap-2 mb-1">
-                         <Zap className="h-3 w-3 text-blue-500" />
-                         <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest">Recomendação IA para Escala</p>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground leading-relaxed">
-                        Para escala global, use Público Aberto (Broad) ou Lookalike 1%. 
-                        O algoritmo da Meta encontra os melhores compradores automaticamente quando o criativo é forte. 
-                      </p>
+                    <div className="grid gap-2">
+                      <Label htmlFor="tut-languages" className="text-[10px] font-bold uppercase text-muted-foreground">Idiomas</Label>
+                      <Input 
+                        id="tut-languages" 
+                        placeholder="Ex: Português, Inglês, Espanhol..." 
+                        value={languages}
+                        onChange={(e) => setLanguages(e.target.value)}
+                        className="h-11"
+                      />
                     </div>
+                    <div className="grid gap-2 pt-2">
+                      <Label className="text-[10px] font-bold uppercase text-muted-foreground">Posicionamentos</Label>
+                      <RadioGroup value={placements} onValueChange={(v: any) => setPlacements(v)} className="flex gap-4">
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="AUTOMATIC" id="r1" />
+                          <Label htmlFor="r1" className="text-xs">Advantage+ (Automático)</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="MANUAL" id="r2" />
+                          <Label htmlFor="r2" className="text-xs">Manual</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
                   </div>
                 </div>
               </div>
