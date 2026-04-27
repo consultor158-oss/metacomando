@@ -2607,8 +2607,8 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
             image_url: c.image_url || c.thumbnail_url,
             video_id: c.video_id,
             primaryText: c.body || "Performance Copy",
-            headline: c.name || c.title || "Headline",
-            cta: destination === "WHATSAPP" ? "SEND_MESSAGE" : "SHOP_NOW"
+            headline: c.headline || c.name || c.title || "Headline",
+            cta: destination === "WHATSAPP" ? "SEND_MESSAGE" : (c.callToAction || "SHOP_NOW")
           }))
         }
       });
