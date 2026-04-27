@@ -3272,7 +3272,21 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
   const [testingId, setTestingId] = useState<string | null>(null);
 
   useEffect(() => {
-    setApis(loadCustomApis());
+    const currentApis = loadCustomApis();
+    setApis(currentApis);
+
+    // Auto-add LTX Studio if not present (as requested)
+    const hasLTX = currentApis.some(a => a.name.includes("LTX Studio"));
+    if (!hasLTX) {
+      addCustomApi({
+        name: "LTX Studio (Lightricks)",
+        baseUrl: "https://api.ltx.studio/v1",
+        authType: "bearer",
+        authValue: "ltxv_BrnSiW89Ekt1FLWFnvVTjSz4NpR5z-R6y6OuDWgMmK9EP1eQRUPlJII5ZKFsVD67JXwsKTfWnrGRQF6HqWNxBYh_nGF-J_S-rvh8OdSB0StP92iKQiv0GXtyO5OWlTlI9EbT_sqgJdYqKNfYKXxh2YV9Tz2cZWIfjH996jhhwN5_",
+        defaultPath: "generations"
+      });
+      setApis(loadCustomApis());
+    }
   }, []);
 
   const refresh = () => setApis(loadCustomApis());
