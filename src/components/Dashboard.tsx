@@ -121,7 +121,7 @@ export function Dashboard() {
   const [view, setView] = useState<View>("overview");
   const [isWAModalOpen, setIsWAModalOpen] = useState(false);
   const [isMetaConnectOpen, setIsMetaConnectOpen] = useState(false);
-  const [dryRunData, setDryRunData] = useState<{ strategy: ScaleStrategy; creatives?: any[] } | null>(null);
+  const [dryRunData, setDryRunData] = useState<{ strategy: ScaleStrategy; creatives?: any[]; name?: string; budget?: number; targeting?: any } | null>(null);
   const [scalingCampaign, setScalingCampaign] = useState<string | null>(null);
   const [tutorialStep, setTutorialStep] = useState(1);
   
@@ -1742,7 +1742,10 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
       strategy: selectedStrategy,
       creatives: selected.map(c => ({
         ...c,
-        config: adConfigs[c.id] || { headline: c.title, body: c.body, callToAction: "LEARN_MORE" }
+        ...adConfigs[c.id],
+        headline: adConfigs[c.id]?.headline || c.title || "Headline",
+        body: adConfigs[c.id]?.body || c.body || "Performance Copy",
+        callToAction: adConfigs[c.id]?.callToAction || "LEARN_MORE"
       })),
       name,
       budget: Number(budget) * 100,
@@ -2604,8 +2607,8 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
             image_url: c.image_url || c.thumbnail_url,
             video_id: c.video_id,
             primaryText: c.body || "Performance Copy",
-            headline: c.name || c.title || "Headline",
-            cta: destination === "WHATSAPP" ? "SEND_MESSAGE" : "SHOP_NOW"
+            headline: c.headline || c.name || c.title || "Headline",
+            cta: destination === "WHATSAPP" ? "SEND_MESSAGE" : (c.callToAction || "SHOP_NOW")
           }))
         }
       });

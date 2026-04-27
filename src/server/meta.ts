@@ -343,9 +343,9 @@ export const createFullScale = createServerFn({ method: "POST" })
 
           if (!isCBO) {
             adsetBody.daily_budget = String(Math.max(1000, data.dailyBudgetCents || 2000));
+            // Meta requirement: when using adset budget (non-CBO), this field must be explicitly set
+            adsetBody.is_adset_budget_sharing_enabled = data.is_adset_budget_sharing_enabled ?? false;
           }
-          
-          adsetBody.is_adset_budget_sharing_enabled = data.is_adset_budget_sharing_enabled ?? false;
 
           if (data.destination === "WHATSAPP") {
             adsetBody.destination_type = "WHATSAPP";
