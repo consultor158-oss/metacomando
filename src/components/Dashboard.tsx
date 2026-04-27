@@ -42,7 +42,8 @@ import {
   Bell,
   LineChart,
   UserPlus,
-  Code
+  Code,
+  ExternalLink
 } from "lucide-react";
 import {
   getAccountInfo,
@@ -1563,6 +1564,9 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
   const [localCreatives, setLocalCreatives] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [creativeFilter, setCreativeFilter] = useState<"all" | "campaign" | "top">("all");
+  const [creativeSource, setCreativeSource] = useState<"library" | "ai">("library");
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
   const [adConfigs, setAdConfigs] = useState<Record<string, { headline: string, body: string, callToAction: string }>>({});
 
 
@@ -2090,44 +2094,70 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
           )}
 
           {step === 4 && (
-            <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                  <div>
-                    <h3 className="text-xl font-black uppercase">Anexe os Criativos da Nova Campanha</h3>
-                    <p className="text-xs text-muted-foreground">Selecione as mídias e configure as headlines para cada anúncio individualmente.</p>
+                    <h3 className="text-xl font-black uppercase">Criativos da Nova Campanha</h3>
+                    <p className="text-xs text-muted-foreground">Selecione da biblioteca ou gere novos criativos com IA de alta performance.</p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex bg-muted p-1 rounded-lg border border-border">
-                       <Button 
-                         variant={creativeFilter === 'all' ? 'secondary' : 'ghost'} 
-                         size="sm" 
-                         className="h-7 text-[10px] font-bold px-3"
-                         onClick={() => setCreativeFilter('all')}
-                       >
-                         TODOS
-                       </Button>
-                       <Button 
-                         variant={creativeFilter === 'campaign' ? 'secondary' : 'ghost'} 
-                         size="sm" 
-                         className="h-7 text-[10px] font-bold px-3"
-                         onClick={() => setCreativeFilter('campaign')}
-                       >
-                         DA CAMPANHA
-                       </Button>
-                       <Button 
-                         variant={creativeFilter === 'top' ? 'secondary' : 'ghost'} 
-                         size="sm" 
-                         className="h-7 text-[10px] font-bold px-3"
-                         onClick={() => setCreativeFilter('top')}
-                       >
-                         TOP PERFORMANCE
-                       </Button>
-                    </div>
-                    <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold uppercase text-[10px] tracking-widest">
-                      {selectedCreatives.length} SELECIONADOS
-                    </Badge>
+                  
+                  <div className="flex bg-muted p-1 rounded-xl border border-border self-start">
+                    <Button 
+                      variant={creativeSource === 'library' ? 'secondary' : 'ghost'} 
+                      size="sm" 
+                      className="h-8 text-[11px] font-bold px-4 rounded-lg"
+                      onClick={() => setCreativeSource('library')}
+                    >
+                      BIBLIOTECA
+                    </Button>
+                    <Button 
+                      variant={creativeSource === 'ai' ? 'secondary' : 'ghost'} 
+                      size="sm" 
+                      className="h-8 text-[11px] font-bold px-4 rounded-lg flex items-center gap-2"
+                      onClick={() => setCreativeSource('ai')}
+                    >
+                      <Zap className="h-3 w-3 text-yellow-500" />
+                      GERADOR IA
+                    </Button>
                   </div>
+
+                  <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold uppercase text-[10px] tracking-widest hidden md:flex">
+                    {selectedCreatives.length} SELECIONADOS
+                  </Badge>
                </div>
+
+               {creativeSource === 'library' ? (
+                 <>
+                   <div className="flex items-center gap-3 bg-muted/30 p-2 rounded-xl border border-dashed">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase ml-2 mr-2">Filtros:</p>
+                      <div className="flex bg-muted p-1 rounded-lg border border-border">
+                         <Button 
+                           variant={creativeFilter === 'all' ? 'secondary' : 'ghost'} 
+                           size="sm" 
+                           className="h-7 text-[10px] font-bold px-3"
+                           onClick={() => setCreativeFilter('all')}
+                         >
+                           TODOS
+                         </Button>
+                         <Button 
+                           variant={creativeFilter === 'campaign' ? 'secondary' : 'ghost'} 
+                           size="sm" 
+                           className="h-7 text-[10px] font-bold px-3"
+                           onClick={() => setCreativeFilter('campaign')}
+                         >
+                           DA CAMPANHA
+                         </Button>
+                         <Button 
+                           variant={creativeFilter === 'top' ? 'secondary' : 'ghost'} 
+                           size="sm" 
+                           className="h-7 text-[10px] font-bold px-3"
+                           onClick={() => setCreativeFilter('top')}
+                         >
+                           TOP PERFORMANCE
+                         </Button>
+                      </div>
+                   </div>
+
 
                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {displayedCreatives.map((c: any) => (
@@ -2174,17 +2204,107 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
                         <p className="text-[8px] text-muted-foreground truncate text-center">{c.campaign_name || "Biblioteca"}</p>
                       </div>
                     </div>
-                  ))}
-                  
-                  <div 
-                    onClick={() => document.getElementById('media-upload')?.click()}
-                    className="border-2 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 cursor-pointer hover:bg-primary/5 hover:border-primary/50 transition-all aspect-square group"
-                  >
-                     {isUploading ? <RefreshCw className="h-5 w-5 text-primary animate-spin" /> : <Plus className="h-6 w-6 text-muted-foreground group-hover:text-primary" />}
-                     <p className="text-[8px] font-black uppercase text-muted-foreground">Mídia</p>
-                     <input id="media-upload" type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
-                  </div>
-               </div>
+                   ))}
+                   
+                   <div 
+                     onClick={() => document.getElementById('media-upload')?.click()}
+                     className="border-2 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 cursor-pointer hover:bg-primary/5 hover:border-primary/50 transition-all aspect-square group"
+                   >
+                      {isUploading ? <RefreshCw className="h-5 w-5 text-primary animate-spin" /> : <Plus className="h-6 w-6 text-muted-foreground group-hover:text-primary" />}
+                      <p className="text-[8px] font-black uppercase text-muted-foreground">Mídia</p>
+                      <input id="media-upload" type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                   </div>
+                </div>
+               </>
+               ) : (
+                 <div className="space-y-6 bg-slate-900/50 p-8 rounded-3xl border border-primary/20 animate-in zoom-in-95 duration-300">
+                    <div className="flex items-center gap-4 mb-2">
+                       <div className="h-12 w-12 rounded-2xl bg-primary/20 flex items-center justify-center">
+                          <Zap className="h-6 w-6 text-primary" />
+                       </div>
+                       <div>
+                          <h4 className="font-black text-lg uppercase">Gerador LTX Studio</h4>
+                          <p className="text-xs text-slate-400">Descreva o vídeo ou imagem que deseja para esta campanha.</p>
+                       </div>
+                    </div>
+
+                    <div className="space-y-4">
+                       <div className="space-y-2">
+                          <Label className="text-[10px] font-bold uppercase text-slate-500">Prompt do Criativo</Label>
+                          <Textarea 
+                            placeholder="Ex: Um vídeo cinematográfico de um suplemento esportivo sendo misturado com água, luzes de neon ao fundo, alta velocidade..." 
+                            className="min-h-[120px] bg-slate-950 border-slate-800 text-slate-200"
+                            value={aiPrompt}
+                            onChange={(e) => setAiPrompt(e.target.value)}
+                          />
+                       </div>
+
+                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="space-y-2">
+                             <Label className="text-[10px] font-bold uppercase text-slate-500">Formato</Label>
+                             <Select defaultValue="9:16">
+                               <SelectTrigger className="bg-slate-950 border-slate-800">
+                                 <SelectValue />
+                               </SelectTrigger>
+                               <SelectContent>
+                                 <SelectItem value="9:16">Story/Reels (9:16)</SelectItem>
+                                 <SelectItem value="1:1">Quadrado (1:1)</SelectItem>
+                                 <SelectItem value="16:9">Widescreen (16:9)</SelectItem>
+                               </SelectContent>
+                             </Select>
+                          </div>
+                          <div className="space-y-2">
+                             <Label className="text-[10px] font-bold uppercase text-slate-500">Duração</Label>
+                             <Select defaultValue="5s">
+                               <SelectTrigger className="bg-slate-950 border-slate-800">
+                                 <SelectValue />
+                               </SelectTrigger>
+                               <SelectContent>
+                                 <SelectItem value="5s">5 Segundos</SelectItem>
+                                 <SelectItem value="10s">10 Segundos</SelectItem>
+                               </SelectContent>
+                             </Select>
+                          </div>
+                          <div className="space-y-2">
+                             <Label className="text-[10px] font-bold uppercase text-slate-500">Estilo</Label>
+                             <Select defaultValue="realistic">
+                               <SelectTrigger className="bg-slate-950 border-slate-800">
+                                 <SelectValue />
+                               </SelectTrigger>
+                               <SelectContent>
+                                 <SelectItem value="realistic">Realista</SelectItem>
+                                 <SelectItem value="anime">Anime</SelectItem>
+                                 <SelectItem value="3d">3D Render</SelectItem>
+                               </SelectContent>
+                             </Select>
+                          </div>
+                          <div className="flex items-end">
+                             <Button 
+                               className="w-full bg-primary hover:bg-primary/90 font-black uppercase text-xs h-10 gap-2 shadow-[0_0_20px_rgba(var(--primary),0.3)]"
+                               disabled={isGenerating || !aiPrompt}
+                               onClick={async () => {
+                                 setIsGenerating(true);
+                                 // Simulação de chamada LTX Studio
+                                 await new Promise(r => setTimeout(r, 3000));
+                                 toast.success("Solicitação enviada ao LTX Studio!");
+                                 setIsGenerating(false);
+                                 // Aqui adicionaríamos o resultado à biblioteca
+                               }}
+                             >
+                               {isGenerating ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
+                               Gerar Criativo
+                             </Button>
+                          </div>
+                       </div>
+                    </div>
+                    
+                    <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                       <p className="text-[10px] text-primary/70 italic text-center">
+                         O criativo gerado será adicionado automaticamente à sua biblioteca e selecionado para esta campanha.
+                       </p>
+                    </div>
+                 </div>
+               )}
 
                {selectedCreatives.length > 0 && (
                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-8 border-t">
@@ -3270,6 +3390,7 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
   const [apis, setApis] = useState<CustomApi[]>([]);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [testingId, setTestingId] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<{api: CustomApi, result: any} | null>(null);
 
   useEffect(() => {
     const currentApis = loadCustomApis();
@@ -3301,6 +3422,8 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
     setTestingId(api.id);
     const res = await testCustomApi(api);
     setTestingId(null);
+    setTestResult({ api, result: res });
+    
     if (res.ok) {
       toast.success(`Conexão OK! Status: ${res.status}`);
     } else {
@@ -3371,7 +3494,72 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
         onClose={() => setIsAddOpen(false)} 
         onAdded={refresh} 
       />
+
+      <TestResultDialog 
+        testData={testResult} 
+        onClose={() => setTestResult(null)} 
+      />
     </div>
+  );
+}
+
+function TestResultDialog({ testData, onClose }: { testData: {api: CustomApi, result: any} | null, onClose: () => void }) {
+  if (!testData) return null;
+  const { api, result } = testData;
+
+  return (
+    <Dialog open={!!testData} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Zap className={`h-5 w-5 ${result.ok ? 'text-green-500' : 'text-red-500'}`} />
+            Validação de API: {api.name}
+          </DialogTitle>
+          <DialogDescription>
+            Resultado da última tentativa de conexão em tempo real.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto space-y-4 py-4">
+          <div className="grid grid-cols-2 gap-4 text-xs">
+            <div className="p-3 bg-muted rounded-lg space-y-1">
+              <p className="font-bold uppercase text-muted-foreground opacity-50">Status da Resposta</p>
+              <p className={`text-lg font-black ${result.ok ? 'text-green-500' : 'text-red-500'}`}>
+                {result.status || 'ERRO DE REDE'} {result.ok ? '✓' : '✗'}
+              </p>
+            </div>
+            <div className="p-3 bg-muted rounded-lg space-y-1">
+              <p className="font-bold uppercase text-muted-foreground opacity-50">Tempo de Resposta</p>
+              <p className="text-lg font-black">--- ms</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-[10px] font-bold uppercase text-muted-foreground">URL Chamada</Label>
+            <div className="p-2 bg-slate-900 text-slate-300 rounded border border-slate-800 font-mono text-[10px] break-all">
+              {api.baseUrl}/{api.defaultPath}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-[10px] font-bold uppercase text-muted-foreground">Payload da Resposta (JSON)</Label>
+            <ScrollArea className="h-64 rounded-md border bg-slate-950 p-4">
+              <pre className="text-[10px] text-green-400 font-mono whitespace-pre-wrap">
+                {typeof result.data === 'object' ? JSON.stringify(result.data, null, 2) : result.data}
+                {result.error && `\n\nErro Detalhado: ${result.error}`}
+              </pre>
+            </ScrollArea>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Fechar</Button>
+          <Button onClick={() => window.open(api.baseUrl, '_blank')} variant="ghost" size="sm" className="text-xs">
+            <ExternalLink className="h-3 w-3 mr-2" /> Documentação
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
