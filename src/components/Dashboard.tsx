@@ -1742,7 +1742,10 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
       strategy: selectedStrategy,
       creatives: selected.map(c => ({
         ...c,
-        config: adConfigs[c.id] || { headline: c.title, body: c.body, callToAction: "LEARN_MORE" }
+        ...adConfigs[c.id],
+        headline: adConfigs[c.id]?.headline || c.title || "Headline",
+        body: adConfigs[c.id]?.body || c.body || "Performance Copy",
+        callToAction: adConfigs[c.id]?.callToAction || "LEARN_MORE"
       })),
       name,
       budget: Number(budget) * 100,
