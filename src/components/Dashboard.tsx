@@ -3440,6 +3440,9 @@ function AddApiDialog({ isOpen, onClose, onAdded }: { isOpen: boolean, onClose: 
               <Button variant="outline" size="sm" onClick={() => applyPreset("pika")}>
                 <Video className="h-3 w-3 mr-2" /> Pika.art (Vídeo)
               </Button>
+              <Button variant="outline" size="sm" className="border-purple-500/50 text-purple-600 hover:bg-purple-50" onClick={() => applyPreset("ltx_studio")}>
+                <Zap className="h-3 w-3 mr-2" /> LTX Studio (Imagens/Vídeo)
+              </Button>
             </div>
           </div>
 
