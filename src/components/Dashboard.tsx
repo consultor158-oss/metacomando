@@ -3272,7 +3272,21 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
   const [testingId, setTestingId] = useState<string | null>(null);
 
   useEffect(() => {
-    setApis(loadCustomApis());
+    const currentApis = loadCustomApis();
+    setApis(currentApis);
+
+    // Auto-add LTX Studio if not present (as requested)
+    const hasLTX = currentApis.some(a => a.name.includes("LTX Studio"));
+    if (!hasLTX) {
+      addCustomApi({
+        name: "LTX Studio (Lightricks)",
+        baseUrl: "https://api.ltx.studio/v1",
+        authType: "bearer",
+        authValue: "ltxv_BrnSiW89Ekt1FLWFnvVTjSz4NpR5z-R6y6OuDWgMmK9EP1eQRUPlJII5ZKFsVD67JXwsKTfWnrGRQF6HqWNxBYh_nGF-J_S-rvh8OdSB0StP92iKQiv0GXtyO5OWlTlI9EbT_sqgJdYqKNfYKXxh2YV9Tz2cZWIfjH996jhhwN5_",
+        defaultPath: "generations"
+      });
+      setApis(loadCustomApis());
+    }
   }, []);
 
   const refresh = () => setApis(loadCustomApis());
@@ -3369,7 +3383,7 @@ function AddApiDialog({ isOpen, onClose, onAdded }: { isOpen: boolean, onClose: 
   const [authValue, setAuthValue] = useState("");
   const [defaultPath, setDefaultPath] = useState("");
 
-  const applyPreset = (type: "openai" | "heygen" | "custom_video" | "pika") => {
+  const applyPreset = (type: "openai" | "heygen" | "custom_video" | "pika" | "ltx_studio") => {
     if (type === "openai") {
       setName("OpenAI (DALL-E 3)");
       setBaseUrl("https://api.openai.com/v1");
@@ -3386,6 +3400,12 @@ function AddApiDialog({ isOpen, onClose, onAdded }: { isOpen: boolean, onClose: 
       setBaseUrl("https://api.pika.art/v1");
       setAuthType("bearer");
       setDefaultPath("jobs");
+    } else if (type === "ltx_studio") {
+      setName("LTX Studio (Lightricks)");
+      setBaseUrl("https://api.ltx.studio/v1");
+      setAuthType("bearer");
+      setAuthValue("ltxv_BrnSiW89Ekt1FLWFnvVTjSz4NpR5z-R6y6OuDWgMmK9EP1eQRUPlJII5ZKFsVD67JXwsKTfWnrGRQF6HqWNxBYh_nGF-J_S-rvh8OdSB0StP92iKQiv0GXtyO5OWlTlI9EbT_sqgJdYqKNfYKXxh2YV9Tz2cZWIfjH996jhhwN5_");
+      setDefaultPath("generations");
     } else if (type === "custom_video") {
       setName("API de Vídeo Personalizada");
       setBaseUrl("https://api.meuservico.com");
@@ -3433,6 +3453,9 @@ function AddApiDialog({ isOpen, onClose, onAdded }: { isOpen: boolean, onClose: 
               </Button>
               <Button variant="outline" size="sm" onClick={() => applyPreset("pika")}>
                 <Video className="h-3 w-3 mr-2" /> Pika.art (Vídeo)
+              </Button>
+              <Button variant="outline" size="sm" className="border-purple-500/50 text-purple-600 hover:bg-purple-50" onClick={() => applyPreset("ltx_studio")}>
+                <Zap className="h-3 w-3 mr-2" /> LTX Studio (Imagens/Vídeo)
               </Button>
             </div>
           </div>
