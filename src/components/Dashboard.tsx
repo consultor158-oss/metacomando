@@ -3270,6 +3270,7 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
   const [apis, setApis] = useState<CustomApi[]>([]);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [testingId, setTestingId] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<{api: CustomApi, result: any} | null>(null);
 
   useEffect(() => {
     const currentApis = loadCustomApis();
@@ -3301,6 +3302,8 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
     setTestingId(api.id);
     const res = await testCustomApi(api);
     setTestingId(null);
+    setTestResult({ api, result: res });
+    
     if (res.ok) {
       toast.success(`Conexão OK! Status: ${res.status}`);
     } else {
@@ -3371,7 +3374,72 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
         onClose={() => setIsAddOpen(false)} 
         onAdded={refresh} 
       />
+
+      <TestResultDialog 
+        testData={testResult} 
+        onClose={() => setTestResult(null)} 
+      />
     </div>
+  );
+}
+
+function TestResultDialog({ testData, onClose }: { testData: {api: CustomApi, result: any} | null, onClose: () => void }) {
+  if (!testData) return null;
+  const { api, result } = testData;
+
+  return (
+    <Dialog open={!!testData} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Zap className={`h-5 w-5 ${result.ok ? 'text-green-500' : 'text-red-500'}`} />
+            Validação de API: {api.name}
+          </DialogTitle>
+          <DialogDescription>
+            Resultado da última tentativa de conexão em tempo real.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto space-y-4 py-4">
+          <div className="grid grid-cols-2 gap-4 text-xs">
+            <div className="p-3 bg-muted rounded-lg space-y-1">
+              <p className="font-bold uppercase text-muted-foreground opacity-50">Status da Resposta</p>
+              <p className={`text-lg font-black ${result.ok ? 'text-green-500' : 'text-red-500'}`}>
+                {result.status || 'ERRO DE REDE'} {result.ok ? '✓' : '✗'}
+              </p>
+            </div>
+            <div className="p-3 bg-muted rounded-lg space-y-1">
+              <p className="font-bold uppercase text-muted-foreground opacity-50">Tempo de Resposta</p>
+              <p className="text-lg font-black">--- ms</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-[10px] font-bold uppercase text-muted-foreground">URL Chamada</Label>
+            <div className="p-2 bg-slate-900 text-slate-300 rounded border border-slate-800 font-mono text-[10px] break-all">
+              {api.baseUrl}/{api.defaultPath}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-[10px] font-bold uppercase text-muted-foreground">Payload da Resposta (JSON)</Label>
+            <ScrollArea className="h-64 rounded-md border bg-slate-950 p-4">
+              <pre className="text-[10px] text-green-400 font-mono whitespace-pre-wrap">
+                {typeof result.data === 'object' ? JSON.stringify(result.data, null, 2) : result.data}
+                {result.error && `\n\nErro Detalhado: ${result.error}`}
+              </pre>
+            </ScrollArea>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Fechar</Button>
+          <Button onClick={() => window.open(api.baseUrl, '_blank')} variant="ghost" size="sm" className="text-xs">
+            <ExternalLink className="h-3 w-3 mr-2" /> Documentação
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
