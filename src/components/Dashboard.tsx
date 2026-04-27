@@ -2094,44 +2094,70 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
           )}
 
           {step === 4 && (
-            <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                  <div>
-                    <h3 className="text-xl font-black uppercase">Anexe os Criativos da Nova Campanha</h3>
-                    <p className="text-xs text-muted-foreground">Selecione as mídias e configure as headlines para cada anúncio individualmente.</p>
+                    <h3 className="text-xl font-black uppercase">Criativos da Nova Campanha</h3>
+                    <p className="text-xs text-muted-foreground">Selecione da biblioteca ou gere novos criativos com IA de alta performance.</p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex bg-muted p-1 rounded-lg border border-border">
-                       <Button 
-                         variant={creativeFilter === 'all' ? 'secondary' : 'ghost'} 
-                         size="sm" 
-                         className="h-7 text-[10px] font-bold px-3"
-                         onClick={() => setCreativeFilter('all')}
-                       >
-                         TODOS
-                       </Button>
-                       <Button 
-                         variant={creativeFilter === 'campaign' ? 'secondary' : 'ghost'} 
-                         size="sm" 
-                         className="h-7 text-[10px] font-bold px-3"
-                         onClick={() => setCreativeFilter('campaign')}
-                       >
-                         DA CAMPANHA
-                       </Button>
-                       <Button 
-                         variant={creativeFilter === 'top' ? 'secondary' : 'ghost'} 
-                         size="sm" 
-                         className="h-7 text-[10px] font-bold px-3"
-                         onClick={() => setCreativeFilter('top')}
-                       >
-                         TOP PERFORMANCE
-                       </Button>
-                    </div>
-                    <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold uppercase text-[10px] tracking-widest">
-                      {selectedCreatives.length} SELECIONADOS
-                    </Badge>
+                  
+                  <div className="flex bg-muted p-1 rounded-xl border border-border self-start">
+                    <Button 
+                      variant={creativeSource === 'library' ? 'secondary' : 'ghost'} 
+                      size="sm" 
+                      className="h-8 text-[11px] font-bold px-4 rounded-lg"
+                      onClick={() => setCreativeSource('library')}
+                    >
+                      BIBLIOTECA
+                    </Button>
+                    <Button 
+                      variant={creativeSource === 'ai' ? 'secondary' : 'ghost'} 
+                      size="sm" 
+                      className="h-8 text-[11px] font-bold px-4 rounded-lg flex items-center gap-2"
+                      onClick={() => setCreativeSource('ai')}
+                    >
+                      <Zap className="h-3 w-3 text-yellow-500" />
+                      GERADOR IA
+                    </Button>
                   </div>
+
+                  <Badge variant="outline" className="h-8 px-4 rounded-full border-primary/30 bg-primary/5 text-primary font-bold uppercase text-[10px] tracking-widest hidden md:flex">
+                    {selectedCreatives.length} SELECIONADOS
+                  </Badge>
                </div>
+
+               {creativeSource === 'library' ? (
+                 <>
+                   <div className="flex items-center gap-3 bg-muted/30 p-2 rounded-xl border border-dashed">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase ml-2 mr-2">Filtros:</p>
+                      <div className="flex bg-muted p-1 rounded-lg border border-border">
+                         <Button 
+                           variant={creativeFilter === 'all' ? 'secondary' : 'ghost'} 
+                           size="sm" 
+                           className="h-7 text-[10px] font-bold px-3"
+                           onClick={() => setCreativeFilter('all')}
+                         >
+                           TODOS
+                         </Button>
+                         <Button 
+                           variant={creativeFilter === 'campaign' ? 'secondary' : 'ghost'} 
+                           size="sm" 
+                           className="h-7 text-[10px] font-bold px-3"
+                           onClick={() => setCreativeFilter('campaign')}
+                         >
+                           DA CAMPANHA
+                         </Button>
+                         <Button 
+                           variant={creativeFilter === 'top' ? 'secondary' : 'ghost'} 
+                           size="sm" 
+                           className="h-7 text-[10px] font-bold px-3"
+                           onClick={() => setCreativeFilter('top')}
+                         >
+                           TOP PERFORMANCE
+                         </Button>
+                      </div>
+                   </div>
+
 
                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {displayedCreatives.map((c: any) => (
