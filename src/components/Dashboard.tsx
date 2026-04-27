@@ -42,7 +42,8 @@ import {
   Bell,
   LineChart,
   UserPlus,
-  Code
+  Code,
+  ExternalLink
 } from "lucide-react";
 import {
   getAccountInfo,
