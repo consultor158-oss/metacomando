@@ -2204,9 +2204,17 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
                         <p className="text-[8px] text-muted-foreground truncate text-center">{c.campaign_name || "Biblioteca"}</p>
                       </div>
                     </div>
-                  ))}
-                  
-               </div>
+                   ))}
+                   
+                   <div 
+                     onClick={() => document.getElementById('media-upload')?.click()}
+                     className="border-2 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 cursor-pointer hover:bg-primary/5 hover:border-primary/50 transition-all aspect-square group"
+                   >
+                      {isUploading ? <RefreshCw className="h-5 w-5 text-primary animate-spin" /> : <Plus className="h-6 w-6 text-muted-foreground group-hover:text-primary" />}
+                      <p className="text-[8px] font-black uppercase text-muted-foreground">Mídia</p>
+                      <input id="media-upload" type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                   </div>
+                </div>
                </>
                ) : (
                  <div className="space-y-6 bg-slate-900/50 p-8 rounded-3xl border border-primary/20 animate-in zoom-in-95 duration-300">
