@@ -3369,7 +3369,7 @@ function AddApiDialog({ isOpen, onClose, onAdded }: { isOpen: boolean, onClose: 
   const [authValue, setAuthValue] = useState("");
   const [defaultPath, setDefaultPath] = useState("");
 
-  const applyPreset = (type: "openai" | "heygen" | "custom_video" | "pika") => {
+  const applyPreset = (type: "openai" | "heygen" | "custom_video" | "pika" | "ltx_studio") => {
     if (type === "openai") {
       setName("OpenAI (DALL-E 3)");
       setBaseUrl("https://api.openai.com/v1");
@@ -3386,6 +3386,12 @@ function AddApiDialog({ isOpen, onClose, onAdded }: { isOpen: boolean, onClose: 
       setBaseUrl("https://api.pika.art/v1");
       setAuthType("bearer");
       setDefaultPath("jobs");
+    } else if (type === "ltx_studio") {
+      setName("LTX Studio (Lightricks)");
+      setBaseUrl("https://api.ltx.studio/v1");
+      setAuthType("bearer");
+      setAuthValue("ltxv_BrnSiW89Ekt1FLWFnvVTjSz4NpR5z-R6y6OuDWgMmK9EP1eQRUPlJII5ZKFsVD67JXwsKTfWnrGRQF6HqWNxBYh_nGF-J_S-rvh8OdSB0StP92iKQiv0GXtyO5OWlTlI9EbT_sqgJdYqKNfYKXxh2YV9Tz2cZWIfjH996jhhwN5_");
+      setDefaultPath("generations");
     } else if (type === "custom_video") {
       setName("API de Vídeo Personalizada");
       setBaseUrl("https://api.meuservico.com");
