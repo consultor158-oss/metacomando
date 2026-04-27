@@ -2206,15 +2206,97 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
                     </div>
                   ))}
                   
-                  <div 
-                    onClick={() => document.getElementById('media-upload')?.click()}
-                    className="border-2 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 cursor-pointer hover:bg-primary/5 hover:border-primary/50 transition-all aspect-square group"
-                  >
-                     {isUploading ? <RefreshCw className="h-5 w-5 text-primary animate-spin" /> : <Plus className="h-6 w-6 text-muted-foreground group-hover:text-primary" />}
-                     <p className="text-[8px] font-black uppercase text-muted-foreground">Mídia</p>
-                     <input id="media-upload" type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
-                  </div>
                </div>
+               </>
+               ) : (
+                 <div className="space-y-6 bg-slate-900/50 p-8 rounded-3xl border border-primary/20 animate-in zoom-in-95 duration-300">
+                    <div className="flex items-center gap-4 mb-2">
+                       <div className="h-12 w-12 rounded-2xl bg-primary/20 flex items-center justify-center">
+                          <Zap className="h-6 w-6 text-primary" />
+                       </div>
+                       <div>
+                          <h4 className="font-black text-lg uppercase">Gerador LTX Studio</h4>
+                          <p className="text-xs text-slate-400">Descreva o vídeo ou imagem que deseja para esta campanha.</p>
+                       </div>
+                    </div>
+
+                    <div className="space-y-4">
+                       <div className="space-y-2">
+                          <Label className="text-[10px] font-bold uppercase text-slate-500">Prompt do Criativo</Label>
+                          <Textarea 
+                            placeholder="Ex: Um vídeo cinematográfico de um suplemento esportivo sendo misturado com água, luzes de neon ao fundo, alta velocidade..." 
+                            className="min-h-[120px] bg-slate-950 border-slate-800 text-slate-200"
+                            value={aiPrompt}
+                            onChange={(e) => setAiPrompt(e.target.value)}
+                          />
+                       </div>
+
+                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="space-y-2">
+                             <Label className="text-[10px] font-bold uppercase text-slate-500">Formato</Label>
+                             <Select defaultValue="9:16">
+                               <SelectTrigger className="bg-slate-950 border-slate-800">
+                                 <SelectValue />
+                               </SelectTrigger>
+                               <SelectContent>
+                                 <SelectItem value="9:16">Story/Reels (9:16)</SelectItem>
+                                 <SelectItem value="1:1">Quadrado (1:1)</SelectItem>
+                                 <SelectItem value="16:9">Widescreen (16:9)</SelectItem>
+                               </SelectContent>
+                             </Select>
+                          </div>
+                          <div className="space-y-2">
+                             <Label className="text-[10px] font-bold uppercase text-slate-500">Duração</Label>
+                             <Select defaultValue="5s">
+                               <SelectTrigger className="bg-slate-950 border-slate-800">
+                                 <SelectValue />
+                               </SelectTrigger>
+                               <SelectContent>
+                                 <SelectItem value="5s">5 Segundos</SelectItem>
+                                 <SelectItem value="10s">10 Segundos</SelectItem>
+                               </SelectContent>
+                             </Select>
+                          </div>
+                          <div className="space-y-2">
+                             <Label className="text-[10px] font-bold uppercase text-slate-500">Estilo</Label>
+                             <Select defaultValue="realistic">
+                               <SelectTrigger className="bg-slate-950 border-slate-800">
+                                 <SelectValue />
+                               </SelectTrigger>
+                               <SelectContent>
+                                 <SelectItem value="realistic">Realista</SelectItem>
+                                 <SelectItem value="anime">Anime</SelectItem>
+                                 <SelectItem value="3d">3D Render</SelectItem>
+                               </SelectContent>
+                             </Select>
+                          </div>
+                          <div className="flex items-end">
+                             <Button 
+                               className="w-full bg-primary hover:bg-primary/90 font-black uppercase text-xs h-10 gap-2 shadow-[0_0_20px_rgba(var(--primary),0.3)]"
+                               disabled={isGenerating || !aiPrompt}
+                               onClick={async () => {
+                                 setIsGenerating(true);
+                                 // Simulação de chamada LTX Studio
+                                 await new Promise(r => setTimeout(r, 3000));
+                                 toast.success("Solicitação enviada ao LTX Studio!");
+                                 setIsGenerating(false);
+                                 // Aqui adicionaríamos o resultado à biblioteca
+                               }}
+                             >
+                               {isGenerating ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
+                               Gerar Criativo
+                             </Button>
+                          </div>
+                       </div>
+                    </div>
+                    
+                    <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                       <p className="text-[10px] text-primary/70 italic text-center">
+                         O criativo gerado será adicionado automaticamente à sua biblioteca e selecionado para esta campanha.
+                       </p>
+                    </div>
+                 </div>
+               )}
 
                {selectedCreatives.length > 0 && (
                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-8 border-t">
