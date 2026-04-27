@@ -1564,6 +1564,9 @@ function TutorialTab({ scalingCampaign, creatives = [], onStepChange, onClearFil
   const [localCreatives, setLocalCreatives] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [creativeFilter, setCreativeFilter] = useState<"all" | "campaign" | "top">("all");
+  const [creativeSource, setCreativeSource] = useState<"library" | "ai">("library");
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
   const [adConfigs, setAdConfigs] = useState<Record<string, { headline: string, body: string, callToAction: string }>>({});
 
 
