@@ -198,12 +198,6 @@ export function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton isActive={view === "realtime_monitor"} onClick={() => setView("realtime_monitor")}>
-                      <Activity className="h-4 w-4" />
-                      <span>Monitor Real-Time</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "campaigns"} onClick={() => setView("campaigns")}>
                       <Layers className="h-4 w-4" />
                       <span>Gerenciar Meta Ads</span>
@@ -401,7 +395,7 @@ export function Dashboard() {
           </header>
 
           <main className="flex-1 p-6 overflow-y-auto">
-            {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} campaigns={campaignsData} />}
+            {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} campaigns={campaignsData} onViewCampaigns={() => setView("campaigns")} />}
             {view === "campaigns" && (
               <CampaignsTab 
                 campaigns={campaignsData} 
@@ -481,7 +475,7 @@ export function Dashboard() {
   );
 }
 
-function OverviewTab({ stats, funnel, campaigns }: { stats: any; funnel: any; campaigns: any[] }) {
+function OverviewTab({ stats, funnel, campaigns, onViewCampaigns }: { stats: any; funnel: any; campaigns: any[]; onViewCampaigns: () => void }) {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -554,7 +548,7 @@ function OverviewTab({ stats, funnel, campaigns }: { stats: any; funnel: any; ca
         </Card>
       </div>
       <div className="pt-4">
-        <RealTimeMonitor campaigns={campaigns} />
+        <RealTimeMonitor campaigns={campaigns} onAction={onViewCampaigns} />
       </div>
     </div>
   );
@@ -4027,7 +4021,7 @@ function MetaConnectDialog({ isOpen, onClose }: { isOpen: boolean, onClose: () =
     </Dialog>
   );
 }
-function RealTimeMonitor({ campaigns }: { campaigns: any[] }) {
+function RealTimeMonitor({ campaigns, onAction }: { campaigns: any[]; onAction?: () => void }) {
   const activeCampaigns = campaigns.filter(c => c.status === "ACTIVE");
   
   return (
@@ -4081,7 +4075,7 @@ function RealTimeMonitor({ campaigns }: { campaigns: any[] }) {
               <TableBody>
                 {activeCampaigns.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-32 text-center text-muted-foreground italic">
+                    <TableCell colSpan={7} className="h-32 text-center text-muted-foreground italic">
                       Nenhuma campanha ativa encontrada no momento.
                     </TableCell>
                   </TableRow>
@@ -4115,9 +4109,21 @@ function RealTimeMonitor({ campaigns }: { campaigns: any[] }) {
                           {formatBRL(parseFloat(insight.cpc || 0))}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Badge className={`${roas >= 2 ? 'bg-success/20 text-success' : 'bg-primary/20 text-primary'} border-none font-bold text-xs px-3`}>
-                            {roas.toFixed(2)}x
-                          </Badge>
+                          <div className="flex items-center justify-end gap-3">
+                            <Badge className={`${roas >= 2 ? 'bg-success/20 text-success' : 'bg-primary/20 text-primary'} border-none font-bold text-xs px-3`}>
+                              {roas.toFixed(2)}x
+                            </Badge>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => {
+                                if (onAction) onAction();
+                              }}
+                            >
+                              <Edit2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
