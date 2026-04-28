@@ -342,8 +342,11 @@ export const createFullScale = createServerFn({ method: "POST" })
             campaign_id: campaignId,
             status: data.status || "PAUSED",
             billing_event: "IMPRESSIONS",
-            optimization_goal: data.destination === "WHATSAPP" ? "CONVERSATIONS" : (pixelId && pixelId !== "PLACEHOLDER" ? "OFFSITE_CONVERSIONS" : "LINK_CLICKS"),
+            optimization_goal: (data.destination === "WHATSAPP" || data.destination === "INSTAGRAM_DIRECT" || data.destination === "MESSENGER") 
+              ? "CONVERSATIONS" 
+              : (pixelId && pixelId !== "PLACEHOLDER" ? "OFFSITE_CONVERSIONS" : "LINK_CLICKS"),
             targeting: cleanTargeting,
+
           };
 
           if (!isCBO) {
