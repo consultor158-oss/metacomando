@@ -118,7 +118,7 @@ import { Textarea } from "./ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { ScrollArea } from "./ui/scroll-area";
 
-type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "settings" | "google_ads" | "insta_organic" | "wa_reports" | "wa_alerts" | "client_dash" | "lead_tracking" | "wa_support" | "ai_creatives" | "ai_analysis" | "ecommerce" | "crm" | "apis";
+type View = "overview" | "campaigns" | "scales" | "creatives" | "automation" | "settings" | "google_ads" | "insta_organic" | "wa_reports" | "wa_alerts" | "client_dash" | "lead_tracking" | "wa_support" | "ai_creatives" | "ai_analysis" | "ecommerce" | "crm" | "apis" | "realtime_monitor";
 
 export function Dashboard() {
   const [view, setView] = useState<View>("overview");
@@ -195,6 +195,12 @@ export function Dashboard() {
                     <SidebarMenuButton isActive={view === "overview"} onClick={() => setView("overview")}>
                       <LayoutDashboard className="h-4 w-4" />
                       <span>Visão Geral</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton isActive={view === "realtime_monitor"} onClick={() => setView("realtime_monitor")}>
+                      <Activity className="h-4 w-4" />
+                      <span>Monitor Real-Time</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
@@ -363,6 +369,7 @@ export function Dashboard() {
                   {view === "ecommerce" && "Rastrear Ecommerce"}
                   {view === "crm" && "CRM Interno"}
                   {view === "apis" && "APÍS"}
+                  {view === "realtime_monitor" && "Monitor de Campanhas em Tempo Real"}
                   
                 </h1>
                 <p className="text-xs text-muted-foreground">
@@ -449,6 +456,7 @@ export function Dashboard() {
             {view === "ecommerce" && <EcommerceTab />}
             {view === "crm" && <CRMTab leads={crmLeads} onAdd={addLead} onMove={moveLead} />}
             {view === "apis" && <ApisTab onConnect={() => setIsMetaConnectOpen(true)} />}
+            {view === "realtime_monitor" && <RealTimeMonitor campaigns={campaignsData} />}
           </main>
         </SidebarInset>
 
@@ -4014,5 +4022,105 @@ function MetaConnectDialog({ isOpen, onClose }: { isOpen: boolean, onClose: () =
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+function RealTimeMonitor({ campaigns }: { campaigns: any[] }) {
+  const activeCampaigns = campaigns.filter(c => c.status === "ACTIVE");
+  
+  return (
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <KPICard 
+          title="Campanhas Ativas" 
+          value={activeCampaigns.length.toString()} 
+          icon={<Activity className="h-4 w-4 text-primary" />} 
+        />
+        <KPICard 
+          title="Investimento Hoje" 
+          value={formatBRL(activeCampaigns.reduce((acc, c) => acc + parseFloat(c.insights?.data?.[0]?.spend || 0), 0))} 
+          icon={<DollarSign className="h-4 w-4 text-primary" />} 
+        />
+        <KPICard 
+          title="ROAS Médio Real" 
+          value={(activeCampaigns.reduce((acc, c) => acc + parseFloat(c.insights?.data?.[0]?.purchase_roas?.[0]?.value || 0), 0) / (activeCampaigns.length || 1)).toFixed(2) + "x"} 
+          icon={<TrendingUp className="h-4 w-4 text-success" />} 
+          positive
+        />
+      </div>
+
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+        <CardHeader className="border-b border-border/10 pb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl tracking-tight">Todas as Campanhas Rodando</CardTitle>
+              <CardDescription>Métricas em tempo real integradas via API Meta Ads.</CardDescription>
+            </div>
+            <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 animate-pulse">
+              <div className="h-1.5 w-1.5 rounded-full bg-primary mr-2" />
+              Live API
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-muted/30">
+                <TableRow className="hover:bg-transparent border-border/10">
+                  <TableHead className="py-4 pl-6 text-[10px] font-bold uppercase tracking-wider">Status</TableHead>
+                  <TableHead className="py-4 text-[10px] font-bold uppercase tracking-wider">Campanha</TableHead>
+                  <TableHead className="py-4 text-[10px] font-bold uppercase tracking-wider text-right">Investimento</TableHead>
+                  <TableHead className="py-4 text-[10px] font-bold uppercase tracking-wider text-right">Cliques</TableHead>
+                  <TableHead className="py-4 text-[10px] font-bold uppercase tracking-wider text-right">CTR</TableHead>
+                  <TableHead className="py-4 text-[10px] font-bold uppercase tracking-wider text-right text-primary">ROAS Real</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activeCampaigns.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-32 text-center text-muted-foreground italic">
+                      Nenhuma campanha ativa encontrada no momento.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  activeCampaigns.map((c) => {
+                    const insight = c.insights?.data?.[0] || {};
+                    const roas = parseFloat(insight.purchase_roas?.[0]?.value || 0);
+                    
+                    return (
+                      <TableRow key={c.id} className="hover:bg-muted/20 border-border/5 transition-colors group">
+                        <TableCell className="pl-6">
+                          <div className="flex items-center">
+                            <div className="h-2 w-2 rounded-full bg-success shadow-[0_0_8px_oklch(0.72_0.16_162_/_0.5)] mr-2" />
+                            <span className="text-[10px] font-bold text-success uppercase">Ativa</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <p className="font-semibold text-sm group-hover:text-primary transition-colors">{c.name}</p>
+                          <p className="text-[10px] text-muted-foreground font-mono">ID: {c.id}</p>
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {formatBRL(parseFloat(insight.spend || 0))}
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {formatNumber(insight.clicks || 0)}
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {formatPct(parseFloat(insight.ctr || 0))}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Badge className={`${roas >= 2 ? 'bg-success/20 text-success' : 'bg-primary/20 text-primary'} border-none font-bold text-xs px-3`}>
+                            {roas.toFixed(2)}x
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
