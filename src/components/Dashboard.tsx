@@ -3280,8 +3280,12 @@ function AICreativesTab() {
                  <Button variant="outline" className="border-primary/50 text-primary hover:bg-primary/10" onClick={() => toast.success("Criativo adicionado à biblioteca!")}>
                    <FolderPlus className="h-4 w-4 mr-2" /> Salvar na Biblioteca
                  </Button>
-                 <Button className="bg-[oklch(0.7_0.18_162)] text-black hover:bg-[oklch(0.6_0.16_162)]" onClick={() => toast.info("Abrindo modal de campanha com este vídeo...")}>
-                   <Rocket className="h-4 w-4 mr-2" /> Usar em Campanha
+                 <Button 
+                   className="bg-[oklch(0.7_0.18_162)] text-black hover:bg-[oklch(0.6_0.16_162)]" 
+                   onClick={handleUseInCampaign}
+                   disabled={isUploading}
+                 >
+                   {isUploading ? <><RefreshCw className="h-4 w-4 mr-2 animate-spin" /> Subindo...</> : <><Rocket className="h-4 w-4 mr-2" /> Usar em Campanha</>}
                  </Button>
               </div>
             </div>
