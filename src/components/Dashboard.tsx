@@ -2737,6 +2737,13 @@ function DryRunModal({ isOpen, onClose, data, pages, pixels }: { isOpen: boolean
     }
   }, [pages, selectedPage]);
 
+  useEffect(() => {
+    if (pixels && pixels.length > 0 && !selectedPixel) {
+      setSelectedPixel(pixels[0].id);
+    }
+  }, [pixels, selectedPixel]);
+
+
   const handleActivate = async () => {
     if (!data || !selectedPage) {
       if (!selectedPage) toast.error("Selecione uma Página do Facebook");
