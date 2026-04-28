@@ -289,8 +289,8 @@ export const createFullScale = createServerFn({ method: "POST" })
       const isCBO = strategyDef?.defaults?.isCBO ?? false;
       const adsetCount = strategyDef?.defaults?.adsetCount ?? 1;
 
-      let pixelId = "PLACEHOLDER";
-      if (data.destination === "SALES") {
+      let pixelId = data.pixelId;
+      if (!pixelId && data.destination === "SALES") {
         try {
           const pixels = await metaFetch(`${actId}/adspixels`, { fields: "id" });
           if (pixels.data?.[0]) pixelId = pixels.data[0].id;
@@ -298,6 +298,7 @@ export const createFullScale = createServerFn({ method: "POST" })
           console.error("Erro ao buscar pixel:", e);
         }
       }
+
 
       // 1. Create Campaign
       const campaignBody: Record<string, any> = {
