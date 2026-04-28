@@ -435,6 +435,12 @@ export const createFullScale = createServerFn({ method: "POST" })
                     name: `Creative ${idx + 1} - ${Date.now()}`,
                     object_story_spec: objectStorySpec
                   };
+
+                  if (data.advantagePlusCreative) {
+                    adBody.creative.creative_features = {
+                      standard_enhancements: { enrollment_status: "OPT_IN" }
+                    };
+                  }
                 }
                const ad = await metaPost(`${actId}/ads`, adBody);
                return { ok: true, id: ad.id };
