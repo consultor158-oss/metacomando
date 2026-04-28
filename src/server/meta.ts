@@ -396,12 +396,17 @@ export const createFullScale = createServerFn({ method: "POST" })
                   const isMessaging = ["WHATSAPP", "INSTAGRAM_DIRECT", "MESSENGER"].includes(data.destination || "");
                   const ctaType = isMessaging ? "SEND_MESSAGE" : (creative.cta || "SHOP_NOW");
 
-                  const ctaValue: any = {};
-                  if (data.destination === "WHATSAPP") {
-                    ctaValue.app_destination = "WHATSAPP";
-                  } else {
-                    ctaValue.link = data.destinationUrl || "https://example.com";
-                  }
+                   const ctaValue: any = {};
+                   if (data.destination === "WHATSAPP") {
+                     ctaValue.app_destination = "WHATSAPP";
+                   } else if (data.destination === "INSTAGRAM_DIRECT") {
+                     ctaValue.app_destination = "INSTAGRAM_DIRECT";
+                   } else if (data.destination === "MESSENGER") {
+                     ctaValue.app_destination = "MESSENGER";
+                   } else {
+                     ctaValue.link = data.destinationUrl || "https://example.com";
+                   }
+
 
                   if (creative.video_id && !creative.video_id.startsWith("uploaded_")) {
                     objectStorySpec.video_data = {
