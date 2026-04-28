@@ -3585,13 +3585,32 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
 
   const handleTest = async (api: CustomApi) => {
     setTestingId(api.id);
-    const res = await testCustomApi(api);
+    
+    // Determine the best method/path for testing
+    let method: "GET" | "POST" = "GET";
+    let testPath = api.defaultPath;
+    
+    if (api.name.toLowerCase().includes("heygen")) {
+      // Heygen v2 often requires POST for many endpoints or a specific GET
+      method = "POST";
+    }
+
+    const res = await testCustomApi(api, testPath, method);
     setTestingId(null);
     setTestResult({ api, result: res });
     
     if (res.ok) {
       toast.success(`Conexão OK! Status: ${res.status}`);
     } else {
+      // If POST failed with 405, try GET as fallback
+      if (res.status === 405 && method === "POST") {
+        const retryRes = await testCustomApi(api, testPath, "GET");
+        if (retryRes.ok) {
+          setTestResult({ api, result: retryRes });
+          toast.success(`Conexão OK (via GET)! Status: ${retryRes.status}`);
+          return;
+        }
+      }
       toast.error(`Falha na conexão: ${res.error || "Status " + res.status}`);
     }
   };
