@@ -1029,12 +1029,23 @@ function EditCampaignDialog({ campaign, isOpen, onClose, onSave }: { campaign: a
                           checked={ad.status === "ACTIVE"} 
                           onCheckedChange={() => handleUpdateAdStatus(ad.id, ad.status)}
                         />
-                        <div className="h-10 w-10 rounded overflow-hidden bg-muted border">
+                        <div className="h-10 w-10 rounded overflow-hidden bg-muted border relative group/img">
                           <img 
                             src={ad.creative?.image_url || ad.creative?.thumbnail_url || ad._previewImage || "https://placehold.co/100x100?text=Ad"} 
                             className="h-full w-full object-cover" 
                             onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/100x100?text=Ad"; }}
                           />
+                          <button 
+                            className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center"
+                            onClick={() => {
+                              const url = ad.creative?.instagram_permalink_url || ad.creative?.effective_object_story_id;
+                              if (url) {
+                                window.open(url.startsWith('http') ? url : `https://facebook.com/${url}`, '_blank');
+                              }
+                            }}
+                          >
+                            <ExternalLink className="h-4 w-4 text-white" />
+                          </button>
                         </div>
                         <div className="flex-1 min-w-0">
                           <Input 
