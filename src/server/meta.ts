@@ -392,6 +392,11 @@ export const createFullScale = createServerFn({ method: "POST" })
                 
                 if (isExistingCreative) {
                   adBody.creative = { creative_id: creative.id };
+                  if (data.advantagePlusCreative) {
+                    adBody.creative.creative_features = {
+                      standard_enhancements: { enrollment_status: "OPT_IN" }
+                    };
+                  }
                 } else {
                   const objectStorySpec: any = { page_id: data.pageId };
                   const isMessaging = ["WHATSAPP", "INSTAGRAM_DIRECT", "MESSENGER"].includes(data.destination || "");
