@@ -1352,7 +1352,7 @@ function CreativesTab({ creatives, onEscalate }: { creatives: any[], onEscalate?
               <ChevronLeft className="h-4 w-4" /> Voltar para Pastas
             </Button>
           )}
-          <Select value={filter} onValueChange={setFilter}>
+          <Select value={filter || undefined} onValueChange={setFilter}>
             <SelectTrigger className="w-[250px]">
               <SelectValue placeholder="Filtrar por Pasta/Campanha" />
             </SelectTrigger>
@@ -1362,7 +1362,7 @@ function CreativesTab({ creatives, onEscalate }: { creatives: any[], onEscalate?
               ))}
             </SelectContent>
           </Select>
-          <Button size="sm" variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5" onClick={() => onEscalate?.(filter)}>
+          <Button size="sm" variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5" onClick={() => filter && onEscalate?.(filter)}>
             <Rocket className="h-3 w-3 text-primary" /> Escalar Criativos
           </Button>
           <label className="cursor-pointer">
