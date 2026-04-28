@@ -4075,7 +4075,7 @@ function RealTimeMonitor({ campaigns }: { campaigns: any[] }) {
               <TableBody>
                 {activeCampaigns.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-32 text-center text-muted-foreground italic">
+                    <TableCell colSpan={7} className="h-32 text-center text-muted-foreground italic">
                       Nenhuma campanha ativa encontrada no momento.
                     </TableCell>
                   </TableRow>
@@ -4109,9 +4109,24 @@ function RealTimeMonitor({ campaigns }: { campaigns: any[] }) {
                           {formatBRL(parseFloat(insight.cpc || 0))}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Badge className={`${roas >= 2 ? 'bg-success/20 text-success' : 'bg-primary/20 text-primary'} border-none font-bold text-xs px-3`}>
-                            {roas.toFixed(2)}x
-                          </Badge>
+                          <div className="flex items-center justify-end gap-3">
+                            <Badge className={`${roas >= 2 ? 'bg-success/20 text-success' : 'bg-primary/20 text-primary'} border-none font-bold text-xs px-3`}>
+                              {roas.toFixed(2)}x
+                            </Badge>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => {
+                                // Redireciona para gerenciar e abre o modal de edição
+                                setView("campaigns");
+                                // O CampaignsTab já tem lógica para setEditingCampaign se passarmos a campanha correta
+                                // Mas aqui no Overview/Monitor precisamos disparar a abertura do modal
+                              }}
+                            >
+                              <Edit2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
