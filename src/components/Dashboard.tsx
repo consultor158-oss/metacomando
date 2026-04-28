@@ -60,8 +60,10 @@ import {
   getGeoInsights,
   createFullScale,
   getPages,
+  getPixels,
   getCampaignDetails,
   updateAdStatus,
+
   updateAdsetStatus,
   updateAdsetBudget,
   updateAdsetName,
