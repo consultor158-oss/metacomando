@@ -3539,11 +3539,11 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
     if (!hasHeygen) {
       addCustomApi({
         name: "Heygen (Avatar Video)",
-        baseUrl: "https://api.heygen.com/v2",
+        baseUrl: "https://api.heygen.com",
         authType: "header",
         authKey: "X-Api-Key",
         authValue: "sk_V2_hgu_kNMS2ByuSNr_YaIF2OXIELpoHhQyCTvrsYb4u8aJfhDQ",
-        defaultPath: "video/generate"
+        defaultPath: "v2/video/generate"
       });
     }
 
@@ -3585,13 +3585,32 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
 
   const handleTest = async (api: CustomApi) => {
     setTestingId(api.id);
-    const res = await testCustomApi(api);
+    
+    // Determine the best method/path for testing
+    let method: "GET" | "POST" = "GET";
+    let testPath = api.defaultPath;
+    
+    if (api.name.toLowerCase().includes("heygen")) {
+      // Heygen v2 often requires POST for many endpoints or a specific GET
+      method = "POST";
+    }
+
+    const res = await testCustomApi(api, testPath, method);
     setTestingId(null);
     setTestResult({ api, result: res });
     
     if (res.ok) {
       toast.success(`Conexão OK! Status: ${res.status}`);
     } else {
+      // If POST failed with 405, try GET as fallback
+      if (res.status === 405 && method === "POST") {
+        const retryRes = await testCustomApi(api, testPath, "GET");
+        if (retryRes.ok) {
+          setTestResult({ api, result: retryRes });
+          toast.success(`Conexão OK (via GET)! Status: ${retryRes.status}`);
+          return;
+        }
+      }
       toast.error(`Falha na conexão: ${res.error || "Status " + res.status}`);
     }
   };
@@ -3744,10 +3763,10 @@ function AddApiDialog({ isOpen, onClose, onAdded }: { isOpen: boolean, onClose: 
       setDefaultPath("images/generations");
     } else if (type === "heygen") {
       setName("HeyGen Video API");
-      setBaseUrl("https://api.heygen.com/v1");
+      setBaseUrl("https://api.heygen.com");
       setAuthType("header");
       setAuthKey("X-Api-Key");
-      setDefaultPath("video/status");
+      setDefaultPath("v2/video/generate");
     } else if (type === "pika") {
       setName("Pika Art API");
       setBaseUrl("https://api.pika.art/v1");

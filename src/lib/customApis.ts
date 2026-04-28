@@ -59,8 +59,15 @@ export async function testCustomApi(
 ): Promise<{ ok: boolean; status: number; data: any; error?: string }> {
   try {
     const path = pathOverride ?? api.defaultPath ?? "";
-    const url = new URL(path, api.baseUrl.endsWith("/") ? api.baseUrl : api.baseUrl + "/");
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    // Garantir que a URL base termine com / se o path não começar com /
+    const baseUrl = api.baseUrl.endsWith('/') ? api.baseUrl : api.baseUrl + '/';
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    const url = new URL(cleanPath, baseUrl);
+    
+    const headers: Record<string, string> = { 
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    };
 
     if (api.authType === "bearer" && api.authValue) {
       headers["Authorization"] = `Bearer ${api.authValue}`;
@@ -73,8 +80,9 @@ export async function testCustomApi(
     const res = await fetch(url.toString(), {
       method,
       headers,
-      body: method === "POST" ? body || undefined : undefined,
+      body: method === "POST" ? body || (api.name.includes("Heygen") ? JSON.stringify({ video_inputs: [] }) : undefined) : undefined,
     });
+    
     const text = await res.text();
     let data: any;
     try {
@@ -84,6 +92,7 @@ export async function testCustomApi(
     }
     return { ok: res.ok, status: res.status, data };
   } catch (e: any) {
+    console.error("Erro no teste da API:", e);
     return { ok: false, status: 0, data: null, error: e?.message || "Falha de rede" };
   }
 }
