@@ -2827,18 +2827,71 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
 
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Destino do Trfego</Label>
-                <RadioGroup value={destination} onValueChange={(v: any) => setDestination(v)} className="grid grid-cols-2 gap-4">
-                   <div className={`flex items-center space-x-2 border p-3 rounded-lg cursor-pointer transition-all ${destination === 'WHATSAPP' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('WHATSAPP')}>
+                <RadioGroup value={destination} onValueChange={(v: any) => setDestination(v)} className="grid grid-cols-2 gap-3">
+                   <div className={`flex items-center space-x-2 border p-2.5 rounded-lg cursor-pointer transition-all ${destination === 'WHATSAPP' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('WHATSAPP')}>
                       <RadioGroupItem value="WHATSAPP" id="dest-wa" className="border-slate-400" />
-                      <Label htmlFor="dest-wa" className="cursor-pointer font-bold text-xs">WhatsApp</Label>
+                      <div className="flex flex-col">
+                        <Label htmlFor="dest-wa" className="cursor-pointer font-bold text-[11px]">WhatsApp</Label>
+                        <span className="text-[9px] text-slate-500">Conversas Diretas</span>
+                      </div>
                    </div>
-                   <div className={`flex items-center space-x-2 border p-3 rounded-lg cursor-pointer transition-all ${destination === 'SALES' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('SALES')}>
+                   <div className={`flex items-center space-x-2 border p-2.5 rounded-lg cursor-pointer transition-all ${destination === 'SALES' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('SALES')}>
                       <RadioGroupItem value="SALES" id="dest-sales" className="border-slate-400" />
-                      <Label htmlFor="dest-sales" className="cursor-pointer font-bold text-xs">Site / Vendas</Label>
-              </div>
-              
+                      <div className="flex flex-col">
+                        <Label htmlFor="dest-sales" className="cursor-pointer font-bold text-[11px]">Site / Pixel</Label>
+                        <span className="text-[9px] text-slate-500">Vendas e Leads</span>
+                      </div>
+                   </div>
+                   <div className={`flex items-center space-x-2 border p-2.5 rounded-lg cursor-pointer transition-all ${destination === 'INSTAGRAM_DIRECT' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('INSTAGRAM_DIRECT')}>
+                      <RadioGroupItem value="INSTAGRAM_DIRECT" id="dest-ig" className="border-slate-400" />
+                      <div className="flex flex-col">
+                        <Label htmlFor="dest-ig" className="cursor-pointer font-bold text-[11px]">Instagram DM</Label>
+                        <span className="text-[9px] text-slate-500">Direct Message</span>
+                      </div>
+                   </div>
+                   <div className={`flex items-center space-x-2 border p-2.5 rounded-lg cursor-pointer transition-all ${destination === 'MESSENGER' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('MESSENGER')}>
+                      <RadioGroupItem value="MESSENGER" id="dest-ms" className="border-slate-400" />
+                      <div className="flex flex-col">
+                        <Label htmlFor="dest-ms" className="cursor-pointer font-bold text-[11px]">Messenger</Label>
+                        <span className="text-[9px] text-slate-500">Facebook Chat</span>
+                      </div>
+                   </div>
                 </RadioGroup>
               </div>
+
+              {destination === 'SALES' && (
+                <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Pixel do Meta</Label>
+                    <Select value={selectedPixel} onValueChange={setSelectedPixel}>
+                      <SelectTrigger className="bg-slate-900 border-slate-800 h-10 text-[11px]">
+                        <SelectValue placeholder="Selecione o Pixel" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
+                        {pixelsQuery.data?.map((p: any) => (
+                          <SelectItem key={p.id} value={p.id} className="text-[11px]">{p.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Evento</Label>
+                    <Select value={selectedEvent} onValueChange={setSelectedEvent}>
+                      <SelectTrigger className="bg-slate-900 border-slate-800 h-10 text-[11px]">
+                        <SelectValue placeholder="Evento" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
+                        <SelectItem value="PURCHASE" className="text-[11px]">Compra (Purchase)</SelectItem>
+                        <SelectItem value="LEAD" className="text-[11px]">Lead (Cadastro)</SelectItem>
+                        <SelectItem value="COMPLETE_REGISTRATION" className="text-[11px]">Registro Completo</SelectItem>
+                        <SelectItem value="ADD_TO_CART" className="text-[11px]">Adicionar ao Carrinho</SelectItem>
+                        <SelectItem value="VIEW_CONTENT" className="text-[11px]">Visualizar Conteúdo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+
 
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">URL de Destino</Label>
