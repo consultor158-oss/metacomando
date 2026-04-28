@@ -2933,6 +2933,21 @@ function DryRunModal({ isOpen, onClose, data, pages, pixels }: { isOpen: boolean
                   className="data-[state=checked]:bg-[oklch(0.7_0.18_162)]"
                 />
               </div>
+              
+              <div className="flex items-center justify-between p-3 rounded-lg border border-primary/20 bg-primary/5">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-3 w-3 text-primary" />
+                    <Label className="text-xs font-bold text-slate-100">Criativo Advantage+</Label>
+                  </div>
+                  <p className="text-[10px] text-slate-400">Otimizar criativo automaticamente para cada usuário</p>
+                </div>
+                <Switch 
+                  checked={advantagePlusCreative} 
+                  onCheckedChange={setAdvantagePlusCreative} 
+                  className="data-[state=checked]:bg-primary"
+                />
+              </div>
             </div>
 
             <Card className="bg-slate-900 border-slate-800 p-4 flex flex-col">
