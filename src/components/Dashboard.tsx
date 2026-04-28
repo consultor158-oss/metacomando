@@ -60,8 +60,10 @@ import {
   getGeoInsights,
   createFullScale,
   getPages,
+  getPixels,
   getCampaignDetails,
   updateAdStatus,
+
   updateAdsetStatus,
   updateAdsetBudget,
   updateAdsetName,
@@ -162,7 +164,9 @@ export function Dashboard() {
   const creatives = useQuery({ queryKey: ["meta-creatives"], queryFn: () => getAccountCreatives() });
   const funnel = useQuery({ queryKey: ["meta-funnel"], queryFn: () => getConversionFunnel({ data: { datePreset: "last_30d" } }) });
   const geoData = useQuery({ queryKey: ["meta-geo"], queryFn: () => getGeoInsights({ data: { type: "region", datePreset: "last_30d" } }) });
+  const pixelsQuery = useQuery({ queryKey: ["meta-pixels"], queryFn: () => getPixels() });
   const pages = useQuery({ queryKey: ["meta-pages"], queryFn: () => getPages() });
+
 
   const accountData = account.data?.ok ? account.data.data : null;
   const pagesData = pages.data?.ok ? pages.data.data : [];
@@ -465,6 +469,8 @@ export function Dashboard() {
           onClose={() => setDryRunData(null)} 
           data={dryRunData} 
           pages={pagesData}
+          pixels={pixelsQuery.data?.ok ? pixelsQuery.data.data : []}
+
         />
         <MetaConnectDialog 
           isOpen={isMetaConnectOpen} 
@@ -677,6 +683,10 @@ function CampaignsTab({ campaigns, refresh, onScale }: { campaigns: any[], refre
                     <Badge variant="secondary" className="text-[9px] h-4 px-1 uppercase leading-none">
                       {c.objective?.replace("OUTCOME_", "") || "SALE"}
                     </Badge>
+                    <Badge variant="outline" className="text-[9px] h-4 px-1 lowercase font-normal border-primary/20 bg-primary/5">
+                      {c.adsets?.[0]?.destination_type?.toLowerCase() || "tráfego"}
+                    </Badge>
+
                     <span className="text-[9px] text-muted-foreground font-mono">ID: {c.id}</span>
                   </div>
                 </TableCell>
@@ -2713,11 +2723,15 @@ function AutomationTab() {
 }
 
 
-function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClose: () => void, data: { strategy: ScaleStrategy; creatives?: any[]; targeting?: any; name?: string; budget?: number } | null, pages: any[] }) {
+function DryRunModal({ isOpen, onClose, data, pages, pixels }: { isOpen: boolean, onClose: () => void, data: { strategy: ScaleStrategy; creatives?: any[]; targeting?: any; name?: string; budget?: number } | null, pages: any[], pixels: any[] }) {
   const [isActivating, setIsActivating] = useState(false);
   const [selectedPage, setSelectedPage] = useState<string>("");
-  const [destination, setDestination] = useState<"WHATSAPP" | "SALES">("WHATSAPP");
+  const [destination, setDestination] = useState<"WHATSAPP" | "SALES" | "INSTAGRAM_DIRECT" | "MESSENGER">("WHATSAPP");
   const [destinationUrl, setDestinationUrl] = useState<string>("");
+  
+  const [selectedPixel, setSelectedPixel] = useState<string>("");
+  const [selectedEvent, setSelectedEvent] = useState<string>("PURCHASE");
+
   const [isBudgetSharingEnabled, setIsBudgetSharingEnabled] = useState(false);
   const [creationLogs, setCreationLogs] = useState<string[]>([]);
 
@@ -2726,6 +2740,13 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
       setSelectedPage(pages[0].id);
     }
   }, [pages, selectedPage]);
+
+  useEffect(() => {
+    if (pixels && pixels.length > 0 && !selectedPixel) {
+      setSelectedPixel(pixels[0].id);
+    }
+  }, [pixels, selectedPixel]);
+
 
   const handleActivate = async () => {
     if (!data || !selectedPage) {
@@ -2738,15 +2759,18 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
       const res = await createFullScale({
         data: {
           name: data.name || `[IA ULTRA] ${data.strategy.defaults.namePrefix || data.strategy.name} - ${new Date().toLocaleDateString()}`,
-          objective: destination === "WHATSAPP" ? "OUTCOME_ENGAGEMENT" : data.strategy.defaults.objective,
+          objective: (destination === "WHATSAPP" || destination === "INSTAGRAM_DIRECT" || destination === "MESSENGER") ? "OUTCOME_ENGAGEMENT" : data.strategy.defaults.objective,
           dailyBudgetCents: data.budget || data.strategy.defaults.dailyBudgetCents,
           strategy: data.strategy.id,
           status: data.strategy.defaults.status,
           pageId: selectedPage,
           destination: destination,
+          pixelId: selectedPixel,
+          conversionEvent: selectedEvent,
           destinationUrl: destinationUrl,
           is_adset_budget_sharing_enabled: isBudgetSharingEnabled,
           targeting: data.targeting,
+
           creatives: data.creatives?.map(c => ({
             id: c.id,
             image_url: c.image_url || c.thumbnail_url,
@@ -2819,18 +2843,72 @@ function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClos
 
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Destino do Trfego</Label>
-                <RadioGroup value={destination} onValueChange={(v: any) => setDestination(v)} className="grid grid-cols-2 gap-4">
-                   <div className={`flex items-center space-x-2 border p-3 rounded-lg cursor-pointer transition-all ${destination === 'WHATSAPP' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('WHATSAPP')}>
+                <RadioGroup value={destination} onValueChange={(v: any) => setDestination(v)} className="grid grid-cols-2 gap-3">
+                   <div className={`flex items-center space-x-2 border p-2.5 rounded-lg cursor-pointer transition-all ${destination === 'WHATSAPP' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('WHATSAPP')}>
                       <RadioGroupItem value="WHATSAPP" id="dest-wa" className="border-slate-400" />
-                      <Label htmlFor="dest-wa" className="cursor-pointer font-bold text-xs">WhatsApp</Label>
+                      <div className="flex flex-col">
+                        <Label htmlFor="dest-wa" className="cursor-pointer font-bold text-[11px]">WhatsApp</Label>
+                        <span className="text-[9px] text-slate-500">Conversas Diretas</span>
+                      </div>
                    </div>
-                   <div className={`flex items-center space-x-2 border p-3 rounded-lg cursor-pointer transition-all ${destination === 'SALES' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('SALES')}>
+                   <div className={`flex items-center space-x-2 border p-2.5 rounded-lg cursor-pointer transition-all ${destination === 'SALES' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('SALES')}>
                       <RadioGroupItem value="SALES" id="dest-sales" className="border-slate-400" />
-                      <Label htmlFor="dest-sales" className="cursor-pointer font-bold text-xs">Site / Vendas</Label>
-              </div>
-              
+                      <div className="flex flex-col">
+                        <Label htmlFor="dest-sales" className="cursor-pointer font-bold text-[11px]">Site / Pixel</Label>
+                        <span className="text-[9px] text-slate-500">Vendas e Leads</span>
+                      </div>
+                   </div>
+                   <div className={`flex items-center space-x-2 border p-2.5 rounded-lg cursor-pointer transition-all ${destination === 'INSTAGRAM_DIRECT' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('INSTAGRAM_DIRECT')}>
+                      <RadioGroupItem value="INSTAGRAM_DIRECT" id="dest-ig" className="border-slate-400" />
+                      <div className="flex flex-col">
+                        <Label htmlFor="dest-ig" className="cursor-pointer font-bold text-[11px]">Instagram DM</Label>
+                        <span className="text-[9px] text-slate-500">Direct Message</span>
+                      </div>
+                   </div>
+                   <div className={`flex items-center space-x-2 border p-2.5 rounded-lg cursor-pointer transition-all ${destination === 'MESSENGER' ? 'border-primary bg-primary/10' : 'border-slate-800 bg-slate-900'}`} onClick={() => setDestination('MESSENGER')}>
+                      <RadioGroupItem value="MESSENGER" id="dest-ms" className="border-slate-400" />
+                      <div className="flex flex-col">
+                        <Label htmlFor="dest-ms" className="cursor-pointer font-bold text-[11px]">Messenger</Label>
+                        <span className="text-[9px] text-slate-500">Facebook Chat</span>
+                      </div>
+                   </div>
                 </RadioGroup>
               </div>
+
+              {destination === 'SALES' && (
+                <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Pixel do Meta</Label>
+                    <Select value={selectedPixel} onValueChange={setSelectedPixel}>
+                      <SelectTrigger className="bg-slate-900 border-slate-800 h-10 text-[11px]">
+                        <SelectValue placeholder="Selecione o Pixel" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
+                        {pixels?.map((p: any) => (
+                          <SelectItem key={p.id} value={p.id} className="text-[11px]">{p.name}</SelectItem>
+                        ))}
+
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Evento</Label>
+                    <Select value={selectedEvent} onValueChange={setSelectedEvent}>
+                      <SelectTrigger className="bg-slate-900 border-slate-800 h-10 text-[11px]">
+                        <SelectValue placeholder="Evento" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
+                        <SelectItem value="PURCHASE" className="text-[11px]">Compra (Purchase)</SelectItem>
+                        <SelectItem value="LEAD" className="text-[11px]">Lead (Cadastro)</SelectItem>
+                        <SelectItem value="COMPLETE_REGISTRATION" className="text-[11px]">Registro Completo</SelectItem>
+                        <SelectItem value="ADD_TO_CART" className="text-[11px]">Adicionar ao Carrinho</SelectItem>
+                        <SelectItem value="VIEW_CONTENT" className="text-[11px]">Visualizar Conteúdo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+
 
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">URL de Destino</Label>

@@ -140,7 +140,7 @@ export const getCampaigns = createServerFn({ method: "GET" })
       const datePreset = data.datePreset || "last_7d";
       const params: Record<string, string> = {
         fields:
-          "id,name,status,effective_status,objective,daily_budget,lifetime_budget,buying_type,bid_strategy,created_time,updated_time",
+          "id,name,status,effective_status,objective,daily_budget,lifetime_budget,buying_type,bid_strategy,created_time,updated_time,adsets{destination_type}",
         limit: "200",
       };
       if (data.onlyActive) params.effective_status = JSON.stringify(["ACTIVE"]);
@@ -262,7 +262,9 @@ export const createFullScale = createServerFn({ method: "POST" })
       dailyBudgetCents?: number;
       strategy?: string;
       pageId?: string;
-      destination?: "WHATSAPP" | "SALES";
+      destination?: "WHATSAPP" | "SALES" | "INSTAGRAM_DIRECT" | "MESSENGER";
+      pixelId?: string;
+      conversionEvent?: string;
       is_adset_budget_sharing_enabled?: boolean;
       destinationUrl?: string;
       targeting?: any;
@@ -275,6 +277,7 @@ export const createFullScale = createServerFn({ method: "POST" })
         cta: string;
       }>;
     }) => d,
+
   )
   .handler(async ({ data }) => {
     try {
@@ -286,8 +289,8 @@ export const createFullScale = createServerFn({ method: "POST" })
       const isCBO = strategyDef?.defaults?.isCBO ?? false;
       const adsetCount = strategyDef?.defaults?.adsetCount ?? 1;
 
-      let pixelId = "PLACEHOLDER";
-      if (data.destination === "SALES") {
+      let pixelId = data.pixelId;
+      if (!pixelId && data.destination === "SALES") {
         try {
           const pixels = await metaFetch(`${actId}/adspixels`, { fields: "id" });
           if (pixels.data?.[0]) pixelId = pixels.data[0].id;
@@ -295,6 +298,7 @@ export const createFullScale = createServerFn({ method: "POST" })
           console.error("Erro ao buscar pixel:", e);
         }
       }
+
 
       // 1. Create Campaign
       const campaignBody: Record<string, any> = {
@@ -338,8 +342,11 @@ export const createFullScale = createServerFn({ method: "POST" })
             campaign_id: campaignId,
             status: data.status || "PAUSED",
             billing_event: "IMPRESSIONS",
-            optimization_goal: data.destination === "WHATSAPP" ? "CONVERSATIONS" : (pixelId && pixelId !== "PLACEHOLDER" ? "OFFSITE_CONVERSIONS" : "LINK_CLICKS"),
+            optimization_goal: (data.destination === "WHATSAPP" || data.destination === "INSTAGRAM_DIRECT" || data.destination === "MESSENGER") 
+              ? "CONVERSATIONS" 
+              : (pixelId && pixelId !== "PLACEHOLDER" ? "OFFSITE_CONVERSIONS" : "LINK_CLICKS"),
             targeting: cleanTargeting,
+
           };
 
           if (!isCBO) {
@@ -351,12 +358,22 @@ export const createFullScale = createServerFn({ method: "POST" })
           if (data.destination === "WHATSAPP") {
             adsetBody.destination_type = "WHATSAPP";
             adsetBody.promoted_object = { page_id: data.pageId };
+          } else if (data.destination === "INSTAGRAM_DIRECT") {
+            adsetBody.destination_type = "INSTAGRAM_DIRECT";
+            adsetBody.promoted_object = { page_id: data.pageId };
+          } else if (data.destination === "MESSENGER") {
+            adsetBody.destination_type = "MESSENGER";
+            adsetBody.promoted_object = { page_id: data.pageId };
           } else {
             adsetBody.destination_type = "WEBSITE";
             if (pixelId && pixelId !== "PLACEHOLDER") {
-              adsetBody.promoted_object = { pixel_id: pixelId, custom_event_type: "PURCHASE" };
+              adsetBody.promoted_object = { 
+                pixel_id: pixelId, 
+                custom_event_type: data.conversionEvent || "PURCHASE" 
+              };
             }
           }
+
 
           const adset = await metaPost(`${actId}/adsets`, adsetBody);
           adsets.push(adset.id);
@@ -376,13 +393,20 @@ export const createFullScale = createServerFn({ method: "POST" })
                   adBody.creative = { creative_id: creative.id };
                 } else {
                   const objectStorySpec: any = { page_id: data.pageId };
-                  const ctaType = data.destination === "WHATSAPP" ? "SEND_MESSAGE" : (creative.cta || "SHOP_NOW");
-                  const ctaValue: any = {};
-                  if (data.destination === "WHATSAPP") {
-                    ctaValue.app_destination = "WHATSAPP";
-                  } else {
-                    ctaValue.link = data.destinationUrl || "https://example.com";
-                  }
+                  const isMessaging = ["WHATSAPP", "INSTAGRAM_DIRECT", "MESSENGER"].includes(data.destination || "");
+                  const ctaType = isMessaging ? "SEND_MESSAGE" : (creative.cta || "SHOP_NOW");
+
+                   const ctaValue: any = {};
+                   if (data.destination === "WHATSAPP") {
+                     ctaValue.app_destination = "WHATSAPP";
+                   } else if (data.destination === "INSTAGRAM_DIRECT") {
+                     ctaValue.app_destination = "INSTAGRAM_DIRECT";
+                   } else if (data.destination === "MESSENGER") {
+                     ctaValue.app_destination = "MESSENGER";
+                   } else {
+                     ctaValue.link = data.destinationUrl || "https://example.com";
+                   }
+
 
                   if (creative.video_id && !creative.video_id.startsWith("uploaded_")) {
                     objectStorySpec.video_data = {
@@ -394,7 +418,7 @@ export const createFullScale = createServerFn({ method: "POST" })
                   } else {
                     const linkData: any = {
                       message: creative.primaryText,
-                      link: data.destination === "WHATSAPP" ? `https://www.facebook.com/${data.pageId}` : (data.destinationUrl || "https://example.com"),
+                      link: isMessaging ? `https://www.facebook.com/${data.pageId}` : (data.destinationUrl || "https://example.com"),
                       name: creative.headline,
                       call_to_action: { type: ctaType, value: ctaValue },
                     };
@@ -496,6 +520,19 @@ export const duplicateCampaign = createServerFn({ method: "POST" })
   });
 
 // ==================== ADSETS LIST ====================
+export const getPixels = createServerFn({ method: "GET" })
+  .handler(async () => {
+    try {
+      const { actId } = getCreds();
+      const res = await metaFetch(`${actId}/adspixels`, { fields: "id,name" });
+      return { ok: true as const, data: res.data || [] };
+    } catch (e) {
+      console.error("Erro ao buscar pixels:", e);
+      return { ...errorPayload(e), data: [] as any[] };
+    }
+
+  });
+
 export const getAdSets = createServerFn({ method: "GET" })
   .inputValidator((d: { campaignId?: string }) => d ?? {})
   .handler(async ({ data }) => {
