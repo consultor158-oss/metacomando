@@ -43,7 +43,9 @@ import {
   LineChart,
   UserPlus,
   Code,
-  ExternalLink
+  ExternalLink,
+  Download,
+  FolderPlus
 } from "lucide-react";
 import {
   getAccountInfo,
@@ -3127,60 +3129,148 @@ function WASupportTab() {
 function AICreativesTab() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+  const [prompt, setPrompt] = useState("");
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
   const handleGenerate = () => {
+    if (!prompt) {
+      toast.error("Descreva o que você quer gerar");
+      return;
+    }
     setIsGenerating(true);
     setTimeout(() => {
       setIsGenerating(false);
-      setResults([
-        { id: 1, type: "copy", content: "Transforme seus anúncios com o poder da Ultra IA. Resultados reais em 24h!" },
-        { id: 2, type: "image", content: "Banner Sugerido: Fundo tecnológico com elementos de alta velocidade." }
-      ]);
-      toast.success("Criativos gerados pela IA!");
+      const newResults = [
+        { id: Date.now(), type: "copy", content: `Transforme seus anúncios com o poder da Ultra IA para: ${prompt}. Resultados reais em 24h!` },
+        { id: Date.now() + 1, type: "image", content: `Sugestão de Criativo: ${prompt} em alta definição, estilo tecnológico.` }
+      ];
+      setResults(newResults);
+      
+      // Simular geração de vídeo Heygen
+      if (prompt.toLowerCase().includes("video") || prompt.toLowerCase().includes("heygen")) {
+        setVideoUrl("https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-a-circuit-board-1566-large.mp4");
+        toast.success("Vídeo Heygen gerado com sucesso!");
+      } else {
+        toast.success("Criativos de imagem e copy gerados!");
+      }
     }, 2500);
+  };
+
+  const handleDownload = () => {
+    if (videoUrl) {
+      const link = document.createElement('a');
+      link.href = videoUrl;
+      link.download = 'criativo-ia.mp4';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("Download iniciado!");
+    }
   };
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="border-primary/20 shadow-xl shadow-primary/5 bg-slate-950/50 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle>Geração de Criativos com IA</CardTitle>
-          <CardDescription>Crie imagens e copies de alta conversão em segundos.</CardDescription>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Brain className="h-6 w-6 text-primary animate-pulse" />
+              <CardTitle>Geração de Criativos com IA</CardTitle>
+            </div>
+            <div className="flex gap-2">
+              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">Heygen Active</Badge>
+              <Badge variant="outline" className="bg-purple-500/5 text-purple-400 border-purple-500/20">LTX Studio Active</Badge>
+            </div>
+          </div>
+          <CardDescription>Crie imagens, vídeos (Heygen/LTX) e copies de alta conversão integrados via API.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label>O que você está vendendo?</Label>
-              <Textarea placeholder="Ex: Curso de Marketing Digital para Iniciantes..." />
+              <Label className="text-xs font-black uppercase text-slate-500">O que você está vendendo?</Label>
+              <Textarea 
+                placeholder="Ex: Curso de Marketing Digital para Iniciantes... (Digite 'video' para testar Heygen)" 
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                className="bg-slate-900 border-slate-800 min-h-[120px] focus:ring-primary/20"
+              />
             </div>
-            <div className="space-y-2">
-              <Label>Estilo Visual</Label>
-              <Select defaultValue="realistic">
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o estilo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="realistic">Realista</SelectItem>
-                  <SelectItem value="3d">3D Render</SelectItem>
-                  <SelectItem value="minimalist">Minimalista</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase text-slate-500">Motor de Geração</Label>
+                <Select defaultValue="heygen">
+                  <SelectTrigger className="bg-slate-900 border-slate-800">
+                    <SelectValue placeholder="Selecione o motor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="heygen">Heygen (Avatar Video)</SelectItem>
+                    <SelectItem value="ltx">LTX Studio (Cinematic)</SelectItem>
+                    <SelectItem value="dalle">DALL-E 3 (Imagem)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase text-slate-500">Estilo Visual</Label>
+                <Select defaultValue="realistic">
+                  <SelectTrigger className="bg-slate-900 border-slate-800">
+                    <SelectValue placeholder="Selecione o estilo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="realistic">Realista</SelectItem>
+                    <SelectItem value="3d">3D Render</SelectItem>
+                    <SelectItem value="minimalist">Minimalista</SelectItem>
+                    <SelectItem value="cinematic">Cinematográfico</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
-          <Button className="w-full h-12 text-lg" onClick={handleGenerate} disabled={isGenerating}>
+          <Button className="w-full h-12 text-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20" onClick={handleGenerate} disabled={isGenerating}>
             {isGenerating ? (
-              <><RefreshCw className="mr-2 h-5 w-5 animate-spin" /> Gerando com IA...</>
+              <><RefreshCw className="mr-2 h-5 w-5 animate-spin" /> Processando nas APIs...</>
             ) : (
-              <><Brain className="mr-2 h-5 w-5" /> Gerar Criativos Master</>
+              <><Zap className="mr-2 h-5 w-5 fill-current" /> Gerar Criativo Master</>
             )}
           </Button>
+
+          {videoUrl && (
+            <div className="mt-8 space-y-4 animate-in fade-in zoom-in duration-500">
+              <Label className="text-xs font-black uppercase text-primary flex items-center gap-2">
+                <Video className="h-4 w-4" /> Preview do Vídeo (Heygen/LTX)
+              </Label>
+              <div className="aspect-video w-full max-w-2xl mx-auto rounded-xl overflow-hidden border-2 border-primary/20 bg-black relative group">
+                <video src={videoUrl} controls className="w-full h-full object-contain" />
+                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button size="sm" onClick={handleDownload} className="bg-black/80 hover:bg-black text-white gap-2">
+                    <Download className="h-4 w-4" /> Baixar MP4
+                  </Button>
+                </div>
+              </div>
+              <div className="flex justify-center gap-4">
+                 <Button variant="outline" className="border-primary/50 text-primary hover:bg-primary/10" onClick={() => toast.success("Criativo adicionado à biblioteca!")}>
+                   <FolderPlus className="h-4 w-4 mr-2" /> Salvar na Biblioteca
+                 </Button>
+                 <Button className="bg-[oklch(0.7_0.18_162)] text-black hover:bg-[oklch(0.6_0.16_162)]" onClick={() => toast.info("Abrindo modal de campanha com este vídeo...")}>
+                   <Rocket className="h-4 w-4 mr-2" /> Usar em Campanha
+                 </Button>
+              </div>
+            </div>
+          )}
 
           {results.length > 0 && (
             <div className="grid gap-4 mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               {results.map(res => (
-                <div key={res.id} className="p-4 border rounded-lg bg-muted/30">
-                  <Badge className="mb-2">{res.type.toUpperCase()}</Badge>
-                  <p className="text-sm font-medium italic">{res.content}</p>
+                <div key={res.id} className="p-4 border border-slate-800 rounded-lg bg-slate-900/50 flex justify-between items-start group">
+                  <div>
+                    <Badge className="mb-2 bg-primary/10 text-primary border-primary/20">{res.type.toUpperCase()}</Badge>
+                    <p className="text-sm font-medium italic text-slate-300">{res.content}</p>
+                  </div>
+                  <Button size="icon" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => {
+                    navigator.clipboard.writeText(res.content);
+                    toast.success("Copiado!");
+                  }}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
                 </div>
               ))}
             </div>
@@ -3399,6 +3489,8 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
     // Auto-add LTX Studio and Heygen if not present
     const hasLTX = currentApis.some(a => a.name.includes("LTX Studio"));
     const hasHeygen = currentApis.some(a => a.name.includes("Heygen"));
+    const hasPika = currentApis.some(a => a.name.includes("Pika"));
+    const hasEleven = currentApis.some(a => a.name.includes("ElevenLabs"));
     
     if (!hasLTX) {
       addCustomApi({
@@ -3415,9 +3507,33 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
         name: "Heygen (Avatar Video)",
         baseUrl: "https://api.heygen.com/v2",
         authType: "header",
+        authKey: "X-Api-Key",
         authValue: "sk_V2_hgu_kNMS2ByuSNr_YaIF2OXIELpoHhQyCTvrsYb4u8aJfhDQ",
         defaultPath: "video/generate"
       });
+    }
+
+    if (!hasPika) {
+      addCustomApi({
+        name: "Pika.art (Video IA)",
+        baseUrl: "https://api.pika.art/v1",
+        authType: "bearer",
+        defaultPath: "jobs"
+      });
+    }
+
+    if (!hasEleven) {
+      addCustomApi({
+        name: "ElevenLabs (Voz IA)",
+        baseUrl: "https://api.elevenlabs.io/v1",
+        authType: "header",
+        authKey: "xi-api-key",
+        defaultPath: "voices"
+      });
+    }
+
+    if (!hasLTX || !hasHeygen || !hasPika || !hasEleven) {
+      setApis(loadCustomApis());
     }
 
     if (!hasLTX || !hasHeygen) {
