@@ -2870,9 +2870,10 @@ function DryRunModal({ isOpen, onClose, data, pages, pixels }: { isOpen: boolean
                         <SelectValue placeholder="Selecione o Pixel" />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-900 border-slate-800 text-slate-100">
-                        {pixelsQuery.data?.map((p: any) => (
+                        {pixels?.map((p: any) => (
                           <SelectItem key={p.id} value={p.id} className="text-[11px]">{p.name}</SelectItem>
                         ))}
+
                       </SelectContent>
                     </Select>
                   </div>
