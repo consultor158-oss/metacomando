@@ -395,7 +395,7 @@ export function Dashboard() {
           </header>
 
           <main className="flex-1 p-6 overflow-y-auto">
-            {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} campaigns={campaignsData} />}
+            {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} campaigns={campaignsData} onViewCampaigns={() => setView("campaigns")} />}
             {view === "campaigns" && (
               <CampaignsTab 
                 campaigns={campaignsData} 
@@ -475,7 +475,7 @@ export function Dashboard() {
   );
 }
 
-function OverviewTab({ stats, funnel, campaigns }: { stats: any; funnel: any; campaigns: any[] }) {
+function OverviewTab({ stats, funnel, campaigns, onViewCampaigns }: { stats: any; funnel: any; campaigns: any[]; onViewCampaigns: () => void }) {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -548,7 +548,7 @@ function OverviewTab({ stats, funnel, campaigns }: { stats: any; funnel: any; ca
         </Card>
       </div>
       <div className="pt-4">
-        <RealTimeMonitor campaigns={campaigns} />
+        <RealTimeMonitor campaigns={campaigns} onAction={onViewCampaigns} />
       </div>
     </div>
   );
@@ -4021,7 +4021,7 @@ function MetaConnectDialog({ isOpen, onClose }: { isOpen: boolean, onClose: () =
     </Dialog>
   );
 }
-function RealTimeMonitor({ campaigns }: { campaigns: any[] }) {
+function RealTimeMonitor({ campaigns, onAction }: { campaigns: any[]; onAction?: () => void }) {
   const activeCampaigns = campaigns.filter(c => c.status === "ACTIVE");
   
   return (
@@ -4118,10 +4118,7 @@ function RealTimeMonitor({ campaigns }: { campaigns: any[] }) {
                               size="icon" 
                               className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                               onClick={() => {
-                                // Redireciona para gerenciar e abre o modal de edição
-                                setView("campaigns");
-                                // O CampaignsTab já tem lógica para setEditingCampaign se passarmos a campanha correta
-                                // Mas aqui no Overview/Monitor precisamos disparar a abertura do modal
+                                if (onAction) onAction();
                               }}
                             >
                               <Edit2 className="h-3.5 w-3.5" />
