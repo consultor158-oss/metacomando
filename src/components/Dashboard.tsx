@@ -3128,6 +3128,7 @@ function WASupportTab() {
 
 function AICreativesTab() {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [prompt, setPrompt] = useState("");
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -3148,12 +3149,39 @@ function AICreativesTab() {
       
       // Simular geração de vídeo Heygen
       if (prompt.toLowerCase().includes("video") || prompt.toLowerCase().includes("heygen")) {
+        // Usando uma URL de exemplo real para teste de upload se necessário
         setVideoUrl("https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-a-circuit-board-1566-large.mp4");
         toast.success("Vídeo Heygen gerado com sucesso!");
       } else {
         toast.success("Criativos de imagem e copy gerados!");
       }
     }, 2500);
+  };
+
+  const handleUseInCampaign = async () => {
+    if (!videoUrl) return;
+    
+    setIsUploading(true);
+    toast.info("Iniciando upload do vídeo para a biblioteca da Meta...");
+    
+    try {
+      const res = await uploadVideo({ 
+        url: videoUrl, 
+        filename: `Heygen_IA_${Date.now()}.mp4` 
+      });
+
+      if (res.ok) {
+        toast.success("Vídeo anexado à sua biblioteca Meta com sucesso!");
+        // Aqui poderíamos abrir o modal de campanha já com o creative.id preenchido
+        toast.info(`ID do Vídeo na Meta: ${res.data.id}`);
+      } else {
+        toast.error("Erro ao subir para Meta: " + res.error);
+      }
+    } catch (e: any) {
+      toast.error("Falha na integração Meta: " + e.message);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleDownload = () => {
