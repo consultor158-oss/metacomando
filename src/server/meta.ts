@@ -268,6 +268,7 @@ export const createFullScale = createServerFn({ method: "POST" })
       is_adset_budget_sharing_enabled?: boolean;
       destinationUrl?: string;
       targeting?: any;
+      advantagePlusCreative?: boolean;
       creatives?: Array<{
         id?: string;
         image_url?: string;
@@ -391,6 +392,11 @@ export const createFullScale = createServerFn({ method: "POST" })
                 
                 if (isExistingCreative) {
                   adBody.creative = { creative_id: creative.id };
+                  if (data.advantagePlusCreative) {
+                    adBody.creative.creative_features = {
+                      standard_enhancements: { enrollment_status: "OPT_IN" }
+                    };
+                  }
                 } else {
                   const objectStorySpec: any = { page_id: data.pageId };
                   const isMessaging = ["WHATSAPP", "INSTAGRAM_DIRECT", "MESSENGER"].includes(data.destination || "");
@@ -434,6 +440,12 @@ export const createFullScale = createServerFn({ method: "POST" })
                     name: `Creative ${idx + 1} - ${Date.now()}`,
                     object_story_spec: objectStorySpec
                   };
+
+                  if (data.advantagePlusCreative) {
+                    adBody.creative.creative_features = {
+                      standard_enhancements: { enrollment_status: "OPT_IN" }
+                    };
+                  }
                 }
                const ad = await metaPost(`${actId}/ads`, adBody);
                return { ok: true, id: ad.id };
