@@ -720,14 +720,42 @@ export const uploadImage = createServerFn({ method: "POST" })
   });
 
 export const uploadVideo = createServerFn({ method: "POST" })
-  .inputValidator((d: { bytes: string; filename: string }) => d)
+  .inputValidator((d: { url?: string; bytes?: string; filename: string }) => d)
   .handler(async ({ data }) => {
     try {
+      const { actId, token } = getCreds();
+      
+      // Se tivermos apenas a URL (como do Heygen), a Meta permite upload via file_url em alguns casos,
+      // mas o método mais robusto é o async upload.
+      const url = new URL(`https://graph.facebook.com/${GRAPH_VERSION}/${actId}/advideos`);
+      url.searchParams.set("access_token", token);
+
+      const body: Record<string, any> = {
+        name: data.filename,
+      };
+
+      if (data.url) {
+        body.file_url = data.url;
+      } else if (data.bytes) {
+        // Se for base64
+        const base64Data = data.bytes.includes(",") ? data.bytes.split(",")[1] : data.bytes;
+        body.video_file_chunk = base64Data;
+      }
+
+      const res = await fetch(url.toString(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const result = await res.json();
+      if (!res.ok || result.error) throw new Error(result.error?.message || "Erro no upload de vídeo para Meta");
+
       return { 
         ok: true as const, 
         data: { 
-          id: "uploaded_vid_" + Math.random().toString(36).substr(2, 9),
-          url: data.bytes
+          id: result.id || result.video_id,
+          url: data.url || data.bytes
         } 
       };
     } catch (e) {
