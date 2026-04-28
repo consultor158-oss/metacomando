@@ -1253,7 +1253,7 @@ function ScalesTab({ onSelect }: { onSelect: (s: ScaleStrategy) => void }) {
 
 function CreativesTab({ creatives, onEscalate }: { creatives: any[], onEscalate?: (campaign: string) => void }) {
   const [selectedCreative, setSelectedCreative] = useState<any | null>(null);
-  const [filter, setFilter] = useState("CARBON");
+  const [filter, setFilter] = useState<string | null>(null);
   const [view, setView] = useState<"folders" | "files">("folders");
   const [editingCreative, setEditingCreative] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -1269,6 +1269,13 @@ function CreativesTab({ creatives, onEscalate }: { creatives: any[], onEscalate?
   }));
   
   const folders = Array.from(new Set(organizedCreatives.map(c => c.campaign_name)));
+  
+  useEffect(() => {
+    if (folders.length > 0 && !filter) {
+      setFilter(folders[0]);
+    }
+  }, [folders, filter]);
+
   const filteredCreatives = organizedCreatives.filter(c => c.campaign_name === filter);
 
   const handleEdit = (creative: any) => {
