@@ -3539,11 +3539,11 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
     if (!hasHeygen) {
       addCustomApi({
         name: "Heygen (Avatar Video)",
-        baseUrl: "https://api.heygen.com/v2",
+        baseUrl: "https://api.heygen.com",
         authType: "header",
         authKey: "X-Api-Key",
         authValue: "sk_V2_hgu_kNMS2ByuSNr_YaIF2OXIELpoHhQyCTvrsYb4u8aJfhDQ",
-        defaultPath: "video/generate"
+        defaultPath: "v2/video/generate"
       });
     }
 
