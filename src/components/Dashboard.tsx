@@ -401,7 +401,7 @@ export function Dashboard() {
           </header>
 
           <main className="flex-1 p-6 overflow-y-auto">
-            {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} />}
+            {view === "overview" && <OverviewTab stats={stats} funnel={funnelData} campaigns={campaignsData} />}
             {view === "campaigns" && (
               <CampaignsTab 
                 campaigns={campaignsData} 
@@ -481,7 +481,7 @@ export function Dashboard() {
   );
 }
 
-function OverviewTab({ stats, funnel }: { stats: any; funnel: any }) {
+function OverviewTab({ stats, funnel, campaigns }: { stats: any; funnel: any; campaigns: any[] }) {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -552,6 +552,9 @@ function OverviewTab({ stats, funnel }: { stats: any; funnel: any }) {
             </div>
           </CardContent>
         </Card>
+      </div>
+      <div className="pt-4">
+        <RealTimeMonitor campaigns={campaigns} />
       </div>
     </div>
   );
@@ -4071,6 +4074,7 @@ function RealTimeMonitor({ campaigns }: { campaigns: any[] }) {
                   <TableHead className="py-4 text-[10px] font-bold uppercase tracking-wider text-right">Investimento</TableHead>
                   <TableHead className="py-4 text-[10px] font-bold uppercase tracking-wider text-right">Cliques</TableHead>
                   <TableHead className="py-4 text-[10px] font-bold uppercase tracking-wider text-right">CTR</TableHead>
+                  <TableHead className="py-4 text-[10px] font-bold uppercase tracking-wider text-right">Custo/Clique</TableHead>
                   <TableHead className="py-4 text-[10px] font-bold uppercase tracking-wider text-right text-primary">ROAS Real</TableHead>
                 </TableRow>
               </TableHeader>
@@ -4106,6 +4110,9 @@ function RealTimeMonitor({ campaigns }: { campaigns: any[] }) {
                         </TableCell>
                         <TableCell className="text-right font-medium">
                           {formatPct(parseFloat(insight.ctr || 0))}
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {formatBRL(parseFloat(insight.cpc || 0))}
                         </TableCell>
                         <TableCell className="text-right">
                           <Badge className={`${roas >= 2 ? 'bg-success/20 text-success' : 'bg-primary/20 text-primary'} border-none font-bold text-xs px-3`}>
