@@ -889,22 +889,38 @@ export const getCampaignDetails = createServerFn({ method: "GET" })
         }
       }
 
-      // Resolve missing thumbnails via preview endpoint
+      // Resolve missing thumbnails via preview endpoint and other sources
       await Promise.all(
         ads.map(async (a: any) => {
           const cre = a.creative || {};
           const story = cre.object_story_spec || {};
           const link = story.link_data || story.video_data || {};
-          const hasImg = cre.image_url || cre.thumbnail_url || link.picture;
+          
+          // Try to use object_story_spec data if image_url is missing
+          if (!cre.image_url && !cre.thumbnail_url) {
+            if (link.picture) cre.image_url = link.picture;
+          }
+
+          const hasImg = cre.image_url || cre.thumbnail_url;
           if (hasImg) return;
+
           try {
-            const prev = await metaFetch(`${a.id}/previews`, {
-              ad_format: "MOBILE_FEED_STANDARD",
-            });
-            const body: string = prev?.data?.[0]?.body || "";
-            const m = body.match(/src=\\?"(https:[^"\\]+\.(?:jpg|jpeg|png|webp)[^"\\]*)/i);
-            if (m) a._previewImage = m[1].replace(/&amp;/g, "&");
-          } catch {}
+            // Try different preview formats if standard fails
+            const formats = ["MOBILE_FEED_STANDARD", "INSTAGRAM_STORY", "FACEBOOK_STORY"];
+            for (const format of formats) {
+              const prev = await metaFetch(`${a.id}/previews`, {
+                ad_format: format,
+              });
+              const body: string = prev?.data?.[0]?.body || "";
+              const m = body.match(/src=\\?"(https:[^"\\]+\.(?:jpg|jpeg|png|webp|gif)[^"\\]*)/i);
+              if (m) {
+                a._previewImage = m[1].replace(/&amp;/g, "&").replace(/\\/g, "");
+                break;
+              }
+            }
+          } catch (err) {
+            console.error(`Erro ao buscar preview para o anúncio ${a.id}:`, err);
+          }
         })
       );
 
