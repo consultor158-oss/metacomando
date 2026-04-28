@@ -1,6 +1,5 @@
 // Gerenciamento de APIs personalizadas (armazenadas no navegador)
-// Permite ao usuário cadastrar APIs externas (Webhook, CRM, ZeroBounce, OpenAI extra, etc.)
-// e fazer chamadas de teste direto pelo dashboard.
+import { proxyApiCall } from "../server/proxy";
 
 export type CustomApi = {
   id: string;
@@ -77,20 +76,15 @@ export async function testCustomApi(
       url.searchParams.set(api.authKey, api.authValue);
     }
 
-    const res = await fetch(url.toString(), {
-      method,
-      headers,
-      body: method === "POST" ? body || (api.name.toLowerCase().includes("heygen") ? JSON.stringify({ video_inputs: [] }) : undefined) : undefined,
+    // Em vez de fetch direto, usamos o proxy do servidor para evitar CORS
+    return await proxyApiCall({
+      data: {
+        url: url.toString(),
+        method,
+        headers,
+        body: method === "POST" ? body || (api.name.toLowerCase().includes("heygen") ? JSON.stringify({ video_inputs: [] }) : undefined) : undefined,
+      }
     });
-    
-    const text = await res.text();
-    let data: any;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      data = text;
-    }
-    return { ok: res.ok, status: res.status, data };
   } catch (e: any) {
     console.error("Erro no teste da API:", e);
     return { ok: false, status: 0, data: null, error: e?.message || "Falha de rede" };
