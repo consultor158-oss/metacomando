@@ -496,6 +496,18 @@ export const duplicateCampaign = createServerFn({ method: "POST" })
   });
 
 // ==================== ADSETS LIST ====================
+export const getPixels = createServerFn({ method: "GET" })
+  .handler(async () => {
+    try {
+      const { actId } = getCreds();
+      const res = await metaFetch(`${actId}/adspixels`, { fields: "id,name" });
+      return res.data || [];
+    } catch (e) {
+      console.error("Erro ao buscar pixels:", e);
+      return [];
+    }
+  });
+
 export const getAdSets = createServerFn({ method: "GET" })
   .inputValidator((d: { campaignId?: string }) => d ?? {})
   .handler(async ({ data }) => {
