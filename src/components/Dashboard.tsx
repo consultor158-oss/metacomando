@@ -683,6 +683,10 @@ function CampaignsTab({ campaigns, refresh, onScale }: { campaigns: any[], refre
                     <Badge variant="secondary" className="text-[9px] h-4 px-1 uppercase leading-none">
                       {c.objective?.replace("OUTCOME_", "") || "SALE"}
                     </Badge>
+                    <Badge variant="outline" className="text-[9px] h-4 px-1 lowercase font-normal border-primary/20 bg-primary/5">
+                      {c.adsets?.[0]?.destination_type?.toLowerCase() || "tráfego"}
+                    </Badge>
+
                     <span className="text-[9px] text-muted-foreground font-mono">ID: {c.id}</span>
                   </div>
                 </TableCell>
