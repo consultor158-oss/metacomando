@@ -393,7 +393,9 @@ export const createFullScale = createServerFn({ method: "POST" })
                   adBody.creative = { creative_id: creative.id };
                 } else {
                   const objectStorySpec: any = { page_id: data.pageId };
-                  const ctaType = data.destination === "WHATSAPP" ? "SEND_MESSAGE" : (creative.cta || "SHOP_NOW");
+                  const isMessaging = ["WHATSAPP", "INSTAGRAM_DIRECT", "MESSENGER"].includes(data.destination || "");
+                  const ctaType = isMessaging ? "SEND_MESSAGE" : (creative.cta || "SHOP_NOW");
+
                   const ctaValue: any = {};
                   if (data.destination === "WHATSAPP") {
                     ctaValue.app_destination = "WHATSAPP";
