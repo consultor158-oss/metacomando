@@ -2733,6 +2733,7 @@ function DryRunModal({ isOpen, onClose, data, pages, pixels }: { isOpen: boolean
   const [selectedEvent, setSelectedEvent] = useState<string>("PURCHASE");
 
   const [isBudgetSharingEnabled, setIsBudgetSharingEnabled] = useState(false);
+  const [advantagePlusCreative, setAdvantagePlusCreative] = useState(false);
   const [creationLogs, setCreationLogs] = useState<string[]>([]);
 
   useEffect(() => {
