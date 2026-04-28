@@ -2722,7 +2722,7 @@ function DryRunModal({ isOpen, onClose, data, pages, pixels }: { isOpen: boolean
   const [selectedPage, setSelectedPage] = useState<string>("");
   const [destination, setDestination] = useState<"WHATSAPP" | "SALES" | "INSTAGRAM_DIRECT" | "MESSENGER">("WHATSAPP");
   const [destinationUrl, setDestinationUrl] = useState<string>("");
-  const [pixels, setPixels] = useState<any[]>([]);
+  
   const [selectedPixel, setSelectedPixel] = useState<string>("");
   const [selectedEvent, setSelectedEvent] = useState<string>("PURCHASE");
 
