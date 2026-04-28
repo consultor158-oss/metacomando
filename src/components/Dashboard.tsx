@@ -2717,7 +2717,7 @@ function AutomationTab() {
 }
 
 
-function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClose: () => void, data: { strategy: ScaleStrategy; creatives?: any[]; targeting?: any; name?: string; budget?: number } | null, pages: any[] }) {
+function DryRunModal({ isOpen, onClose, data, pages, pixels }: { isOpen: boolean, onClose: () => void, data: { strategy: ScaleStrategy; creatives?: any[]; targeting?: any; name?: string; budget?: number } | null, pages: any[], pixels: any[] }) {
   const [isActivating, setIsActivating] = useState(false);
   const [selectedPage, setSelectedPage] = useState<string>("");
   const [destination, setDestination] = useState<"WHATSAPP" | "SALES" | "INSTAGRAM_DIRECT" | "MESSENGER">("WHATSAPP");
