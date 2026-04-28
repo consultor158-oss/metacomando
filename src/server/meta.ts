@@ -140,7 +140,7 @@ export const getCampaigns = createServerFn({ method: "GET" })
       const datePreset = data.datePreset || "last_7d";
       const params: Record<string, string> = {
         fields:
-          "id,name,status,effective_status,objective,daily_budget,lifetime_budget,buying_type,bid_strategy,created_time,updated_time",
+          "id,name,status,effective_status,objective,daily_budget,lifetime_budget,buying_type,bid_strategy,created_time,updated_time,adsets{destination_type}",
         limit: "200",
       };
       if (data.onlyActive) params.effective_status = JSON.stringify(["ACTIVE"]);
