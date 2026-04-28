@@ -2748,15 +2748,18 @@ function DryRunModal({ isOpen, onClose, data, pages, pixels }: { isOpen: boolean
       const res = await createFullScale({
         data: {
           name: data.name || `[IA ULTRA] ${data.strategy.defaults.namePrefix || data.strategy.name} - ${new Date().toLocaleDateString()}`,
-          objective: destination === "WHATSAPP" ? "OUTCOME_ENGAGEMENT" : data.strategy.defaults.objective,
+          objective: (destination === "WHATSAPP" || destination === "INSTAGRAM_DIRECT" || destination === "MESSENGER") ? "OUTCOME_ENGAGEMENT" : data.strategy.defaults.objective,
           dailyBudgetCents: data.budget || data.strategy.defaults.dailyBudgetCents,
           strategy: data.strategy.id,
           status: data.strategy.defaults.status,
           pageId: selectedPage,
           destination: destination,
+          pixelId: selectedPixel,
+          conversionEvent: selectedEvent,
           destinationUrl: destinationUrl,
           is_adset_budget_sharing_enabled: isBudgetSharingEnabled,
           targeting: data.targeting,
+
           creatives: data.creatives?.map(c => ({
             id: c.id,
             image_url: c.image_url || c.thumbnail_url,
