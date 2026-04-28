@@ -2771,6 +2771,7 @@ function DryRunModal({ isOpen, onClose, data, pages, pixels }: { isOpen: boolean
           destinationUrl: destinationUrl,
           is_adset_budget_sharing_enabled: isBudgetSharingEnabled,
           targeting: data.targeting,
+          advantagePlusCreative: advantagePlusCreative,
 
           creatives: data.creatives?.map(c => ({
             id: c.id,
