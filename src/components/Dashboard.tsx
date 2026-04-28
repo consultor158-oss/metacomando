@@ -469,6 +469,8 @@ export function Dashboard() {
           onClose={() => setDryRunData(null)} 
           data={dryRunData} 
           pages={pagesData}
+          pixels={pixelsQuery.data?.ok ? pixelsQuery.data.data : []}
+
         />
         <MetaConnectDialog 
           isOpen={isMetaConnectOpen} 
