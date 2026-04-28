@@ -3763,10 +3763,10 @@ function AddApiDialog({ isOpen, onClose, onAdded }: { isOpen: boolean, onClose: 
       setDefaultPath("images/generations");
     } else if (type === "heygen") {
       setName("HeyGen Video API");
-      setBaseUrl("https://api.heygen.com/v1");
+      setBaseUrl("https://api.heygen.com");
       setAuthType("header");
       setAuthKey("X-Api-Key");
-      setDefaultPath("video/status");
+      setDefaultPath("v2/video/generate");
     } else if (type === "pika") {
       setName("Pika Art API");
       setBaseUrl("https://api.pika.art/v1");
