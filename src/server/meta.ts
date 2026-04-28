@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { type CustomApi } from "../lib/customApis";
 
 const GRAPH_VERSION = "v21.0";
 const BASE = `https://graph.facebook.com/${GRAPH_VERSION}`;
