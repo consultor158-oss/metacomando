@@ -268,6 +268,7 @@ export const createFullScale = createServerFn({ method: "POST" })
       is_adset_budget_sharing_enabled?: boolean;
       destinationUrl?: string;
       targeting?: any;
+      advantagePlusCreative?: boolean;
       creatives?: Array<{
         id?: string;
         image_url?: string;
