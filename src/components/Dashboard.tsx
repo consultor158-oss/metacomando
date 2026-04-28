@@ -3590,9 +3590,19 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
     let method: "GET" | "POST" = "GET";
     let testPath = api.defaultPath;
     
+    // Configurações específicas para evitar erros 400/405
     if (api.name.toLowerCase().includes("heygen")) {
-      // Heygen v2 often requires POST for many endpoints or a specific GET
-      method = "POST";
+      method = "GET";
+      testPath = "v2/video/status?limit=1";
+    } else if (api.name.toLowerCase().includes("pika")) {
+      method = "GET";
+      testPath = "jobs";
+    } else if (api.name.toLowerCase().includes("elevenlabs")) {
+      method = "GET";
+      testPath = "voices";
+    } else if (api.name.toLowerCase().includes("ltx")) {
+      method = "GET";
+      testPath = "generations";
     }
 
     const res = await testCustomApi(api, testPath, method);
@@ -3602,14 +3612,19 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
     if (res.ok) {
       toast.success(`Conexão OK! Status: ${res.status}`);
     } else {
-      // If POST failed with 405, try GET as fallback
-      if (res.status === 405 && method === "POST") {
-        const retryRes = await testCustomApi(api, testPath, "GET");
-        if (retryRes.ok) {
-          setTestResult({ api, result: retryRes });
-          toast.success(`Conexão OK (via GET)! Status: ${retryRes.status}`);
-          return;
-        }
+      // Se falhou, tenta um endpoint genérico ou outro método
+      if (!res.ok) {
+         const retryPath = api.name.toLowerCase().includes("heygen") ? "v1/video.list" : testPath;
+         const retryMethod = method === "GET" ? "POST" : "GET";
+         // Apenas tenta novamente se não for um erro de autenticação óbvio
+         if (res.status !== 401 && res.status !== 403) {
+            const retryRes = await testCustomApi(api, retryPath, "GET");
+            if (retryRes.ok) {
+              setTestResult({ api, result: retryRes });
+              toast.success(`Conexão OK! Status: ${retryRes.status}`);
+              return;
+            }
+         }
       }
       toast.error(`Falha na conexão: ${res.error || "Status " + res.status}`);
     }

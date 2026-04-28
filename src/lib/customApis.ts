@@ -80,7 +80,7 @@ export async function testCustomApi(
     const res = await fetch(url.toString(), {
       method,
       headers,
-      body: method === "POST" ? body || (api.name.includes("Heygen") ? JSON.stringify({ video_inputs: [] }) : undefined) : undefined,
+      body: method === "POST" ? body || (api.name.toLowerCase().includes("heygen") ? JSON.stringify({ video_inputs: [] }) : undefined) : undefined,
     });
     
     const text = await res.text();
