@@ -1253,7 +1253,7 @@ function ScalesTab({ onSelect }: { onSelect: (s: ScaleStrategy) => void }) {
 
 function CreativesTab({ creatives, onEscalate }: { creatives: any[], onEscalate?: (campaign: string) => void }) {
   const [selectedCreative, setSelectedCreative] = useState<any | null>(null);
-  const [filter, setFilter] = useState("CARBON");
+  const [filter, setFilter] = useState<string | null>(null);
   const [view, setView] = useState<"folders" | "files">("folders");
   const [editingCreative, setEditingCreative] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -1269,6 +1269,13 @@ function CreativesTab({ creatives, onEscalate }: { creatives: any[], onEscalate?
   }));
   
   const folders = Array.from(new Set(organizedCreatives.map(c => c.campaign_name)));
+  
+  useEffect(() => {
+    if (folders.length > 0 && !filter) {
+      setFilter(folders[0]);
+    }
+  }, [folders, filter]);
+
   const filteredCreatives = organizedCreatives.filter(c => c.campaign_name === filter);
 
   const handleEdit = (creative: any) => {
@@ -1345,7 +1352,7 @@ function CreativesTab({ creatives, onEscalate }: { creatives: any[], onEscalate?
               <ChevronLeft className="h-4 w-4" /> Voltar para Pastas
             </Button>
           )}
-          <Select value={filter} onValueChange={setFilter}>
+          <Select value={filter || undefined} onValueChange={setFilter}>
             <SelectTrigger className="w-[250px]">
               <SelectValue placeholder="Filtrar por Pasta/Campanha" />
             </SelectTrigger>
@@ -1355,7 +1362,7 @@ function CreativesTab({ creatives, onEscalate }: { creatives: any[], onEscalate?
               ))}
             </SelectContent>
           </Select>
-          <Button size="sm" variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5" onClick={() => onEscalate?.(filter)}>
+          <Button size="sm" variant="outline" className="gap-2 border-primary/20 hover:bg-primary/5" onClick={() => filter && onEscalate?.(filter)}>
             <Rocket className="h-3 w-3 text-primary" /> Escalar Criativos
           </Button>
           <label className="cursor-pointer">
