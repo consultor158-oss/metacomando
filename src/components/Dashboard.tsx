@@ -3396,8 +3396,10 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
     const currentApis = loadCustomApis();
     setApis(currentApis);
 
-    // Auto-add LTX Studio if not present (as requested)
+    // Auto-add LTX Studio and Heygen if not present
     const hasLTX = currentApis.some(a => a.name.includes("LTX Studio"));
+    const hasHeygen = currentApis.some(a => a.name.includes("Heygen"));
+    
     if (!hasLTX) {
       addCustomApi({
         name: "LTX Studio (Lightricks)",
@@ -3406,6 +3408,19 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
         authValue: "ltxv_BrnSiW89Ekt1FLWFnvVTjSz4NpR5z-R6y6OuDWgMmK9EP1eQRUPlJII5ZKFsVD67JXwsKTfWnrGRQF6HqWNxBYh_nGF-J_S-rvh8OdSB0StP92iKQiv0GXtyO5OWlTlI9EbT_sqgJdYqKNfYKXxh2YV9Tz2cZWIfjH996jhhwN5_",
         defaultPath: "generations"
       });
+    }
+
+    if (!hasHeygen) {
+      addCustomApi({
+        name: "Heygen (Avatar Video)",
+        baseUrl: "https://api.heygen.com/v2",
+        authType: "header",
+        authValue: "sk_V2_hgu_kNMS2ByuSNr_YaIF2OXIELpoHhQyCTvrsYb4u8aJfhDQ",
+        defaultPath: "video/generate"
+      });
+    }
+
+    if (!hasLTX || !hasHeygen) {
       setApis(loadCustomApis());
     }
   }, []);
