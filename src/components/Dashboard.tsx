@@ -2718,8 +2718,12 @@ function AutomationTab() {
 function DryRunModal({ isOpen, onClose, data, pages }: { isOpen: boolean, onClose: () => void, data: { strategy: ScaleStrategy; creatives?: any[]; targeting?: any; name?: string; budget?: number } | null, pages: any[] }) {
   const [isActivating, setIsActivating] = useState(false);
   const [selectedPage, setSelectedPage] = useState<string>("");
-  const [destination, setDestination] = useState<"WHATSAPP" | "SALES">("WHATSAPP");
+  const [destination, setDestination] = useState<"WHATSAPP" | "SALES" | "INSTAGRAM_DIRECT" | "MESSENGER">("WHATSAPP");
   const [destinationUrl, setDestinationUrl] = useState<string>("");
+  const [pixels, setPixels] = useState<any[]>([]);
+  const [selectedPixel, setSelectedPixel] = useState<string>("");
+  const [selectedEvent, setSelectedEvent] = useState<string>("PURCHASE");
+
   const [isBudgetSharingEnabled, setIsBudgetSharingEnabled] = useState(false);
   const [creationLogs, setCreationLogs] = useState<string[]>([]);
 
