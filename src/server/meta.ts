@@ -358,12 +358,22 @@ export const createFullScale = createServerFn({ method: "POST" })
           if (data.destination === "WHATSAPP") {
             adsetBody.destination_type = "WHATSAPP";
             adsetBody.promoted_object = { page_id: data.pageId };
+          } else if (data.destination === "INSTAGRAM_DIRECT") {
+            adsetBody.destination_type = "INSTAGRAM_DIRECT";
+            adsetBody.promoted_object = { page_id: data.pageId };
+          } else if (data.destination === "MESSENGER") {
+            adsetBody.destination_type = "MESSENGER";
+            adsetBody.promoted_object = { page_id: data.pageId };
           } else {
             adsetBody.destination_type = "WEBSITE";
             if (pixelId && pixelId !== "PLACEHOLDER") {
-              adsetBody.promoted_object = { pixel_id: pixelId, custom_event_type: "PURCHASE" };
+              adsetBody.promoted_object = { 
+                pixel_id: pixelId, 
+                custom_event_type: data.conversionEvent || "PURCHASE" 
+              };
             }
           }
+
 
           const adset = await metaPost(`${actId}/adsets`, adsetBody);
           adsets.push(adset.id);
