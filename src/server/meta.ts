@@ -525,11 +525,12 @@ export const getPixels = createServerFn({ method: "GET" })
     try {
       const { actId } = getCreds();
       const res = await metaFetch(`${actId}/adspixels`, { fields: "id,name" });
-      return res.data || [];
+      return { ok: true as const, data: res.data || [] };
     } catch (e) {
       console.error("Erro ao buscar pixels:", e);
-      return [];
+      return { ...errorPayload(e), data: [] as any[] };
     }
+
   });
 
 export const getAdSets = createServerFn({ method: "GET" })
