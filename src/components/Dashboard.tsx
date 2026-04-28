@@ -3543,7 +3543,7 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
         authType: "header",
         authKey: "X-Api-Key",
         authValue: "sk_V2_hgu_kNMS2ByuSNr_YaIF2OXIELpoHhQyCTvrsYb4u8aJfhDQ",
-        defaultPath: "v2/video/generate"
+        defaultPath: "v2/video/status?limit=1"
       });
     }
 
@@ -3596,13 +3596,13 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
       testPath = "v2/video/status?limit=1";
     } else if (api.name.toLowerCase().includes("pika")) {
       method = "GET";
-      testPath = "jobs";
+      testPath = "v1/jobs";
     } else if (api.name.toLowerCase().includes("elevenlabs")) {
       method = "GET";
-      testPath = "voices";
+      testPath = "v1/voices";
     } else if (api.name.toLowerCase().includes("ltx")) {
       method = "GET";
-      testPath = "generations";
+      testPath = "v1/generations";
     }
 
     const res = await testCustomApi(api, testPath, method);
@@ -3781,7 +3781,7 @@ function AddApiDialog({ isOpen, onClose, onAdded }: { isOpen: boolean, onClose: 
       setBaseUrl("https://api.heygen.com");
       setAuthType("header");
       setAuthKey("X-Api-Key");
-      setDefaultPath("v2/video/generate");
+      setDefaultPath("v2/video/status?limit=1");
     } else if (type === "pika") {
       setName("Pika Art API");
       setBaseUrl("https://api.pika.art/v1");
