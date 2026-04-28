@@ -198,12 +198,6 @@ export function Dashboard() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton isActive={view === "realtime_monitor"} onClick={() => setView("realtime_monitor")}>
-                      <Activity className="h-4 w-4" />
-                      <span>Monitor Real-Time</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
                     <SidebarMenuButton isActive={view === "campaigns"} onClick={() => setView("campaigns")}>
                       <Layers className="h-4 w-4" />
                       <span>Gerenciar Meta Ads</span>
