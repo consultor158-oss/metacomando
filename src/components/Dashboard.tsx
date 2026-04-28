@@ -3166,8 +3166,10 @@ function AICreativesTab() {
     
     try {
       const res = await uploadVideo({ 
-        url: videoUrl, 
-        filename: `Heygen_IA_${Date.now()}.mp4` 
+        data: {
+          url: videoUrl, 
+          filename: `Heygen_IA_${Date.now()}.mp4`
+        }
       });
 
       if (res.ok) {
