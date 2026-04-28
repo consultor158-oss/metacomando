@@ -418,7 +418,7 @@ export const createFullScale = createServerFn({ method: "POST" })
                   } else {
                     const linkData: any = {
                       message: creative.primaryText,
-                      link: data.destination === "WHATSAPP" ? `https://www.facebook.com/${data.pageId}` : (data.destinationUrl || "https://example.com"),
+                      link: isMessaging ? `https://www.facebook.com/${data.pageId}` : (data.destinationUrl || "https://example.com"),
                       name: creative.headline,
                       call_to_action: { type: ctaType, value: ctaValue },
                     };
