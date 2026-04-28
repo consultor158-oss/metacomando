@@ -3489,6 +3489,8 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
     // Auto-add LTX Studio and Heygen if not present
     const hasLTX = currentApis.some(a => a.name.includes("LTX Studio"));
     const hasHeygen = currentApis.some(a => a.name.includes("Heygen"));
+    const hasPika = currentApis.some(a => a.name.includes("Pika"));
+    const hasEleven = currentApis.some(a => a.name.includes("ElevenLabs"));
     
     if (!hasLTX) {
       addCustomApi({
@@ -3505,9 +3507,33 @@ function ApisTab({ onConnect }: { onConnect: () => void }) {
         name: "Heygen (Avatar Video)",
         baseUrl: "https://api.heygen.com/v2",
         authType: "header",
+        authKey: "X-Api-Key",
         authValue: "sk_V2_hgu_kNMS2ByuSNr_YaIF2OXIELpoHhQyCTvrsYb4u8aJfhDQ",
         defaultPath: "video/generate"
       });
+    }
+
+    if (!hasPika) {
+      addCustomApi({
+        name: "Pika.art (Video IA)",
+        baseUrl: "https://api.pika.art/v1",
+        authType: "bearer",
+        defaultPath: "jobs"
+      });
+    }
+
+    if (!hasEleven) {
+      addCustomApi({
+        name: "ElevenLabs (Voz IA)",
+        baseUrl: "https://api.elevenlabs.io/v1",
+        authType: "header",
+        authKey: "xi-api-key",
+        defaultPath: "voices"
+      });
+    }
+
+    if (!hasLTX || !hasHeygen || !hasPika || !hasEleven) {
+      setApis(loadCustomApis());
     }
 
     if (!hasLTX || !hasHeygen) {
