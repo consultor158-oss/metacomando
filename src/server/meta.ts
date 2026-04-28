@@ -262,7 +262,9 @@ export const createFullScale = createServerFn({ method: "POST" })
       dailyBudgetCents?: number;
       strategy?: string;
       pageId?: string;
-      destination?: "WHATSAPP" | "SALES";
+      destination?: "WHATSAPP" | "SALES" | "INSTAGRAM_DIRECT" | "MESSENGER";
+      pixelId?: string;
+      conversionEvent?: string;
       is_adset_budget_sharing_enabled?: boolean;
       destinationUrl?: string;
       targeting?: any;
@@ -275,6 +277,7 @@ export const createFullScale = createServerFn({ method: "POST" })
         cta: string;
       }>;
     }) => d,
+
   )
   .handler(async ({ data }) => {
     try {
