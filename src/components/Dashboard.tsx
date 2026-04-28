@@ -43,7 +43,9 @@ import {
   LineChart,
   UserPlus,
   Code,
-  ExternalLink
+  ExternalLink,
+  Download,
+  FolderPlus
 } from "lucide-react";
 import {
   getAccountInfo,
