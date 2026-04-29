@@ -3260,6 +3260,7 @@ function AICreativesTab() {
   const [duration, setDuration] = useState(5);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [useWebhook, setUseWebhook] = useState(false);
 
   const handleCheckStatus = async (rid: string) => {
     try {
@@ -3303,7 +3304,8 @@ function AICreativesTab() {
             aspectRatio, 
             resolution, 
             imageUrl: imageUrl || undefined,
-            duration: modelId.includes("dop") ? duration : undefined
+            duration: modelId.includes("dop") ? duration : undefined,
+            webhookUrl: useWebhook ? `${window.location.origin}/api/higgsfield-webhook` : undefined
           } 
         });
         if (res.ok) {
@@ -3453,6 +3455,14 @@ function AICreativesTab() {
               />
             </div>
             <div className="space-y-4">
+              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800">
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-slate-300">Usar Webhooks (HF)</span>
+                  <span className="text-[10px] text-muted-foreground text-pretty">Notificação automática sem polling</span>
+                </div>
+                <Switch checked={useWebhook} onCheckedChange={setUseWebhook} />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-xs font-black uppercase text-slate-500">Motor de Geração</Label>
