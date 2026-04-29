@@ -3251,6 +3251,7 @@ function AICreativesTab() {
   const [results, setResults] = useState<any[]>([]);
   const [prompt, setPrompt] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [engine, setEngine] = useState("higgsfield");
   const [modelId, setModelId] = useState("higgsfield-ai/soul/standard");
@@ -3289,6 +3290,7 @@ function AICreativesTab() {
     
     setIsGenerating(true);
     setVideoUrl(null);
+    setGeneratedImageUrl(null);
     setStatus(null);
     setRequestId(null);
 
@@ -3314,13 +3316,18 @@ function AICreativesTab() {
              const checkRes = await getHiggsfieldStatus({ data: { requestId: res.data.request_id } });
              if (checkRes.ok) {
                setStatus(checkRes.data.status);
-               if (checkRes.data.status === "completed" || checkRes.data.status === "failed") {
-                 clearInterval(checkInterval);
-                 if (checkRes.data.status === "completed" && checkRes.data.video?.url) {
-                    setVideoUrl(checkRes.data.video.url);
-                    toast.success("Vídeo Higgsfield concluído!");
-                 }
-               }
+                if (checkRes.data.status === "completed" || checkRes.data.status === "failed") {
+                  clearInterval(checkInterval);
+                  if (checkRes.data.status === "completed") {
+                    if (checkRes.data.video?.url) {
+                      setVideoUrl(checkRes.data.video.url);
+                      toast.success("Vídeo Higgsfield concluído!");
+                    } else if (checkRes.data.image?.url) {
+                      setGeneratedImageUrl(checkRes.data.image.url);
+                      toast.success("Imagem Higgsfield concluída!");
+                    }
+                  }
+                }
              }
           }, 5000);
           
@@ -3356,22 +3363,43 @@ function AICreativesTab() {
   };
 
   const handleUseInCampaign = async () => {
-    if (!videoUrl) return;
+    const assetUrl = videoUrl || generatedImageUrl;
+    if (!assetUrl) return;
     
     setIsUploading(true);
-    toast.info("Iniciando upload do vídeo para a biblioteca da Meta...");
+    toast.info(`Iniciando upload do ${videoUrl ? 'vídeo' : 'da imagem'} para a biblioteca da Meta...`);
     
     try {
-      const res = await uploadVideo({ 
-        data: {
-          url: videoUrl, 
-          filename: `IA_${engine}_${Date.now()}.mp4`
-        }
-      });
+      let res;
+      if (videoUrl) {
+        res = await uploadVideo({ 
+          data: {
+            url: videoUrl, 
+            filename: `IA_${engine}_${Date.now()}.mp4`
+          }
+        });
+      } else {
+        // We need to fetch the image and convert to base64 for uploadImage
+        const imageRes = await fetch(generatedImageUrl!);
+        const blob = await imageRes.blob();
+        const reader = new FileReader();
+        const base64Promise = new Promise<string>((resolve) => {
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(blob);
+        });
+        const base64 = await base64Promise;
+
+        res = await uploadImage({ 
+          data: {
+            bytes: base64, 
+            filename: `IA_${engine}_${Date.now()}.png`
+          }
+        });
+      }
 
       if (res.ok) {
-        toast.success("Vídeo anexado à sua biblioteca Meta com sucesso!");
-        toast.info(`ID do Vídeo na Meta: ${res.data.id}`);
+        toast.success(`${videoUrl ? 'Vídeo' : 'Imagem'} anexado à sua biblioteca Meta com sucesso!`);
+        toast.info(`ID na Meta: ${res.data.id}`);
       } else {
         toast.error("Erro ao subir para Meta: " + res.error);
       }
@@ -3383,10 +3411,11 @@ function AICreativesTab() {
   };
 
   const handleDownload = () => {
-    if (videoUrl) {
+    const assetUrl = videoUrl || generatedImageUrl;
+    if (assetUrl) {
       const link = document.createElement('a');
-      link.href = videoUrl;
-      link.download = `criativo-${engine}.mp4`;
+      link.href = assetUrl;
+      link.download = `criativo-${engine}.${videoUrl ? 'mp4' : 'png'}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -3517,11 +3546,11 @@ function AICreativesTab() {
             )}
           </Button>
 
-          {requestId && !videoUrl && (
+          {requestId && !videoUrl && !generatedImageUrl && (
             <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 flex flex-col items-center gap-3 animate-pulse">
               <div className="flex items-center gap-2 text-primary font-bold">
                 <RefreshCw className="h-4 w-4 animate-spin" />
-                Higgsfield está criando seu vídeo...
+                Higgsfield está criando seu criativo...
               </div>
               <p className="text-[10px] text-muted-foreground font-mono">ID: {requestId} | Status: {status || 'Queued'}</p>
               <Button size="sm" variant="ghost" className="text-xs" onClick={() => handleCheckStatus(requestId)}>
@@ -3530,16 +3559,21 @@ function AICreativesTab() {
             </div>
           )}
 
-          {videoUrl && (
+          {(videoUrl || generatedImageUrl) && (
             <div className="mt-8 space-y-4 animate-in fade-in zoom-in duration-500">
               <Label className="text-xs font-black uppercase text-primary flex items-center gap-2">
-                <Video className="h-4 w-4" /> Preview do Vídeo (Heygen/LTX)
+                {videoUrl ? <Video className="h-4 w-4" /> : <ImageIcon className="h-4 w-4" />} 
+                Preview do Criativo ({videoUrl ? 'Vídeo' : 'Imagem'})
               </Label>
               <div className="aspect-video w-full max-w-2xl mx-auto rounded-xl overflow-hidden border-2 border-primary/20 bg-black relative group">
-                <video src={videoUrl} controls className="w-full h-full object-contain" />
+                {videoUrl ? (
+                  <video src={videoUrl} controls className="w-full h-full object-contain" />
+                ) : (
+                  <img src={generatedImageUrl!} alt="IA Generated" className="w-full h-full object-contain" />
+                )}
                 <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button size="sm" onClick={handleDownload} className="bg-black/80 hover:bg-black text-white gap-2">
-                    <Download className="h-4 w-4" /> Baixar MP4
+                    <Download className="h-4 w-4" /> Baixar {videoUrl ? 'MP4' : 'PNG'}
                   </Button>
                 </div>
               </div>
