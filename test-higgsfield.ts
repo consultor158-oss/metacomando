@@ -9,7 +9,7 @@ async function testHiggsfield() {
   }
 
   const modelId = "higgsfield-ai/soul/standard";
-  const url = `https://api.higgsfield.ai/v1/model/${modelId}`;
+  const url = `https://platform.higgsfield.ai/${modelId}`;
   
   console.log(`Testing with model: ${modelId}`);
   console.log(`URL: ${url}`);
