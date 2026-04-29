@@ -3262,6 +3262,29 @@ function AICreativesTab() {
   const [status, setStatus] = useState<string | null>(null);
   const [useWebhook, setUseWebhook] = useState(false);
 
+  const handleCancel = async (rid: string) => {
+    try {
+      const res = await fetch(`https://platform.higgsfield.ai/requests/${rid}/cancel`, {
+        method: "POST",
+        // The frontend doesn't have env vars directly, but we can call a server fn or use the key if exposed (not recommended)
+        // Let's create a server function for cancel to be safe.
+        headers: {
+          "Authorization": `Key ${process.env.HIGGSFIELD_API_KEY_ID}:${process.env.HIGGSFIELD_API_SECRET}`,
+        },
+      });
+
+      if (res.status === 202) {
+        toast.success("Solicitação cancelada com sucesso.");
+        setRequestId(null);
+        setStatus(null);
+      } else {
+        toast.error("Não foi possível cancelar. A geração já pode estar em andamento.");
+      }
+    } catch (e: any) {
+      toast.error("Erro ao cancelar: " + e.message);
+    }
+  };
+
   const handleCheckStatus = async (rid: string) => {
     try {
       const res = await getHiggsfieldStatus({ data: { requestId: rid } });
