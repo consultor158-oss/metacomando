@@ -14,11 +14,24 @@ function getHiggsfieldCreds() {
 }
 
 export const generateHiggsfieldCreative = createServerFn({ method: "POST" })
-  .inputValidator((d: { prompt: string; modelId?: string; aspectRatio?: string; resolution?: string }) => d)
+  .inputValidator((d: { 
+    prompt: string; 
+    modelId?: string; 
+    aspectRatio?: string; 
+    resolution?: string;
+    imageUrl?: string;
+    duration?: number;
+  }) => d)
   .handler(async ({ data }) => {
     try {
       const { keyId, secret } = getHiggsfieldCreds();
-      const modelId = data.modelId || "higgsfield-ai/soul/standard";
+      
+      // Default models based on whether it's image-to-video or text-to-video/image
+      const defaultModel = data.imageUrl 
+        ? "higgsfield-ai/dop/standard" 
+        : "higgsfield-ai/soul/standard";
+        
+      const modelId = data.modelId || defaultModel;
       
       const res = await fetch(`${BASE_URL}/${modelId}`, {
         method: "POST",
@@ -28,7 +41,9 @@ export const generateHiggsfieldCreative = createServerFn({ method: "POST" })
         },
         body: JSON.stringify({
           prompt: data.prompt,
-          aspect_ratio: data.aspectRatio || "9:16", // Default for ads usually
+          image_url: data.imageUrl,
+          duration: data.duration,
+          aspect_ratio: data.aspectRatio || "9:16",
           resolution: data.resolution || "720p",
         }),
       });

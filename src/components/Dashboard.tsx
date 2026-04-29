@@ -3250,8 +3250,13 @@ function AICreativesTab() {
   const [isUploading, setIsUploading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [prompt, setPrompt] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [engine, setEngine] = useState("higgsfield");
+  const [modelId, setModelId] = useState("higgsfield-ai/soul/standard");
+  const [aspectRatio, setAspectRatio] = useState("9:16");
+  const [resolution, setResolution] = useState("720p");
+  const [duration, setDuration] = useState(5);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
 
@@ -3289,7 +3294,16 @@ function AICreativesTab() {
 
     if (engine === "higgsfield") {
       try {
-        const res = await generateHiggsfieldCreative({ data: { prompt } });
+        const res = await generateHiggsfieldCreative({ 
+          data: { 
+            prompt, 
+            modelId, 
+            aspectRatio, 
+            resolution, 
+            imageUrl: imageUrl || undefined,
+            duration: modelId.includes("dop") ? duration : undefined
+          } 
+        });
         if (res.ok) {
           setRequestId(res.data.request_id);
           setStatus(res.data.status);
@@ -3410,34 +3424,89 @@ function AICreativesTab() {
               />
             </div>
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-black uppercase text-slate-500">Motor de Geração</Label>
-                <Select value={engine} onValueChange={setEngine}>
-                  <SelectTrigger className="bg-slate-900 border-slate-800">
-                    <SelectValue placeholder="Selecione o motor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="higgsfield">Higgsfield (Video AI - Pro)</SelectItem>
-                    <SelectItem value="heygen">Heygen (Avatar Video)</SelectItem>
-                    <SelectItem value="ltx">LTX Studio (Cinematic)</SelectItem>
-                    <SelectItem value="dalle">DALL-E 3 (Imagem)</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase text-slate-500">Motor de Geração</Label>
+                  <Select value={engine} onValueChange={setEngine}>
+                    <SelectTrigger className="bg-slate-900 border-slate-800">
+                      <SelectValue placeholder="Selecione o motor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="higgsfield">Higgsfield (Pro)</SelectItem>
+                      <SelectItem value="heygen">Heygen (Avatar)</SelectItem>
+                      <SelectItem value="ltx">LTX Studio</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {engine === "higgsfield" && (
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase text-slate-500">Modelo Higgsfield</Label>
+                    <Select value={modelId} onValueChange={setModelId}>
+                      <SelectTrigger className="bg-slate-900 border-slate-800">
+                        <SelectValue placeholder="Selecione o modelo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="higgsfield-ai/soul/standard">Soul (Texto {"->"} Imagem)</SelectItem>
+                        <SelectItem value="higgsfield-ai/dop/standard">DoP (Imagem {"->"} Vídeo)</SelectItem>
+                        <SelectItem value="kling-video/v2.1/pro/image-to-video">Kling 2.1 (Cinematic Video)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-black uppercase text-slate-500">Estilo Visual</Label>
-                <Select defaultValue="realistic">
-                  <SelectTrigger className="bg-slate-900 border-slate-800">
-                    <SelectValue placeholder="Selecione o estilo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="realistic">Realista</SelectItem>
-                    <SelectItem value="3d">3D Render</SelectItem>
-                    <SelectItem value="minimalist">Minimalista</SelectItem>
-                    <SelectItem value="cinematic">Cinematográfico</SelectItem>
-                  </SelectContent>
-                </Select>
+
+              {engine === "higgsfield" && modelId.includes("image-to-video") || modelId.includes("dop") ? (
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase text-slate-500">URL da Imagem de Origem</Label>
+                  <Input 
+                    placeholder="https://exemplo.com/imagem.jpg" 
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    className="bg-slate-900 border-slate-800"
+                  />
+                </div>
+              ) : null}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase text-slate-500">Proporção (Aspect Ratio)</Label>
+                  <Select value={aspectRatio} onValueChange={setAspectRatio}>
+                    <SelectTrigger className="bg-slate-900 border-slate-800">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="9:16">9:16 (Story/Reels)</SelectItem>
+                      <SelectItem value="1:1">1:1 (Feed)</SelectItem>
+                      <SelectItem value="16:9">16:9 (Horizontal)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase text-slate-500">Resolução</Label>
+                  <Select value={resolution} onValueChange={setResolution}>
+                    <SelectTrigger className="bg-slate-900 border-slate-800">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="720p">720p</SelectItem>
+                      <SelectItem value="1080p">1080p (HD)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+              {engine === "higgsfield" && modelId.includes("dop") && (
+                <div className="space-y-2 mt-4">
+                  <Label className="text-xs font-black uppercase text-slate-500">Duração: {duration}s</Label>
+                  <input 
+                    type="range" 
+                    min="2" 
+                    max="10" 
+                    value={duration} 
+                    onChange={(e) => setDuration(parseInt(e.target.value))}
+                    className="w-full accent-primary"
+                  />
+                </div>
+              )}
             </div>
           </div>
           <Button className="w-full h-12 text-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20" onClick={handleGenerate} disabled={isGenerating}>
