@@ -21,19 +21,24 @@ export const generateHiggsfieldCreative = createServerFn({ method: "POST" })
     resolution?: string;
     imageUrl?: string;
     duration?: number;
+    webhookUrl?: string;
   }) => d)
   .handler(async ({ data }) => {
     try {
       const { keyId, secret } = getHiggsfieldCreds();
       
-      // Default models based on whether it's image-to-video or text-to-video/image
       const defaultModel = data.imageUrl 
         ? "higgsfield-ai/dop/standard" 
         : "higgsfield-ai/soul/standard";
         
       const modelId = data.modelId || defaultModel;
       
-      const res = await fetch(`${BASE_URL}/${modelId}`, {
+      const baseUrl = new URL(`${BASE_URL}/${modelId}`);
+      if (data.webhookUrl) {
+        baseUrl.searchParams.set("hf_webhook", data.webhookUrl);
+      }
+      
+      const res = await fetch(baseUrl.toString(), {
         method: "POST",
         headers: {
           "Authorization": `Key ${keyId}:${secret}`,
