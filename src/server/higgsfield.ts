@@ -89,3 +89,27 @@ export const getHiggsfieldStatus = createServerFn({ method: "GET" })
       return { ok: false as const, error: e.message };
     }
   });
+
+export const cancelHiggsfieldRequest = createServerFn({ method: "POST" })
+  .inputValidator((d: { requestId: string }) => d)
+  .handler(async ({ data }) => {
+    try {
+      const { keyId, secret } = getHiggsfieldCreds();
+      
+      const res = await fetch(`${BASE_URL}/requests/${data.requestId}/cancel`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Key ${keyId}:${secret}`,
+        },
+      });
+
+      if (res.status === 202) {
+        return { ok: true as const };
+      }
+      
+      const result = await res.json().catch(() => ({}));
+      return { ok: false as const, error: result.message || "Não foi possível cancelar a solicitação." };
+    } catch (e: any) {
+      return { ok: false as const, error: e.message };
+    }
+  });

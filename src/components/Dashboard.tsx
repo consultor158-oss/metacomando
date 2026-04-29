@@ -73,7 +73,7 @@ import {
   deleteCreative,
   testMetaConnection
 } from "../server/meta";
-import { generateHiggsfieldCreative, getHiggsfieldStatus } from "../server/higgsfield";
+import { generateHiggsfieldCreative, getHiggsfieldStatus, cancelHiggsfieldRequest } from "../server/higgsfield";
 import { WhatsAppModal } from "./WhatsAppModal";
 import { loadCustomApis, addCustomApi, removeCustomApi, testCustomApi, type CustomApi } from "../lib/customApis";
 import { SCALE_STRATEGIES, ScaleStrategy } from "../lib/scales";
@@ -3262,6 +3262,21 @@ function AICreativesTab() {
   const [status, setStatus] = useState<string | null>(null);
   const [useWebhook, setUseWebhook] = useState(false);
 
+  const handleCancel = async (rid: string) => {
+    try {
+      const res = await cancelHiggsfieldRequest({ data: { requestId: rid } });
+      if (res.ok) {
+        toast.success("Solicitação cancelada com sucesso.");
+        setRequestId(null);
+        setStatus(null);
+      } else {
+        toast.error("Erro: " + res.error);
+      }
+    } catch (e: any) {
+      toast.error("Erro ao cancelar: " + e.message);
+    }
+  };
+
   const handleCheckStatus = async (rid: string) => {
     try {
       const res = await getHiggsfieldStatus({ data: { requestId: rid } });
@@ -3563,9 +3578,16 @@ function AICreativesTab() {
                 Higgsfield está criando seu criativo...
               </div>
               <p className="text-[10px] text-muted-foreground font-mono">ID: {requestId} | Status: {status || 'Queued'}</p>
-              <Button size="sm" variant="ghost" className="text-xs" onClick={() => handleCheckStatus(requestId)}>
-                Verificar Agora
-              </Button>
+              <div className="flex gap-2">
+                <Button size="sm" variant="ghost" className="text-xs" onClick={() => handleCheckStatus(requestId)}>
+                  Verificar Agora
+                </Button>
+                {status === "queued" && (
+                  <Button size="sm" variant="ghost" className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleCancel(requestId)}>
+                    Cancelar
+                  </Button>
+                )}
+              </div>
             </div>
           )}
 
