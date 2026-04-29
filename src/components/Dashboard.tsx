@@ -3448,6 +3448,19 @@ function AICreativesTab() {
             )}
           </Button>
 
+          {requestId && !videoUrl && (
+            <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 flex flex-col items-center gap-3 animate-pulse">
+              <div className="flex items-center gap-2 text-primary font-bold">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Higgsfield está criando seu vídeo...
+              </div>
+              <p className="text-[10px] text-muted-foreground font-mono">ID: {requestId} | Status: {status || 'Queued'}</p>
+              <Button size="sm" variant="ghost" className="text-xs" onClick={() => handleCheckStatus(requestId)}>
+                Verificar Agora
+              </Button>
+            </div>
+          )}
+
           {videoUrl && (
             <div className="mt-8 space-y-4 animate-in fade-in zoom-in duration-500">
               <Label className="text-xs font-black uppercase text-primary flex items-center gap-2">
