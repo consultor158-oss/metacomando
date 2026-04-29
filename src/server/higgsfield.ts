@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 
-const BASE_URL = "https://api.higgsfield.ai/v1";
+const BASE_URL = "https://platform.higgsfield.ai";
 
 function getHiggsfieldCreds() {
   const keyId = process.env.HIGGSFIELD_API_KEY_ID;
@@ -35,8 +35,7 @@ export const generateHiggsfieldCreative = createServerFn({ method: "POST" })
         
       const modelId = data.modelId || defaultModel;
       
-      // The endpoint is /v1/model/{model_id}
-      const url = new URL(`${BASE_URL}/model/${modelId}`);
+      const url = new URL(`${BASE_URL}/${modelId}`);
       if (data.webhookUrl) {
         url.searchParams.set("hf_webhook", data.webhookUrl);
       }
@@ -64,9 +63,17 @@ export const generateHiggsfieldCreative = createServerFn({ method: "POST" })
       console.log(`Higgsfield API Response Status: ${res.status}`, result);
       
       if (!res.ok) {
-        const errorMsg = result.message || result.error || `Erro ${res.status}: Higgsfield API falhou`;
+        // Detailed error extraction based on common Higgsfield API responses
+        const errorMsg = result.detail || result.message || result.error || `Erro ${res.status}: Higgsfield API falhou`;
+        
+        // Specific user-friendly messages
+        let userMessage = errorMsg;
+        if (errorMsg === "not_enough_credits") {
+          userMessage = "Créditos insuficientes na sua conta Higgsfield.";
+        }
+        
         console.error("Higgsfield API Error:", errorMsg);
-        throw new Error(errorMsg);
+        throw new Error(userMessage);
       }
 
       return { ok: true as const, data: result };
@@ -95,7 +102,7 @@ export const getHiggsfieldStatus = createServerFn({ method: "GET" })
       const result = await res.json().catch(() => ({}));
       
       if (!res.ok) {
-        const errorMsg = result.message || result.error || `Erro ${res.status} ao verificar status`;
+        const errorMsg = result.detail || result.message || result.error || `Erro ${res.status} ao verificar status`;
         console.error("Higgsfield Status Error:", errorMsg);
         throw new Error(errorMsg);
       }
@@ -128,7 +135,7 @@ export const cancelHiggsfieldRequest = createServerFn({ method: "POST" })
       }
       
       const result = await res.json().catch(() => ({}));
-      return { ok: false as const, error: result.message || "Não foi possível cancelar a solicitação." };
+      return { ok: false as const, error: result.detail || result.message || "Não foi possível cancelar a solicitação." };
     } catch (e: any) {
       console.error("Exception in cancelHiggsfieldRequest:", e);
       return { ok: false as const, error: e.message };
