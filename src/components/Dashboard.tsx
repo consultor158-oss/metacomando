@@ -73,6 +73,7 @@ import {
   deleteCreative,
   testMetaConnection
 } from "../server/meta";
+import { generateHiggsfieldCreative, getHiggsfieldStatus } from "../server/higgsfield";
 import { WhatsAppModal } from "./WhatsAppModal";
 import { loadCustomApis, addCustomApi, removeCustomApi, testCustomApi, type CustomApi } from "../lib/customApis";
 import { SCALE_STRATEGIES, ScaleStrategy } from "../lib/scales";
