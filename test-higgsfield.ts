@@ -30,9 +30,13 @@ async function testHiggsfield() {
       body: JSON.stringify(payload),
     });
 
-    const result = await res.json();
+    const text = await res.text();
     console.log("Status:", res.status);
-    console.log("Result:", JSON.stringify(result, null, 2));
+    console.log("Raw Response:", text);
+    if (text) {
+      const result = JSON.parse(text);
+      console.log("Result:", JSON.stringify(result, null, 2));
+    }
   } catch (e) {
     console.error("Error:", e);
   }
