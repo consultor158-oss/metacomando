@@ -3264,21 +3264,13 @@ function AICreativesTab() {
 
   const handleCancel = async (rid: string) => {
     try {
-      const res = await fetch(`https://platform.higgsfield.ai/requests/${rid}/cancel`, {
-        method: "POST",
-        // The frontend doesn't have env vars directly, but we can call a server fn or use the key if exposed (not recommended)
-        // Let's create a server function for cancel to be safe.
-        headers: {
-          "Authorization": `Key ${process.env.HIGGSFIELD_API_KEY_ID}:${process.env.HIGGSFIELD_API_SECRET}`,
-        },
-      });
-
-      if (res.status === 202) {
+      const res = await cancelHiggsfieldRequest({ data: { requestId: rid } });
+      if (res.ok) {
         toast.success("Solicitação cancelada com sucesso.");
         setRequestId(null);
         setStatus(null);
       } else {
-        toast.error("Não foi possível cancelar. A geração já pode estar em andamento.");
+        toast.error("Erro: " + res.error);
       }
     } catch (e: any) {
       toast.error("Erro ao cancelar: " + e.message);
@@ -3586,9 +3578,16 @@ function AICreativesTab() {
                 Higgsfield está criando seu criativo...
               </div>
               <p className="text-[10px] text-muted-foreground font-mono">ID: {requestId} | Status: {status || 'Queued'}</p>
-              <Button size="sm" variant="ghost" className="text-xs" onClick={() => handleCheckStatus(requestId)}>
-                Verificar Agora
-              </Button>
+              <div className="flex gap-2">
+                <Button size="sm" variant="ghost" className="text-xs" onClick={() => handleCheckStatus(requestId)}>
+                  Verificar Agora
+                </Button>
+                {status === "queued" && (
+                  <Button size="sm" variant="ghost" className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleCancel(requestId)}>
+                    Cancelar
+                  </Button>
+                )}
+              </div>
             </div>
           )}
 
