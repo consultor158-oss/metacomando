@@ -3494,6 +3494,19 @@ function AICreativesTab() {
                   </Select>
                 </div>
               </div>
+              {engine === "higgsfield" && modelId.includes("dop") && (
+                <div className="space-y-2 mt-4">
+                  <Label className="text-xs font-black uppercase text-slate-500">Duração: {duration}s</Label>
+                  <input 
+                    type="range" 
+                    min="2" 
+                    max="10" 
+                    value={duration} 
+                    onChange={(e) => setDuration(parseInt(e.target.value))}
+                    className="w-full accent-primary"
+                  />
+                </div>
+              )}
             </div>
           </div>
           <Button className="w-full h-12 text-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20" onClick={handleGenerate} disabled={isGenerating}>
