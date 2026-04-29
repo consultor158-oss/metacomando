@@ -3446,8 +3446,8 @@ function AICreativesTab() {
                         <SelectValue placeholder="Selecione o modelo" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="higgsfield-ai/soul/standard">Soul (Texto -> Imagem)</SelectItem>
-                        <SelectItem value="higgsfield-ai/dop/standard">DoP (Imagem -> Vídeo)</SelectItem>
+                        <SelectItem value="higgsfield-ai/soul/standard">Soul (Texto {"->"} Imagem)</SelectItem>
+                        <SelectItem value="higgsfield-ai/dop/standard">DoP (Imagem {"->"} Vídeo)</SelectItem>
                         <SelectItem value="kling-video/v2.1/pro/image-to-video">Kling 2.1 (Cinematic Video)</SelectItem>
                       </SelectContent>
                     </Select>
