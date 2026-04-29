@@ -3363,18 +3363,29 @@ function AICreativesTab() {
   };
 
   const handleUseInCampaign = async () => {
-    if (!videoUrl) return;
+    const assetUrl = videoUrl || generatedImageUrl;
+    if (!assetUrl) return;
     
     setIsUploading(true);
-    toast.info("Iniciando upload do vídeo para a biblioteca da Meta...");
+    toast.info(`Iniciando upload do ${videoUrl ? 'vídeo' : 'da imagem'} para a biblioteca da Meta...`);
     
     try {
-      const res = await uploadVideo({ 
-        data: {
-          url: videoUrl, 
-          filename: `IA_${engine}_${Date.now()}.mp4`
-        }
-      });
+      let res;
+      if (videoUrl) {
+        res = await uploadVideo({ 
+          data: {
+            url: videoUrl, 
+            filename: `IA_${engine}_${Date.now()}.mp4`
+          }
+        });
+      } else {
+        res = await uploadImage({ 
+          data: {
+            url: generatedImageUrl!, 
+            filename: `IA_${engine}_${Date.now()}.png`
+          }
+        });
+      }
 
       if (res.ok) {
         toast.success(`${videoUrl ? 'Vídeo' : 'Imagem'} anexado à sua biblioteca Meta com sucesso!`);
