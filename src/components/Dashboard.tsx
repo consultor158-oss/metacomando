@@ -3391,18 +3391,19 @@ function AICreativesTab() {
               <CardTitle>Geração de Criativos com IA</CardTitle>
             </div>
             <div className="flex gap-2">
+              <Badge variant="outline" className="bg-green-500/5 text-green-400 border-green-500/20">Higgsfield Active</Badge>
               <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">Heygen Active</Badge>
               <Badge variant="outline" className="bg-purple-500/5 text-purple-400 border-purple-500/20">LTX Studio Active</Badge>
             </div>
           </div>
-          <CardDescription>Crie imagens, vídeos (Heygen/LTX) e copies de alta conversão integrados via API.</CardDescription>
+          <CardDescription>Crie imagens e vídeos de alta conversão integrados via API para seus anúncios.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label className="text-xs font-black uppercase text-slate-500">O que você está vendendo?</Label>
               <Textarea 
-                placeholder="Ex: Curso de Marketing Digital para Iniciantes... (Digite 'video' para testar Heygen)" 
+                placeholder="Ex: Tênis esportivo para corrida em asfalto, focado em amortecimento e leveza..." 
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 className="bg-slate-900 border-slate-800 min-h-[120px] focus:ring-primary/20"
@@ -3411,11 +3412,12 @@ function AICreativesTab() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-xs font-black uppercase text-slate-500">Motor de Geração</Label>
-                <Select defaultValue="heygen">
+                <Select value={engine} onValueChange={setEngine}>
                   <SelectTrigger className="bg-slate-900 border-slate-800">
                     <SelectValue placeholder="Selecione o motor" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="higgsfield">Higgsfield (Video AI - Pro)</SelectItem>
                     <SelectItem value="heygen">Heygen (Avatar Video)</SelectItem>
                     <SelectItem value="ltx">LTX Studio (Cinematic)</SelectItem>
                     <SelectItem value="dalle">DALL-E 3 (Imagem)</SelectItem>
