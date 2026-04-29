@@ -3396,19 +3396,9 @@ function AICreativesTab() {
           }
         });
       } else {
-        // We need to fetch the image and convert to base64 for uploadImage
-        const imageRes = await fetch(generatedImageUrl!);
-        const blob = await imageRes.blob();
-        const reader = new FileReader();
-        const base64Promise = new Promise<string>((resolve) => {
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(blob);
-        });
-        const base64 = await base64Promise;
-
         res = await uploadImage({ 
           data: {
-            bytes: base64, 
+            url: generatedImageUrl!, 
             filename: `IA_${engine}_${Date.now()}.png`
           }
         });
