@@ -3251,13 +3251,79 @@ function AICreativesTab() {
   const [results, setResults] = useState<any[]>([]);
   const [prompt, setPrompt] = useState("");
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [engine, setEngine] = useState("higgsfield");
+  const [requestId, setRequestId] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
 
-  const handleGenerate = () => {
+  const handleCheckStatus = async (rid: string) => {
+    try {
+      const res = await getHiggsfieldStatus({ data: { requestId: rid } });
+      if (res.ok) {
+        setStatus(res.data.status);
+        if (res.data.status === "completed" && res.data.video?.url) {
+          setVideoUrl(res.data.video.url);
+          toast.success("Vídeo Higgsfield pronto!");
+          setRequestId(null);
+        } else if (res.data.status === "failed") {
+          toast.error("Geração Higgsfield falhou.");
+          setRequestId(null);
+        } else {
+          toast.info(`Status Higgsfield: ${res.data.status}...`);
+        }
+      }
+    } catch (e: any) {
+      toast.error("Erro ao verificar status: " + e.message);
+    }
+  };
+
+  const handleGenerate = async () => {
     if (!prompt) {
       toast.error("Descreva o que você quer gerar");
       return;
     }
+    
     setIsGenerating(true);
+    setVideoUrl(null);
+    setStatus(null);
+    setRequestId(null);
+
+    if (engine === "higgsfield") {
+      try {
+        const res = await generateHiggsfieldCreative({ data: { prompt } });
+        if (res.ok) {
+          setRequestId(res.data.request_id);
+          setStatus(res.data.status);
+          toast.success("Solicitação Higgsfield enviada!");
+          
+          // Iniciar polling simples ou avisar o usuário
+          const checkInterval = setInterval(async () => {
+             const checkRes = await getHiggsfieldStatus({ data: { requestId: res.data.request_id } });
+             if (checkRes.ok) {
+               setStatus(checkRes.data.status);
+               if (checkRes.data.status === "completed" || checkRes.data.status === "failed") {
+                 clearInterval(checkInterval);
+                 if (checkRes.data.status === "completed" && checkRes.data.video?.url) {
+                    setVideoUrl(checkRes.data.video.url);
+                    toast.success("Vídeo Higgsfield concluído!");
+                 }
+               }
+             }
+          }, 5000);
+          
+          // Limpar após 2 minutos se não acabar
+          setTimeout(() => clearInterval(checkInterval), 120000);
+        } else {
+          toast.error("Erro Higgsfield: " + res.error);
+        }
+      } catch (e: any) {
+        toast.error("Falha ao conectar com Higgsfield: " + e.message);
+      } finally {
+        setIsGenerating(false);
+      }
+      return;
+    }
+
+    // Mock para outros motores
     setTimeout(() => {
       setIsGenerating(false);
       const newResults = [
@@ -3266,11 +3332,9 @@ function AICreativesTab() {
       ];
       setResults(newResults);
       
-      // Simular geração de vídeo Heygen
-      if (prompt.toLowerCase().includes("video") || prompt.toLowerCase().includes("heygen")) {
-        // Usando uma URL de exemplo real para teste de upload se necessário
+      if (prompt.toLowerCase().includes("video") || prompt.toLowerCase().includes("heygen") || engine === "heygen" || engine === "ltx") {
         setVideoUrl("https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-a-circuit-board-1566-large.mp4");
-        toast.success("Vídeo Heygen gerado com sucesso!");
+        toast.success(`${engine.toUpperCase()} gerado com sucesso!`);
       } else {
         toast.success("Criativos de imagem e copy gerados!");
       }
@@ -3287,13 +3351,12 @@ function AICreativesTab() {
       const res = await uploadVideo({ 
         data: {
           url: videoUrl, 
-          filename: `Heygen_IA_${Date.now()}.mp4`
+          filename: `IA_${engine}_${Date.now()}.mp4`
         }
       });
 
       if (res.ok) {
         toast.success("Vídeo anexado à sua biblioteca Meta com sucesso!");
-        // Aqui poderíamos abrir o modal de campanha já com o creative.id preenchido
         toast.info(`ID do Vídeo na Meta: ${res.data.id}`);
       } else {
         toast.error("Erro ao subir para Meta: " + res.error);
@@ -3309,13 +3372,14 @@ function AICreativesTab() {
     if (videoUrl) {
       const link = document.createElement('a');
       link.href = videoUrl;
-      link.download = 'criativo-ia.mp4';
+      link.download = `criativo-${engine}.mp4`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       toast.success("Download iniciado!");
     }
   };
+
 
   return (
     <div className="space-y-6">
