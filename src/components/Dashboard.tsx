@@ -3304,7 +3304,8 @@ function AICreativesTab() {
             aspectRatio, 
             resolution, 
             imageUrl: imageUrl || undefined,
-            duration: modelId.includes("dop") ? duration : undefined
+            duration: modelId.includes("dop") ? duration : undefined,
+            webhookUrl: useWebhook ? `${window.location.origin}/api/higgsfield-webhook` : undefined
           } 
         });
         if (res.ok) {
