@@ -73,6 +73,7 @@ import {
   deleteCreative,
   testMetaConnection
 } from "../server/meta";
+import { generateHiggsfieldCreative, getHiggsfieldStatus } from "../server/higgsfield";
 import { WhatsAppModal } from "./WhatsAppModal";
 import { loadCustomApis, addCustomApi, removeCustomApi, testCustomApi, type CustomApi } from "../lib/customApis";
 import { SCALE_STRATEGIES, ScaleStrategy } from "../lib/scales";
@@ -3250,13 +3251,79 @@ function AICreativesTab() {
   const [results, setResults] = useState<any[]>([]);
   const [prompt, setPrompt] = useState("");
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [engine, setEngine] = useState("higgsfield");
+  const [requestId, setRequestId] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
 
-  const handleGenerate = () => {
+  const handleCheckStatus = async (rid: string) => {
+    try {
+      const res = await getHiggsfieldStatus({ data: { requestId: rid } });
+      if (res.ok) {
+        setStatus(res.data.status);
+        if (res.data.status === "completed" && res.data.video?.url) {
+          setVideoUrl(res.data.video.url);
+          toast.success("Vídeo Higgsfield pronto!");
+          setRequestId(null);
+        } else if (res.data.status === "failed") {
+          toast.error("Geração Higgsfield falhou.");
+          setRequestId(null);
+        } else {
+          toast.info(`Status Higgsfield: ${res.data.status}...`);
+        }
+      }
+    } catch (e: any) {
+      toast.error("Erro ao verificar status: " + e.message);
+    }
+  };
+
+  const handleGenerate = async () => {
     if (!prompt) {
       toast.error("Descreva o que você quer gerar");
       return;
     }
+    
     setIsGenerating(true);
+    setVideoUrl(null);
+    setStatus(null);
+    setRequestId(null);
+
+    if (engine === "higgsfield") {
+      try {
+        const res = await generateHiggsfieldCreative({ data: { prompt } });
+        if (res.ok) {
+          setRequestId(res.data.request_id);
+          setStatus(res.data.status);
+          toast.success("Solicitação Higgsfield enviada!");
+          
+          // Iniciar polling simples ou avisar o usuário
+          const checkInterval = setInterval(async () => {
+             const checkRes = await getHiggsfieldStatus({ data: { requestId: res.data.request_id } });
+             if (checkRes.ok) {
+               setStatus(checkRes.data.status);
+               if (checkRes.data.status === "completed" || checkRes.data.status === "failed") {
+                 clearInterval(checkInterval);
+                 if (checkRes.data.status === "completed" && checkRes.data.video?.url) {
+                    setVideoUrl(checkRes.data.video.url);
+                    toast.success("Vídeo Higgsfield concluído!");
+                 }
+               }
+             }
+          }, 5000);
+          
+          // Limpar após 2 minutos se não acabar
+          setTimeout(() => clearInterval(checkInterval), 120000);
+        } else {
+          toast.error("Erro Higgsfield: " + res.error);
+        }
+      } catch (e: any) {
+        toast.error("Falha ao conectar com Higgsfield: " + e.message);
+      } finally {
+        setIsGenerating(false);
+      }
+      return;
+    }
+
+    // Mock para outros motores
     setTimeout(() => {
       setIsGenerating(false);
       const newResults = [
@@ -3265,11 +3332,9 @@ function AICreativesTab() {
       ];
       setResults(newResults);
       
-      // Simular geração de vídeo Heygen
-      if (prompt.toLowerCase().includes("video") || prompt.toLowerCase().includes("heygen")) {
-        // Usando uma URL de exemplo real para teste de upload se necessário
+      if (prompt.toLowerCase().includes("video") || prompt.toLowerCase().includes("heygen") || engine === "heygen" || engine === "ltx") {
         setVideoUrl("https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-a-circuit-board-1566-large.mp4");
-        toast.success("Vídeo Heygen gerado com sucesso!");
+        toast.success(`${engine.toUpperCase()} gerado com sucesso!`);
       } else {
         toast.success("Criativos de imagem e copy gerados!");
       }
@@ -3286,13 +3351,12 @@ function AICreativesTab() {
       const res = await uploadVideo({ 
         data: {
           url: videoUrl, 
-          filename: `Heygen_IA_${Date.now()}.mp4`
+          filename: `IA_${engine}_${Date.now()}.mp4`
         }
       });
 
       if (res.ok) {
         toast.success("Vídeo anexado à sua biblioteca Meta com sucesso!");
-        // Aqui poderíamos abrir o modal de campanha já com o creative.id preenchido
         toast.info(`ID do Vídeo na Meta: ${res.data.id}`);
       } else {
         toast.error("Erro ao subir para Meta: " + res.error);
@@ -3308,13 +3372,14 @@ function AICreativesTab() {
     if (videoUrl) {
       const link = document.createElement('a');
       link.href = videoUrl;
-      link.download = 'criativo-ia.mp4';
+      link.download = `criativo-${engine}.mp4`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       toast.success("Download iniciado!");
     }
   };
+
 
   return (
     <div className="space-y-6">
@@ -3326,18 +3391,19 @@ function AICreativesTab() {
               <CardTitle>Geração de Criativos com IA</CardTitle>
             </div>
             <div className="flex gap-2">
+              <Badge variant="outline" className="bg-green-500/5 text-green-400 border-green-500/20">Higgsfield Active</Badge>
               <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">Heygen Active</Badge>
               <Badge variant="outline" className="bg-purple-500/5 text-purple-400 border-purple-500/20">LTX Studio Active</Badge>
             </div>
           </div>
-          <CardDescription>Crie imagens, vídeos (Heygen/LTX) e copies de alta conversão integrados via API.</CardDescription>
+          <CardDescription>Crie imagens e vídeos de alta conversão integrados via API para seus anúncios.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label className="text-xs font-black uppercase text-slate-500">O que você está vendendo?</Label>
               <Textarea 
-                placeholder="Ex: Curso de Marketing Digital para Iniciantes... (Digite 'video' para testar Heygen)" 
+                placeholder="Ex: Tênis esportivo para corrida em asfalto, focado em amortecimento e leveza..." 
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 className="bg-slate-900 border-slate-800 min-h-[120px] focus:ring-primary/20"
@@ -3346,11 +3412,12 @@ function AICreativesTab() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-xs font-black uppercase text-slate-500">Motor de Geração</Label>
-                <Select defaultValue="heygen">
+                <Select value={engine} onValueChange={setEngine}>
                   <SelectTrigger className="bg-slate-900 border-slate-800">
                     <SelectValue placeholder="Selecione o motor" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="higgsfield">Higgsfield (Video AI - Pro)</SelectItem>
                     <SelectItem value="heygen">Heygen (Avatar Video)</SelectItem>
                     <SelectItem value="ltx">LTX Studio (Cinematic)</SelectItem>
                     <SelectItem value="dalle">DALL-E 3 (Imagem)</SelectItem>
@@ -3380,6 +3447,19 @@ function AICreativesTab() {
               <><Zap className="mr-2 h-5 w-5 fill-current" /> Gerar Criativo Master</>
             )}
           </Button>
+
+          {requestId && !videoUrl && (
+            <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 flex flex-col items-center gap-3 animate-pulse">
+              <div className="flex items-center gap-2 text-primary font-bold">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Higgsfield está criando seu vídeo...
+              </div>
+              <p className="text-[10px] text-muted-foreground font-mono">ID: {requestId} | Status: {status || 'Queued'}</p>
+              <Button size="sm" variant="ghost" className="text-xs" onClick={() => handleCheckStatus(requestId)}>
+                Verificar Agora
+              </Button>
+            </div>
+          )}
 
           {videoUrl && (
             <div className="mt-8 space-y-4 animate-in fade-in zoom-in duration-500">
