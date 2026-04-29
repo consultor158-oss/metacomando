@@ -1,12 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 
-const BASE_URL = "https://platform.higgsfield.ai";
+const BASE_URL = "https://api.higgsfield.ai/v1";
 
 function getHiggsfieldCreds() {
   const keyId = process.env.HIGGSFIELD_API_KEY_ID;
   const secret = process.env.HIGGSFIELD_API_SECRET;
 
   if (!keyId || !secret) {
+    console.error("Higgsfield Credentials Missing: HIGGSFIELD_API_KEY_ID or HIGGSFIELD_API_SECRET not in env");
     throw new Error("Configuração Higgsfield pendente: HIGGSFIELD_API_KEY_ID ou HIGGSFIELD_API_SECRET não encontrados.");
   }
 
@@ -25,6 +26,7 @@ export const generateHiggsfieldCreative = createServerFn({ method: "POST" })
   }) => d)
   .handler(async ({ data }) => {
     try {
+      console.log("Starting Higgsfield generation request:", { ...data, prompt: data.prompt.substring(0, 50) + "..." });
       const { keyId, secret } = getHiggsfieldCreds();
       
       const defaultModel = data.imageUrl 
@@ -33,34 +35,43 @@ export const generateHiggsfieldCreative = createServerFn({ method: "POST" })
         
       const modelId = data.modelId || defaultModel;
       
-      const baseUrl = new URL(`${BASE_URL}/${modelId}`);
+      // The endpoint is /v1/model/{model_id}
+      const url = new URL(`${BASE_URL}/model/${modelId}`);
       if (data.webhookUrl) {
-        baseUrl.searchParams.set("hf_webhook", data.webhookUrl);
+        url.searchParams.set("hf_webhook", data.webhookUrl);
       }
       
-      const res = await fetch(baseUrl.toString(), {
+      console.log(`Calling Higgsfield API: ${url.toString()}`);
+      
+      const payload = {
+        prompt: data.prompt,
+        image_url: data.imageUrl,
+        duration: data.duration,
+        aspect_ratio: data.aspectRatio || "9:16",
+        resolution: data.resolution || "720p",
+      };
+
+      const res = await fetch(url.toString(), {
         method: "POST",
         headers: {
           "Authorization": `Key ${keyId}:${secret}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          prompt: data.prompt,
-          image_url: data.imageUrl,
-          duration: data.duration,
-          aspect_ratio: data.aspectRatio || "9:16",
-          resolution: data.resolution || "720p",
-        }),
+        body: JSON.stringify(payload),
       });
 
-      const result = await res.json();
+      const result = await res.json().catch(() => ({}));
+      console.log(`Higgsfield API Response Status: ${res.status}`, result);
       
       if (!res.ok) {
-        throw new Error(result.message || result.error || "Erro ao solicitar geração Higgsfield");
+        const errorMsg = result.message || result.error || `Erro ${res.status}: Higgsfield API falhou`;
+        console.error("Higgsfield API Error:", errorMsg);
+        throw new Error(errorMsg);
       }
 
       return { ok: true as const, data: result };
     } catch (e: any) {
+      console.error("Exception in generateHiggsfieldCreative:", e);
       return { ok: false as const, error: e.message };
     }
   });
@@ -71,21 +82,27 @@ export const getHiggsfieldStatus = createServerFn({ method: "GET" })
     try {
       const { keyId, secret } = getHiggsfieldCreds();
       
-      const res = await fetch(`${BASE_URL}/requests/${data.requestId}/status`, {
+      const url = `${BASE_URL}/requests/${data.requestId}/status`;
+      console.log(`Checking Higgsfield status: ${url}`);
+
+      const res = await fetch(url, {
         method: "GET",
         headers: {
           "Authorization": `Key ${keyId}:${secret}`,
         },
       });
 
-      const result = await res.json();
+      const result = await res.json().catch(() => ({}));
       
       if (!res.ok) {
-        throw new Error(result.message || result.error || "Erro ao verificar status Higgsfield");
+        const errorMsg = result.message || result.error || `Erro ${res.status} ao verificar status`;
+        console.error("Higgsfield Status Error:", errorMsg);
+        throw new Error(errorMsg);
       }
 
       return { ok: true as const, data: result };
     } catch (e: any) {
+      console.error("Exception in getHiggsfieldStatus:", e);
       return { ok: false as const, error: e.message };
     }
   });
@@ -96,7 +113,10 @@ export const cancelHiggsfieldRequest = createServerFn({ method: "POST" })
     try {
       const { keyId, secret } = getHiggsfieldCreds();
       
-      const res = await fetch(`${BASE_URL}/requests/${data.requestId}/cancel`, {
+      const url = `${BASE_URL}/requests/${data.requestId}/cancel`;
+      console.log(`Canceling Higgsfield request: ${url}`);
+
+      const res = await fetch(url, {
         method: "POST",
         headers: {
           "Authorization": `Key ${keyId}:${secret}`,
@@ -110,6 +130,7 @@ export const cancelHiggsfieldRequest = createServerFn({ method: "POST" })
       const result = await res.json().catch(() => ({}));
       return { ok: false as const, error: result.message || "Não foi possível cancelar a solicitação." };
     } catch (e: any) {
+      console.error("Exception in cancelHiggsfieldRequest:", e);
       return { ok: false as const, error: e.message };
     }
   });
