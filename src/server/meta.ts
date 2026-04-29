@@ -742,26 +742,34 @@ export const getAccountCreatives = createServerFn({ method: "GET" })
 
 // ==================== UPLOAD IMAGE ====================
 export const uploadImage = createServerFn({ method: "POST" })
-  .inputValidator((d: { bytes: string; filename: string }) => d)
+  .inputValidator((d: { bytes?: string; url?: string; filename: string }) => d)
   .handler(async ({ data }) => {
     try {
       const { actId } = getCreds();
-      // Remove data:image/...;base64, prefix if present
-      const base64Data = data.bytes.includes(",") ? data.bytes.split(",")[1] : data.bytes;
+      let base64Data: string;
+
+      if (data.url) {
+        const response = await fetch(data.url);
+        const buffer = await response.arrayBuffer();
+        base64Data = Buffer.from(buffer).toString('base64');
+      } else if (data.bytes) {
+        base64Data = data.bytes.includes(",") ? data.bytes.split(",")[1] : data.bytes;
+      } else {
+        throw new Error("É necessário fornecer 'bytes' ou 'url' para o upload.");
+      }
       
       const res = await metaPost(`${actId}/adimages`, {
         bytes: base64Data,
         name: data.filename
       });
       
-      // Meta returns { images: { filename: { hash: "..." } } }
       const hash = Object.values(res.images || {})[0] as any;
       
       return { 
         ok: true as const, 
         data: { 
           id: "hash_" + hash.hash,
-          url: data.bytes
+          url: data.url || (data.bytes ? "base64_data" : "")
         } 
       };
     } catch (e) {
