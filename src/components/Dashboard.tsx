@@ -3294,7 +3294,16 @@ function AICreativesTab() {
 
     if (engine === "higgsfield") {
       try {
-        const res = await generateHiggsfieldCreative({ data: { prompt } });
+        const res = await generateHiggsfieldCreative({ 
+          data: { 
+            prompt, 
+            modelId, 
+            aspectRatio, 
+            resolution, 
+            imageUrl: imageUrl || undefined,
+            duration: modelId.includes("dop") ? duration : undefined
+          } 
+        });
         if (res.ok) {
           setRequestId(res.data.request_id);
           setStatus(res.data.status);
