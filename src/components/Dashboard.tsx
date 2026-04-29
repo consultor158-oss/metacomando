@@ -3250,8 +3250,13 @@ function AICreativesTab() {
   const [isUploading, setIsUploading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [prompt, setPrompt] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [engine, setEngine] = useState("higgsfield");
+  const [modelId, setModelId] = useState("higgsfield-ai/soul/standard");
+  const [aspectRatio, setAspectRatio] = useState("9:16");
+  const [resolution, setResolution] = useState("720p");
+  const [duration, setDuration] = useState(5);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
 
