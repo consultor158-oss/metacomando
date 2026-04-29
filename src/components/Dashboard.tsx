@@ -3260,6 +3260,7 @@ function AICreativesTab() {
   const [duration, setDuration] = useState(5);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [useWebhook, setUseWebhook] = useState(false);
 
   const handleCheckStatus = async (rid: string) => {
     try {
